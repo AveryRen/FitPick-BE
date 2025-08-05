@@ -7,7 +7,7 @@ public partial class User
 {
     public int Userid { get; set; }
 
-    public string? Fullname { get; set; }
+    public string? Name { get; set; }
 
     public string Email { get; set; } = null!;
 
@@ -23,10 +23,15 @@ public partial class User
 
     public string? City { get; set; }
 
+    public string? Gender { get; set; } 
+
+    public string? Role { get; set; }   
+
     public DateTime? Createdat { get; set; }
 
     public DateTime? Updatedat { get; set; }
 
+    // Navigation properties
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
 
     public virtual ICollection<Chatbotlog> Chatbotlogs { get; set; } = new List<Chatbotlog>();
