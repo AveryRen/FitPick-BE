@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FitPick.Repository\FitPick.Repository.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="Helpers\" />
     <Folder Include="Interfaces\" />
