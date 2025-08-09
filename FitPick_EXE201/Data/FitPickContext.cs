@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using FitPick_EXE201.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FitPick_EXE201.Models;
+namespace FitPick_EXE201.Data;
 
-public partial class FitPickDbContext : DbContext
+public partial class FitPickContext : DbContext
 {
-    public FitPickDbContext()
+    public FitPickContext()
     {
     }
 
-    public FitPickDbContext(DbContextOptions<FitPickDbContext> options)
+    public FitPickContext(DbContextOptions<FitPickContext> options)
         : base(options)
     {
     }
@@ -26,9 +26,13 @@ public partial class FitPickDbContext : DbContext
 
     public virtual DbSet<Gender> Genders { get; set; }
 
+    public virtual DbSet<Healthgoal> Healthgoals { get; set; }
+
     public virtual DbSet<Healthprofile> Healthprofiles { get; set; }
 
     public virtual DbSet<Ingredient> Ingredients { get; set; }
+
+    public virtual DbSet<Lifestyle> Lifestyles { get; set; }
 
     public virtual DbSet<Location> Locations { get; set; }
 
@@ -140,11 +144,21 @@ public partial class FitPickDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("genders_pkey");
         });
 
+        modelBuilder.Entity<Healthgoal>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("healthgoals_pkey");
+        });
+
         modelBuilder.Entity<Healthprofile>(entity =>
         {
             entity.HasKey(e => e.Profileid).HasName("healthprofiles_pkey");
 
+            entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Healthgoal).WithMany(p => p.Healthprofiles).HasConstraintName("healthprofiles_healthgoalid_fkey");
+
+            entity.HasOne(d => d.Lifestyle).WithMany(p => p.Healthprofiles).HasConstraintName("healthprofiles_lifestyleid_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.Healthprofiles)
                 .OnDelete(DeleteBehavior.Cascade)
@@ -154,11 +168,20 @@ public partial class FitPickDbContext : DbContext
         modelBuilder.Entity<Ingredient>(entity =>
         {
             entity.HasKey(e => e.Ingredientid).HasName("ingredients_pkey");
+
+            entity.Property(e => e.Status).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<Lifestyle>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("lifestyles_pkey");
         });
 
         modelBuilder.Entity<Location>(entity =>
         {
             entity.HasKey(e => e.Locationid).HasName("locations_pkey");
+
+            entity.Property(e => e.Status).HasDefaultValue(true);
 
             entity.HasOne(d => d.Type).WithMany(p => p.Locations).HasConstraintName("locations_type_id_fkey");
         });
@@ -326,38 +349,15 @@ public partial class FitPickDbContext : DbContext
         {
             entity.HasKey(e => e.Userid).HasName("users_pkey");
 
-            entity.Property(e => e.Userid).HasColumnName("userid");
-            entity.Property(e => e.Fullname).HasColumnName("fullname");
-            entity.Property(e => e.Email).HasColumnName("email");
-            entity.Property(e => e.Passwordhash).HasColumnName("passwordhash");
-            entity.Property(e => e.GenderId).HasColumnName("gender_id");
-            entity.Property(e => e.RoleId).HasColumnName("role_id");
-            entity.Property(e => e.Createdat)
-                .HasColumnName("createdat")
-                .HasColumnType("timestamp without time zone")
-                .HasDefaultValueSql("now()");
-            entity.Property(e => e.Updatedat)
-                .HasColumnName("updatedat")
-                .HasColumnType("timestamp without time zone")
-                .HasDefaultValueSql("now()");
-            entity.Property(e => e.Age).HasColumnName("age");
-            entity.Property(e => e.Height).HasColumnName("height");
-            entity.Property(e => e.Weight).HasColumnName("weight");
-            entity.Property(e => e.Country).HasColumnName("country");
-            entity.Property(e => e.City).HasColumnName("city");
+            entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.RoleId).HasDefaultValue(2);
+            entity.Property(e => e.Status).HasDefaultValue(true);
+            entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
 
-             entity.HasOne(d => d.Gender)
-                .WithMany(p => p.Users)
-                .HasForeignKey(d => d.GenderId)
-                .HasConstraintName("users_gender_id_fkey");
+            entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
 
-             entity.HasOne(d => d.Role)
-                .WithMany(p => p.Users)
-                .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("users_role_id_fkey");
+            entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
         });
-
-
 
         modelBuilder.Entity<UserRole>(entity =>
         {

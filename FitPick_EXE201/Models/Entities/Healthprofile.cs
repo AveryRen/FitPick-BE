@@ -17,25 +17,22 @@ public partial class Healthprofile
     public int? Userid { get; set; }
 
     [Column("allergies")]
-    public string? Allergies { get; set; }
+    public List<int>? Allergies { get; set; }
 
     [Column("chronicdiseases")]
-    public string? Chronicdiseases { get; set; }
+    public List<int>? Chronicdiseases { get; set; }
 
     [Column("religiondiet")]
-    [StringLength(100)]
-    public string? Religiondiet { get; set; }
+    public List<int>? Religiondiet { get; set; }
 
     [Column("dietarypreferences")]
-    public string? Dietarypreferences { get; set; }
+    public List<int>? Dietarypreferences { get; set; }
 
-    [Column("healthgoal")]
-    [StringLength(50)]
-    public string? Healthgoal { get; set; }
+    [Column("healthgoalid")]
+    public int? Healthgoalid { get; set; }
 
-    [Column("lifestyle")]
-    [StringLength(50)]
-    public string? Lifestyle { get; set; }
+    [Column("lifestyleid")]
+    public int? Lifestyleid { get; set; }
 
     [Column("dailymeals")]
     public int? Dailymeals { get; set; }
@@ -43,8 +40,19 @@ public partial class Healthprofile
     [Column("targetcalories")]
     public int? Targetcalories { get; set; }
 
+    [Column("status")]
+    public bool? Status { get; set; }
+
     [Column("updatedat", TypeName = "timestamp without time zone")]
     public DateTime? Updatedat { get; set; }
+
+    [ForeignKey("Healthgoalid")]
+    [InverseProperty("Healthprofiles")]
+    public virtual Healthgoal? Healthgoal { get; set; }
+
+    [ForeignKey("Lifestyleid")]
+    [InverseProperty("Healthprofiles")]
+    public virtual Lifestyle? Lifestyle { get; set; }
 
     [ForeignKey("Userid")]
     [InverseProperty("Healthprofiles")]

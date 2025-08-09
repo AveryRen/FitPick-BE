@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System;
+using FitPick_EXE201.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
 // ✅ Add DbContext (fix lỗi DI)
-builder.Services.AddDbContext<FitPickDbContext>(options =>
+builder.Services.AddDbContext<FitPickContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
@@ -79,8 +80,13 @@ var app = builder.Build();
 //if (app.Environment.IsDevelopment())
 //{
 //    app.UseSwagger();
-//    app.UseSwaggerUI();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API v1");
+//        c.RoutePrefix = string.Empty;
+//    });
 //}
+
 
 app.UseHttpsRedirection();
 

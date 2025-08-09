@@ -1,4 +1,5 @@
-﻿using FitPick_EXE201.Models;
+﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Models;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -14,10 +15,10 @@ namespace FitPick_EXE201.Services
     public class AuthService
     {
         private readonly IAuthRepo _authRepo;
-        private readonly FitPickDbContext _context;
+        private readonly FitPickContext _context;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthService(FitPickDbContext context, IAuthRepo authRepo, IOptions<JwtSettings> jwtOptions)
+        public AuthService(FitPickContext context, IAuthRepo authRepo, IOptions<JwtSettings> jwtOptions)
         {
             _context = context;
             _authRepo = authRepo;
@@ -41,12 +42,13 @@ namespace FitPick_EXE201.Services
                 Passwordhash = hashedPassword,
                 Fullname = dto.Email.Split('@')[0],
                 RoleId = 2,
-                Createdat = DateTime.Now
+                Createdat = DateTime.Now,
+                Status = true
             };
 
             await _authRepo.AddAsync(newAccount);
             return true;
-        } 
+        }
         public string GenerateAccessToken(User acc)
         {
             var claims = new[]
@@ -98,6 +100,9 @@ namespace FitPick_EXE201.Services
         {
             var account = await _authRepo.GetAccountByEmailAsync(dto.Email);
             if (account == null) return null;
+
+            //Kiểm tra status
+            if (account.Status == false) return null;
 
             var isValidPassword = BCrypt.Net.BCrypt.Verify(dto.Password, account.Passwordhash);
             if (!isValidPassword) return null;

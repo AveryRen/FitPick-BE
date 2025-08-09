@@ -3,14 +3,15 @@ using System.Security.Principal;
 using FitPick_EXE201.Models;
 using Microsoft.EntityFrameworkCore;
 using FitPick_EXE201.Repositories.Interface;
+using FitPick_EXE201.Data;
 
 namespace FitPick_EXE201.Repositories.Repo
 {
     public class AuthRepo : IAuthRepo
     {
-        private readonly FitPickDbContext _context;
+        private readonly FitPickContext _context;
 
-        public AuthRepo(FitPickDbContext context)
+        public AuthRepo(FitPickContext context)
         {
             _context = context;
         }

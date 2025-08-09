@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FitPick_EXE201.Models.Entities;
 
 [Table("users")]
+[Index("Email", Name = "users_email_key", IsUnique = true)]
 public partial class User
 {
     [Key]
@@ -50,6 +51,9 @@ public partial class User
     [Column("role_id")]
     public int? RoleId { get; set; }
 
+    [Column("status")]
+    public bool? Status { get; set; }
+
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
 
@@ -81,7 +85,7 @@ public partial class User
     [InverseProperty("User")]
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-    [ForeignKey("RoleId")]  
+    [ForeignKey("RoleId")]
     [InverseProperty("Users")]
     public virtual UserRole? Role { get; set; }
 

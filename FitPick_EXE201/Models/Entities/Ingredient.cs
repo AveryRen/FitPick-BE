@@ -25,6 +25,9 @@ public partial class Ingredient
     [StringLength(20)]
     public string? Unit { get; set; }
 
+    [Column("status")]
+    public bool? Status { get; set; }
+
     [InverseProperty("Ingredient")]
     public virtual ICollection<Locationingredient> Locationingredients { get; set; } = new List<Locationingredient>();
 

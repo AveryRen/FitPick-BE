@@ -32,6 +32,9 @@ public partial class Location
     [Column("type_id")]
     public int? TypeId { get; set; }
 
+    [Column("status")]
+    public bool? Status { get; set; }
+
     [InverseProperty("Location")]
     public virtual ICollection<Locationingredient> Locationingredients { get; set; } = new List<Locationingredient>();
 
