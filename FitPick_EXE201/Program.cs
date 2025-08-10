@@ -1,15 +1,16 @@
-﻿using FitPick_EXE201.Repositories.Interface;
+﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Models;
+using FitPick_EXE201.Repositories.Interface;
 using FitPick_EXE201.Repositories.Repo;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Settings;
-using FitPick_EXE201.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using System;
-using FitPick_EXE201.Data;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,10 @@ builder.Services.AddEndpointsApiExplorer();
 // ✅ Register your services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
+builder.Services.AddScoped<HealthprofileService>();
+builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
