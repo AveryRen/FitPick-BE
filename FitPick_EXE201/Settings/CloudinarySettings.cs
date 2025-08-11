@@ -1,0 +1,9 @@
+﻿namespace FitPick_EXE201.Settings
+{
+    public class CloudinarySettings
+    {
+        public string CloudName { get; set; } = null!;
+        public string ApiKey { get; set; } = null!;
+        public string ApiSecret { get; set; } = null!;
+    }
+}

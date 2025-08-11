@@ -15,10 +15,7 @@ public partial class Blogpost
 
     [Column("title")]
     [StringLength(200)]
-    public string? Title { get; set; }
-
-    [Column("shortdescription")]
-    public string? Shortdescription { get; set; }
+    public string Title { get; set; } = null!;
 
     [Column("content")]
     public string? Content { get; set; }
@@ -26,8 +23,11 @@ public partial class Blogpost
     [Column("authorid")]
     public int? Authorid { get; set; }
 
-    [Column("status_id")]
-    public int? StatusId { get; set; }
+    [Column("categoryid")]
+    public int? Categoryid { get; set; }
+
+    [Column("status")]
+    public bool Status { get; set; }
 
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
@@ -39,7 +39,10 @@ public partial class Blogpost
     [InverseProperty("Blogposts")]
     public virtual User? Author { get; set; }
 
-    [ForeignKey("StatusId")]
+    [InverseProperty("Blog")]
+    public virtual ICollection<BlogMedium> BlogMedia { get; set; } = new List<BlogMedium>();
+
+    [ForeignKey("Categoryid")]
     [InverseProperty("Blogposts")]
-    public virtual BlogStatus? Status { get; set; }
+    public virtual BlogCategory? Category { get; set; }
 }
