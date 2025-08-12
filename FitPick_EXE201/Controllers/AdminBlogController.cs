@@ -5,6 +5,7 @@ using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.DTOs;
+using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -138,12 +139,13 @@ namespace FitPick_EXE201.Controllers
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateBlog(
-            [FromForm] string title,
-            [FromForm] string content,
-            [FromForm] int categoryId,
-            [FromForm] int authorId,
-            [FromForm] List<IFormFile>? files)
+    [FromForm] string title,
+    [FromForm] string content,
+    [FromForm] int categoryId,
+    [FromForm] List<IFormFile>? files)
         {
+            var authorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             var blog = new Blogpost
             {
                 Title = title,
@@ -173,6 +175,7 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<string>.SuccessResponse("OK", "Tạo blog thành công"));
         }
+
 
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
