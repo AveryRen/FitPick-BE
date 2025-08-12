@@ -56,7 +56,7 @@ namespace FitPick_EXE201.Services
                 new Claim(JwtRegisteredClaimNames.Sub, acc.Userid.ToString()),
                 new Claim("id", acc.Userid.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, acc.Email),
-                new Claim(ClaimTypes.Role, acc.Role?.Name ?? "User"),
+                new Claim(ClaimTypes.Role, acc.Role?.Name ?? "Guest"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

@@ -16,7 +16,9 @@ public partial class FitPickContext : DbContext
     {
     }
 
-    public virtual DbSet<BlogStatus> BlogStatuses { get; set; }
+    public virtual DbSet<BlogCategory> BlogCategories { get; set; }
+
+    public virtual DbSet<BlogMedium> BlogMedia { get; set; }
 
     public virtual DbSet<Blogpost> Blogposts { get; set; }
 
@@ -74,9 +76,9 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,9 +97,18 @@ public partial class FitPickContext : DbContext
             .HasPostgresExtension("graphql", "pg_graphql")
             .HasPostgresExtension("vault", "supabase_vault");
 
-        modelBuilder.Entity<BlogStatus>(entity =>
+        modelBuilder.Entity<BlogCategory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("blog_statuses_pkey");
+            entity.HasKey(e => e.Categoryid).HasName("blog_category_pkey");
+        });
+
+        modelBuilder.Entity<BlogMedium>(entity =>
+        {
+            entity.HasKey(e => e.MediaId).HasName("blog_media_pkey");
+
+            entity.Property(e => e.OrderIndex).HasDefaultValue(0);
+
+            entity.HasOne(d => d.Blog).WithMany(p => p.BlogMedia).HasConstraintName("blog_media_blog_id_fkey");
         });
 
         modelBuilder.Entity<Blogpost>(entity =>
@@ -105,14 +116,16 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Postid).HasName("blogposts_pkey");
 
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
-            entity.Property(e => e.StatusId).HasDefaultValue(2);
+            entity.Property(e => e.Status).HasDefaultValue(false);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
 
             entity.HasOne(d => d.Author).WithMany(p => p.Blogposts)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("blogposts_authorid_fkey");
 
-            entity.HasOne(d => d.Status).WithMany(p => p.Blogposts).HasConstraintName("blogposts_status_id_fkey");
+            entity.HasOne(d => d.Category).WithMany(p => p.Blogposts)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("blogposts_categoryid_fkey");
         });
 
         modelBuilder.Entity<Chatbotlog>(entity =>
