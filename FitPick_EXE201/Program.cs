@@ -79,7 +79,8 @@ builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<IUserBlogRepo, UserBlogRepo>();
 builder.Services.AddScoped<UserBlogService>();
 
-
+builder.Services.AddScoped<IAdminBlogRepo, AdminBlogRepo>();
+builder.Services.AddScoped<AdminBlogService>();
 
 builder.Services.AddScoped<CloudinaryService>();
 
@@ -87,15 +88,15 @@ builder.Services.AddScoped<CloudinaryService>();
 var app = builder.Build();
 
 // Swagger UI (Local Host)
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API v1");
-        c.RoutePrefix = string.Empty;
-    });
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API v1");
+//        c.RoutePrefix = string.Empty;
+//    });
+//}
 
 
 app.UseHttpsRedirection();
@@ -112,16 +113,16 @@ app.Use(async (context, next) =>
 });
 
 //To deploy
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-//app.Urls.Add($"http://*:{port}");
-//Console.WriteLine($"Listening on port {port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
+Console.WriteLine($"Listening on port {port}");
 
-//app.UseSwagger();
-//app.UseSwaggerUI(c =>
-//{
-//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-//    c.RoutePrefix = "swagger";  // Để swagger UI chạy ở /swagger thay vì /
-//});
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = "swagger";  // Để swagger UI chạy ở /swagger thay vì /
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
