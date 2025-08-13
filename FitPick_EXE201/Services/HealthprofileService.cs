@@ -23,18 +23,19 @@ namespace FitPick_EXE201.Services
             //_subjectService = subjectService;
         }
 
-        public async Task<HealthprofileDTO?> CreateHealthprofileAsync(HealthprofileRequest request)
+        public async Task<HealthprofileDTO?> CreateHealthprofileAsync(int userId, HealthprofileRequest request)
         {
             var healthprofile = _mapper.Map<Healthprofile>(request);
+            healthprofile.Userid = userId; // Gán từ JWT
             healthprofile.Status = true;
 
             // ====== TÍNH TARGET CALORIES ======
             double? calories = null;
 
-            if (request.Userid.HasValue && request.Height.HasValue && request.Weight.HasValue && request.Age.HasValue)
+            if (request.Height.HasValue && request.Weight.HasValue && request.Age.HasValue)
             {
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Userid == request.Userid.Value);
+                    .FirstOrDefaultAsync(u => u.Userid == userId);
 
                 double height = request.Height.Value;
                 double weight = request.Weight.Value;
@@ -137,6 +138,7 @@ namespace FitPick_EXE201.Services
 
             return healthprofileDto;
         }
+
 
         public async Task<HealthprofileDTO?> GetByUserIdAsync(int userId)
         {

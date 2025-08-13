@@ -2,7 +2,6 @@
 {
     public class HealthprofileRequest
     {
-        public int? Userid { get; set; }
         public List<int>? Allergies { get; set; }
         public List<int>? Chronicdiseases { get; set; }
         public List<int>? Religiondiet { get; set; }
