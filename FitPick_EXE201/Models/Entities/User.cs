@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Models.Entities;
@@ -71,6 +72,8 @@ public partial class User
 
     [ForeignKey("GenderId")]
     [InverseProperty("Users")]
+    [JsonIgnore]
+
     public virtual Gender? Gender { get; set; }
 
     [InverseProperty("User")]
@@ -87,10 +90,8 @@ public partial class User
 
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
+    [JsonIgnore]
     public virtual UserRole? Role { get; set; }
-
-    [InverseProperty("User")]
-    public virtual ICollection<Shoppinglist> Shoppinglists { get; set; } = new List<Shoppinglist>();
 
     [InverseProperty("User")]
     public virtual ICollection<Spendinglog> Spendinglogs { get; set; } = new List<Spendinglog>();

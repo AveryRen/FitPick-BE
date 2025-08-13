@@ -88,6 +88,8 @@ builder.Services.AddScoped<UserBlogService>();
 builder.Services.AddScoped<IAdminBlogRepo, AdminBlogRepo>();
 builder.Services.AddScoped<AdminBlogService>();
 
+builder.Services.AddScoped<IAdminManageUserRepo, AdminManageUserRepo>();
+builder.Services.AddScoped<AdminManageUserService>();
 builder.Services.AddScoped<CloudinaryService>();
 
 

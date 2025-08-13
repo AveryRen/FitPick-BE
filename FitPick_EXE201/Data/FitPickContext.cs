@@ -36,12 +36,6 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<Lifestyle> Lifestyles { get; set; }
 
-    public virtual DbSet<Location> Locations { get; set; }
-
-    public virtual DbSet<LocationType> LocationTypes { get; set; }
-
-    public virtual DbSet<Locationingredient> Locationingredients { get; set; }
-
     public virtual DbSet<Meal> Meals { get; set; }
 
     public virtual DbSet<MealCategory> MealCategories { get; set; }
@@ -60,10 +54,6 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<PlanStatus> PlanStatuses { get; set; }
 
-    public virtual DbSet<ShoppingStatus> ShoppingStatuses { get; set; }
-
-    public virtual DbSet<Shoppinglist> Shoppinglists { get; set; }
-
     public virtual DbSet<Spendinglog> Spendinglogs { get; set; }
 
     public virtual DbSet<Subscription> Subscriptions { get; set; }
@@ -76,9 +66,9 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
+//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+//        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -190,35 +180,6 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Id).HasName("lifestyles_pkey");
         });
 
-        modelBuilder.Entity<Location>(entity =>
-        {
-            entity.HasKey(e => e.Locationid).HasName("locations_pkey");
-
-            entity.Property(e => e.Status).HasDefaultValue(true);
-
-            entity.HasOne(d => d.Type).WithMany(p => p.Locations).HasConstraintName("locations_type_id_fkey");
-        });
-
-        modelBuilder.Entity<LocationType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("location_types_pkey");
-        });
-
-        modelBuilder.Entity<Locationingredient>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("locationingredients_pkey");
-
-            entity.Property(e => e.Availability).HasDefaultValue(true);
-
-            entity.HasOne(d => d.Ingredient).WithMany(p => p.Locationingredients)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("locationingredients_ingredientid_fkey");
-
-            entity.HasOne(d => d.Location).WithMany(p => p.Locationingredients)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("locationingredients_locationid_fkey");
-        });
-
         modelBuilder.Entity<Meal>(entity =>
         {
             entity.HasKey(e => e.Mealid).HasName("meals_pkey");
@@ -304,24 +265,6 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<PlanStatus>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("plan_statuses_pkey");
-        });
-
-        modelBuilder.Entity<ShoppingStatus>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("shopping_statuses_pkey");
-        });
-
-        modelBuilder.Entity<Shoppinglist>(entity =>
-        {
-            entity.HasKey(e => e.Listid).HasName("shoppinglists_pkey");
-
-            entity.Property(e => e.StatusId).HasDefaultValue(1);
-
-            entity.HasOne(d => d.Status).WithMany(p => p.Shoppinglists).HasConstraintName("shoppinglists_status_id_fkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Shoppinglists)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("shoppinglists_userid_fkey");
         });
 
         modelBuilder.Entity<Spendinglog>(entity =>

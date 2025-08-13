@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -53,15 +54,26 @@ namespace FitPick_EXE201.Controllers
 
 
         // GET api/healthprofile/user/{userid}
-        [HttpGet("user/{userid}")]
-        public async Task<ActionResult<ApiResponse<HealthprofileDTO>>> GetByUserId(int userid)
+        [HttpGet("user")]
+        public async Task<ActionResult<ApiResponse<HealthprofileDTO>>> GetByUserId()
         {
-            var profile = await _service.GetByUserIdAsync(userid);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(ApiResponse<HealthprofileDTO>.ErrorResponse(
+                    new List<string> { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            var profile = await _service.GetByUserIdAsync(userId);
             if (profile == null)
+            {
                 return NotFound(ApiResponse<HealthprofileDTO>.ErrorResponse(
                     new List<string> { "Health profile not found for this user." },
                     "Health profile not found for this user."
                 ));
+            }
 
             return Ok(ApiResponse<HealthprofileDTO>.SuccessResponse(profile, "Get By UserId successfully"));
         }

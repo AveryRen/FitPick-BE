@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Models.Entities;
@@ -19,5 +20,6 @@ public partial class UserRole
     public string Name { get; set; } = null!;
 
     [InverseProperty("Role")]
+    [JsonIgnore]
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

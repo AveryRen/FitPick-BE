@@ -29,8 +29,5 @@ public partial class Ingredient
     public bool? Status { get; set; }
 
     [InverseProperty("Ingredient")]
-    public virtual ICollection<Locationingredient> Locationingredients { get; set; } = new List<Locationingredient>();
-
-    [InverseProperty("Ingredient")]
     public virtual ICollection<Mealingredient> Mealingredients { get; set; } = new List<Mealingredient>();
 }
