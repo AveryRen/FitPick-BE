@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using FitPick_EXE201.Data;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,7 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSetting
 builder.Services.AddDbContext<FitPickContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 // Add JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -78,6 +81,15 @@ builder.Services.AddScoped<HealthprofileService>();
 builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddScoped<IUserBlogRepo, UserBlogRepo>();
+builder.Services.AddScoped<UserBlogService>();
+
+builder.Services.AddScoped<IAdminBlogRepo, AdminBlogRepo>();
+builder.Services.AddScoped<AdminBlogService>();
+
+builder.Services.AddScoped<CloudinaryService>();
+
 
 var app = builder.Build();
 
