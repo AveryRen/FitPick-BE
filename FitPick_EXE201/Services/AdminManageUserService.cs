@@ -38,36 +38,59 @@ namespace FitPick_EXE201.Services
             return await _userRepo.GetUserByIdForAdminAsync(id);
         }
 
-        // Create new user
         public async Task<User> CreateUserAsync(User user)
         {
-            user.Status = user.Status ?? true;
-            return await _userRepo.CreateUserAsync(user);
+            // Check trùng email
+            var existingUser = await _userRepo.GetByEmailAsync(user.Email);
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("Email đã tồn tại.");
+            }
+
+             if (user.RoleId <= 0)
+            {
+                user.RoleId = 2; 
+            }
+
+             if (!string.IsNullOrWhiteSpace(user.Passwordhash))
+            {
+                user.Passwordhash = BCrypt.Net.BCrypt.HashPassword(user.Passwordhash);
+            }
+
+             user.Status = user.Status ?? true;
+
+             user.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            user.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+             return await _userRepo.CreateUserAsync(user);
         }
 
         public async Task<bool> UpdateUserAsync(int id, AdminUserDetailDto dto)
         {
-            var user = await _userRepo.GetUserByIdForAdminAsync(id);
+            var user = await _userRepo.GetUserEntityByIdAsync(id);
             if (user == null) return false;
 
-            // Chỉ cập nhật những field cho phép
+            // Check email trùng (ngoại trừ chính user đang update)
+            if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
+            {
+                var existingUser = await _userRepo.GetByEmailAsync(dto.Email);
+                if (existingUser != null && existingUser.Userid != id)
+                    throw new InvalidOperationException($"Email '{dto.Email}' is already in use by another user.");
+
+                user.Email = dto.Email;
+            }
+
             if (!string.IsNullOrWhiteSpace(dto.Fullname))
                 user.Fullname = dto.Fullname;
 
-            if (!string.IsNullOrWhiteSpace(dto.Email))
-                user.Email = dto.Email;
-
-            if (dto.GenderId > 0) // GenderId là int, internal set, >0 mới cập nhật
-                user.GenderId = dto.GenderId;
-
             if (dto.Age.HasValue)
-                user.Age = dto.Age;
+                user.Age = dto.Age.Value;
 
             if (dto.Height.HasValue)
-                user.Height = dto.Height;
+                user.Height = dto.Height.Value;
 
             if (dto.Weight.HasValue)
-                user.Weight = dto.Weight;
+                user.Weight = dto.Weight.Value;
 
             if (!string.IsNullOrWhiteSpace(dto.Country))
                 user.Country = dto.Country;
@@ -75,13 +98,18 @@ namespace FitPick_EXE201.Services
             if (!string.IsNullOrWhiteSpace(dto.City))
                 user.City = dto.City;
 
+            if (dto.GenderId.HasValue)
+                user.GenderId = dto.GenderId.Value;
+
             if (dto.RoleId.HasValue)
-                user.RoleId = dto.RoleId;
+                user.RoleId = dto.RoleId.Value;
 
             if (dto.Status.HasValue)
-                user.Status = dto.Status;
- 
-            return await _userRepo.UpdateUserAsync(id, user);
+                user.Status = dto.Status.Value;
+
+            user.Updatedat = DateTime.Now;
+
+            return await _userRepo.UpdateUserAsync(user);
         }
 
 

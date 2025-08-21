@@ -10,12 +10,17 @@ namespace FitPick_EXE201.Repositories.Repo
     public class AdminManageUserRepo : IAdminManageUserRepo
     {
         private readonly FitPickContext _context;
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        }
 
         public AdminManageUserRepo(FitPickContext context)
         {
             _context = context;
         }
-
         public async Task<IEnumerable<User>> GetAllUsersAsync(
             int currentAdminId,
             string? searchKeyword,
@@ -24,7 +29,7 @@ namespace FitPick_EXE201.Repositories.Repo
             int? genderId,
             int? roleId,
             bool? status
-)
+                            )
         {
             var query = _context.Users
                 .Where(u => u.Userid != currentAdminId)
@@ -75,10 +80,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             return await query.ToListAsync();
         }
-
-
-
-
+     
         // Lấy user theo ID
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
         {
@@ -96,80 +98,51 @@ namespace FitPick_EXE201.Repositories.Repo
                     Weight = u.Weight,
                     Country = u.Country,
                     City = u.City,
-                    Role = u.Role != null ? u.Role.Name : "",
-                    Status = u.Status, 
+                    Role = u.Role != null ? u.Role.Name : null,
+                    Status = u.Status,
                     GenderId = (int)u.GenderId,
                     RoleId = u.RoleId
                 })
                 .FirstOrDefaultAsync();
         }
-
-
-
-        // Tạo mới user
+        public async Task<User?> GetUserEntityByIdAsync(int id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
         public async Task<User> CreateUserAsync(User user)
         {
-            if (user.RoleId <= 0)
-            {
-                user.RoleId = 2;
-            }
-
-            if (!string.IsNullOrWhiteSpace(user.Passwordhash))
-            {
-                user.Passwordhash = BCrypt.Net.BCrypt.HashPassword(user.Passwordhash);
-            }
-            user.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-            user.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-
             return user;
         }
 
 
-        public async Task<bool> UpdateUserAsync(int id, AdminUserDetailDto dto)
+        public async Task<bool> UpdateUserAsync(User user)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return false;
+            var existingUser = await _context.Users.FindAsync(user.Userid);
+            if (existingUser == null)
+                return false;
 
-            // Chỉ cập nhật những field cho phép
-            if (!string.IsNullOrWhiteSpace(dto.Fullname))
-                user.Fullname = dto.Fullname;
+            // Cập nhật field
+            existingUser.Fullname = user.Fullname;
+            existingUser.Email = user.Email;
+            existingUser.GenderId = user.GenderId;
+            existingUser.Age = user.Age;
+            existingUser.Height = user.Height;
+            existingUser.Weight = user.Weight;
+            existingUser.Country = user.Country;
+            existingUser.City = user.City;
+            existingUser.RoleId = user.RoleId;
+            existingUser.Status = user.Status;
 
-            if (!string.IsNullOrWhiteSpace(dto.Email))
-                user.Email = dto.Email;
+            existingUser.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
-            if (dto.GenderId > 0) // GenderId là int, internal set, >0 mới cập nhật
-                user.GenderId = dto.GenderId;
-
-            if (dto.Age.HasValue)
-                user.Age = dto.Age;
-
-            if (dto.Height.HasValue)
-                user.Height = dto.Height;
-
-            if (dto.Weight.HasValue)
-                user.Weight = dto.Weight;
-
-            if (!string.IsNullOrWhiteSpace(dto.Country))
-                user.Country = dto.Country;
-
-            if (!string.IsNullOrWhiteSpace(dto.City))
-                user.City = dto.City;
-
-            if (dto.RoleId.HasValue && dto.RoleId.Value > 0)
-                user.RoleId = dto.RoleId;
-
-            if (dto.Status.HasValue)
-                user.Status = dto.Status;
-
-            user.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-
-            _context.Users.Update(user);
+            _context.Users.Update(existingUser);
             await _context.SaveChangesAsync();
+
             return true;
         }
+
 
 
         public async Task<bool> DeleteUserAsync(int id)
@@ -181,6 +154,7 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+
 
     }
 }

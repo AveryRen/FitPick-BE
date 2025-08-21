@@ -16,8 +16,13 @@ namespace FitPick_EXE201.Repositories.Interface
             bool? status
         );
         Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id);
+        Task<User?> GetUserEntityByIdAsync(int id);
+
         Task<User> CreateUserAsync(User user);
-        Task<bool> UpdateUserAsync(int id, AdminUserDetailDto dto);
+        Task<bool> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(int id);
+
+        Task<User?> GetByEmailAsync(string email);
+
     }
 }

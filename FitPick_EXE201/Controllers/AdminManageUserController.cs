@@ -8,6 +8,7 @@ using FitPick_EXE201.Models.Requests;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -63,70 +64,83 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<AdminUserDetailDto>.SuccessResponse(user, "User retrieved successfully"));
         }
 
-        // Tạo user mới
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
         {
-            if (request == null)
-                return BadRequest("Invalid request data");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var newUser = new User
+            try
             {
-                Fullname = request.FullName,
-                Email = request.Email,
-                Passwordhash = request.Password,  
-                GenderId = request.GenderId,
-                Age = request.Age,
-                Height = request.Height,
-                Weight = request.Weight,
-                Country = request.Country,
-                City = request.City,
-                RoleId = request.RoleId,
-                Createdat = DateTime.Now,
-                Updatedat = DateTime.Now
-            };
+                var newUser = new User
+                {
+                    Fullname = request.FullName,
+                    Email = request.Email,
+                    Passwordhash = request.Password, 
+                    GenderId = request.GenderId,
+                    Age = request.Age,
+                    Height = request.Height,
+                    Weight = request.Weight,
+                    Country = request.Country,
+                    City = request.City,
+                    RoleId = request.RoleId
+                };
 
-            var created = await _userService.CreateUserAsync(newUser);
+                var createdUser = await _userService.CreateUserAsync(newUser);
 
-            return CreatedAtAction(nameof(GetUserById), new { id = created.Userid }, created);
+                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Userid }, new
+                {
+                    createdUser.Userid,
+                    createdUser.Fullname,
+                    createdUser.Email,
+                    createdUser.RoleId,
+                    createdUser.Status
+                });
+            }
+            catch (InvalidOperationException ex) // Email đã tồn tại
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while creating the user.",
+                    detail = ex.Message
+                });
+            }
         }
-
-
-        // Cập nhật user
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse<string>>> UpdateUser(int id, [FromBody] AdminUserDetailDto dto)
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(int id, [FromBody] AdminUserDetailDto dto)
         {
-            if (dto == null)
-                return BadRequest(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Request body cannot be null" }, "Update failed"));
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<bool>.ErrorResponse(
+                    new List<string> { "Invalid request data" }, "Bad Request"));
 
-            var success = await _userService.UpdateUserAsync(id, dto);
+            var result = await _userService.UpdateUserAsync(id, dto);
 
-            if (!success)
-                return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { $"User with ID {id} not found" }, "Update failed"));
+            if (!result)
+            {
+                return NotFound(ApiResponse<bool>.ErrorResponse(
+                    new List<string> { $"User with ID {id} not found" }, "Not Found"));
+            }
 
-            return Ok(ApiResponse<string>.SuccessResponse(null, "User updated successfully"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "User updated successfully"));
         }
 
+
+        // ✅ Xoá mềm (deactivate) user
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ApiResponse<string>>> DeleteUser(int id)
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(int id)
         {
-            var user = await _userService.GetUserByIdForAdminAsync(id);
-            if (user == null)
+            var result = await _userService.DeleteUserAsync(id);
+            if (!result)
             {
-                return BadRequest(ApiResponse<string>.ErrorResponse(
-                    new List<string> { $"User with ID {id} does not exist" }, "Delete failed"));
+                return NotFound(ApiResponse<bool>.ErrorResponse(
+                    new List<string> { $"User with ID {id} not found" }, "Not Found"));
             }
 
-            var success = await _userService.DeleteUserAsync(id);
-            if (!success)
-            {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Server error while deleting user" }, "Delete failed"));
-            }
-
-            return Ok(ApiResponse<string>.SuccessResponse(null, $"User with ID {id} has been deleted successfully"));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "User deleted successfully"));
         }
     }
 }
