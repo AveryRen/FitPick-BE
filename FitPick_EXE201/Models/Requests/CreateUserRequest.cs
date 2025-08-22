@@ -12,5 +12,6 @@
         public string Country { get; set; }
         public string City { get; set; }
         public int RoleId { get; set; }
+        public IFormFile? Avatar { get; set; }
     }
 }

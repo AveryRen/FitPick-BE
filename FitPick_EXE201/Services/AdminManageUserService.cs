@@ -117,5 +117,14 @@ namespace FitPick_EXE201.Services
         {
             return await _userRepo.DeleteUserAsync(id);
         }
+        public async Task<bool> ChangePasswordAsync(int id, string newPassword)
+        {
+            var user = await _userRepo.GetUserEntityByIdAsync(id);
+            if (user == null) return false;
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            return await _userRepo.ChangePasswordAsync(id, hashedPassword);
+        }
     }
 }

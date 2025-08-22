@@ -80,7 +80,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             return await query.ToListAsync();
         }
-     
+
         // Lấy user theo ID
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
         {
@@ -101,10 +101,12 @@ namespace FitPick_EXE201.Repositories.Repo
                     Role = u.Role != null ? u.Role.Name : null,
                     Status = u.Status,
                     GenderId = (int)u.GenderId,
-                    RoleId = u.RoleId
+                    RoleId = u.RoleId,
+                    AvatarUrl = u.AvatarUrl
                 })
                 .FirstOrDefaultAsync();
         }
+
         public async Task<User?> GetUserEntityByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
@@ -154,7 +156,14 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> ChangePasswordAsync(int userId, string newPasswordHash)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
 
-
+            user.Passwordhash = newPasswordHash;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

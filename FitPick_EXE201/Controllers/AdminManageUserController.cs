@@ -65,61 +65,89 @@ namespace FitPick_EXE201.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+        public async Task<IActionResult> Create(
+         [FromForm] CreateUserRequest request,
+         [FromServices] CloudinaryService cloudinary)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            try
+            string? avatarUrl = null;
+            if (request.Avatar != null)
             {
-                var newUser = new User
-                {
-                    Fullname = request.FullName,
-                    Email = request.Email,
-                    Passwordhash = request.Password, 
-                    GenderId = request.GenderId,
-                    Age = request.Age,
-                    Height = request.Height,
-                    Weight = request.Weight,
-                    Country = request.Country,
-                    City = request.City,
-                    RoleId = request.RoleId
-                };
+                avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
+            }
 
-                var createdUser = await _userService.CreateUserAsync(newUser);
+            var newUser = new User
+            {
+                Fullname = request.FullName,
+                Email = request.Email,
+                Passwordhash = request.Password,
+                GenderId = request.GenderId,
+                Age = request.Age,
+                Height = request.Height,
+                Weight = request.Weight,
+                Country = request.Country,
+                City = request.City,
+                RoleId = request.RoleId,
+                AvatarUrl = avatarUrl,
+                Status = true 
+            };
 
-                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Userid }, new
-                {
-                    createdUser.Userid,
-                    createdUser.Fullname,
-                    createdUser.Email,
-                    createdUser.RoleId,
-                    createdUser.Status
-                });
-            }
-            catch (InvalidOperationException ex) // Email đã tồn tại
+            var createdUser = await _userService.CreateUserAsync(newUser);
+
+             var response = new
             {
-                return Conflict(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "An error occurred while creating the user.",
-                    detail = ex.Message
-                });
-            }
+                createdUser.Fullname,
+                createdUser.Email,
+                createdUser.GenderId,
+                createdUser.Age,
+                createdUser.Height,
+                createdUser.Weight,
+                createdUser.Country,
+                createdUser.City,
+                createdUser.RoleId,
+                createdUser.AvatarUrl,
+                createdUser.Status
+            };
+
+            return Ok(response);
         }
+
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(int id, [FromBody] AdminUserDetailDto dto)
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateUser(
+             int id,
+             [FromForm] UpdateUserRequest request,
+             [FromServices] CloudinaryService cloudinary)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<bool>.ErrorResponse(
                     new List<string> { "Invalid request data" }, "Bad Request"));
 
-            var result = await _userService.UpdateUserAsync(id, dto);
+            string? avatarUrl = null;
+            if (request.Avatar != null)
+            {
+                avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
+            }
 
-            if (!result)
+            var dto = new AdminUserDetailDto
+            {
+                Fullname = request.Fullname,
+                Email = request.Email,
+                GenderId = request.GenderId ?? 0,
+                Age = request.Age,
+                Height = request.Height,
+                Weight = request.Weight,
+                Country = request.Country,
+                City = request.City,
+                RoleId = request.RoleId ?? 0,
+                Status = request.Status ?? true,
+                AvatarUrl = avatarUrl
+            };
+
+            var success = await _userService.UpdateUserAsync(id, dto);
+
+            if (!success)
             {
                 return NotFound(ApiResponse<bool>.ErrorResponse(
                     new List<string> { $"User with ID {id} not found" }, "Not Found"));
@@ -142,5 +170,28 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<bool>.SuccessResponse(true, "User deleted successfully"));
         }
+
+        [HttpPut("{id}/change-password")]
+        public async Task<ActionResult<ApiResponse<bool>>> ChangePassword(
+            int id,
+            [FromBody] string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                return BadRequest(ApiResponse<bool>.ErrorResponse(
+                    new List<string> { "New password is required" }, "Bad Request"));
+            }
+
+            var success = await _userService.ChangePasswordAsync(id, newPassword);
+
+            if (!success)
+            {
+                return NotFound(ApiResponse<bool>.ErrorResponse(
+                    new List<string> { $"User with ID {id} not found" }, "Not Found"));
+            }
+
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Password changed successfully"));
+        }
+
     }
 }

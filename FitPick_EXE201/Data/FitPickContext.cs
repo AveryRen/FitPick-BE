@@ -310,10 +310,13 @@ public partial class FitPickContext : DbContext
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
 
-            entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
+            entity.Property(e => e.AvatarUrl)
+                  .HasColumnName("avatar_url");
 
+            entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
             entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
         });
+
 
         modelBuilder.Entity<UserRole>(entity =>
         {

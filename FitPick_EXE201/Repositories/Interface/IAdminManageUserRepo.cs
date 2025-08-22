@@ -23,6 +23,7 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<bool> DeleteUserAsync(int id);
 
         Task<User?> GetByEmailAsync(string email);
+        Task<bool> ChangePasswordAsync(int userId, string newPasswordHash);
 
     }
 }

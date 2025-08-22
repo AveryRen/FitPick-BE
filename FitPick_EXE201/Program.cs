@@ -92,6 +92,8 @@ builder.Services.AddScoped<IAdminManageUserRepo, AdminManageUserRepo>();
 builder.Services.AddScoped<AdminManageUserService>();
 builder.Services.AddScoped<CloudinaryService>();
 
+builder.Services.AddScoped<IUserRepo, UserRepo>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
