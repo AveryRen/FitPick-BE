@@ -15,6 +15,8 @@
 
             CreateMap<Ingredient, IngredientDTO>().ReverseMap();
 
+            CreateMap<Spendinglog, SpendinglogDTO>().ReverseMap();
+
         }
     }
 }
