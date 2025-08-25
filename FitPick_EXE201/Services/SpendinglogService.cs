@@ -147,6 +147,52 @@ namespace FitPick_EXE201.Services
             return _mapper.Map<List<SpendinglogDTO>>(filtered);
         }
 
+        /// <summary>
+        /// Cập nhật chi tiêu
+        /// </summary>
+        public async Task<SpendinglogDTO> UpdateSpendingAsync(int logId, decimal? amount = null, string? note = null)
+        {
+            var log = await _repo.GetByIdAsync(logId);
+            if (log == null)
+            {
+                throw new KeyNotFoundException($"Spending log with id {logId} not found.");
+            }
+
+            if (amount.HasValue)
+                log.Amount = amount.Value;
+            if (!string.IsNullOrWhiteSpace(note))
+                log.Note = note;
+
+            // cập nhật ngày giờ sửa
+            log.Date = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var success = await _repo.UpdateAsync(logId, log);
+            if (!success)
+            {
+                throw new Exception("Failed to update spending log.");
+            }
+
+            // ✅ lấy lại log sau khi update để map DTO
+            var updatedLog = await _repo.GetByIdAsync(logId);
+            return _mapper.Map<SpendinglogDTO>(updatedLog);
+        }
+
+        /// <summary>
+        /// Xóa chi tiêu
+        /// </summary>
+        public async Task<bool> DeleteSpendingAsync(int logId)
+        {
+            var log = await _repo.GetByIdAsync(logId);
+            if (log == null)
+            {
+                throw new KeyNotFoundException($"Spending log with id {logId} not found.");
+            }
+
+            return await _repo.Delete(logId);
+        }
+
+
+
 
     }
 }

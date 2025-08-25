@@ -142,5 +142,61 @@ namespace FitPick_EXE201.Controllers
             var logs = await _service.GetSpendingInRangeAsync(userId.Value, start, end);
             return Ok(ApiResponse<List<SpendinglogDTO>>.SuccessResponse(logs, "Get spending logs in range successfully"));
         }
+
+        // PUT api/spendinglog/update/5
+        [HttpPut("update/{id}")]
+        public async Task<ActionResult<ApiResponse<SpendinglogDTO>>> UpdateSpending(
+            int id, [FromBody] UpdateSpendinglogRequest request)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(ApiResponse<SpendinglogDTO>.ErrorResponse(
+                    new() { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            try
+            {
+                var updated = await _service.UpdateSpendingAsync(id, request.Amount, request.Note);
+                return Ok(ApiResponse<SpendinglogDTO>.SuccessResponse(updated, "Spending log updated successfully"));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<SpendinglogDTO>.ErrorResponse(
+                    new() { ex.Message },
+                    ex.Message
+                ));
+            }
+        }
+
+        // DELETE api/spendinglog/delete/5
+        [HttpDelete("delete/{id}")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteSpending(int id)
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+            {
+                return Unauthorized(ApiResponse<bool>.ErrorResponse(
+                    new() { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            try
+            {
+                var result = await _service.DeleteSpendingAsync(id);
+                return Ok(ApiResponse<bool>.SuccessResponse(result, "Spending log deleted successfully"));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<bool>.ErrorResponse(
+                    new() { ex.Message },
+                    ex.Message
+                ));
+            }
+        }
+
     }
 }
