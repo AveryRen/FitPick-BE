@@ -18,10 +18,10 @@ public partial class Notification
 
     [Column("title")]
     [StringLength(200)]
-    public string? Title { get; set; }
+    public string Title { get; set; } = null!;
 
     [Column("message")]
-    public string? Message { get; set; }
+    public string Message { get; set; } = null!;
 
     [Column("type_id")]
     public int? TypeId { get; set; }
@@ -31,6 +31,9 @@ public partial class Notification
 
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
+
+    [Column("scheduledat", TypeName = "timestamp without time zone")]
+    public DateTime? Scheduledat { get; set; }
 
     [ForeignKey("TypeId")]
     [InverseProperty("Notifications")]

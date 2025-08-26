@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/healthprofiles")]
     [ApiController]
     [Authorize(Roles = "User,Premium,Admin")]
     public class HealthprofileController : ControllerBase

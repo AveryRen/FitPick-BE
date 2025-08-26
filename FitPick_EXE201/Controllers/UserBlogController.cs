@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Controllers
 {
-    [Route("api/userblog")]
+    [Route("api/users/{userId}/blogs")]
     [ApiController]
     public class UserBlogController : ControllerBase
     {

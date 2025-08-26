@@ -61,8 +61,8 @@ public partial class User
     [Column("updatedat", TypeName = "timestamp without time zone")]
     public DateTime? Updatedat { get; set; }
 
+    [Column("avatar_url")]
     public string? AvatarUrl { get; set; }
-
 
     [InverseProperty("Author")]
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
@@ -72,8 +72,6 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Favoritemeal> Favoritemeals { get; set; } = new List<Favoritemeal>();
-
-
 
     [ForeignKey("GenderId")]
     [InverseProperty("Users")]
@@ -103,4 +101,7 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserIngredient> UserIngredients { get; set; } = new List<UserIngredient>();
 }

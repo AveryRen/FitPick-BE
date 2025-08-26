@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
-    [Route("api/userProfile")]
+    [Route("api/users/me")]
     [ApiController]
     [Authorize(Roles = "Admin,Premium,User")]
 
@@ -22,7 +22,7 @@ namespace FitPick_EXE201.Controllers
             _userService = userService;
         }
 
-        [HttpGet("me")]
+        [HttpGet]
         public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetUserById()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -50,7 +50,7 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<UserProfileDto>.SuccessResponse(dto, "User retrieved successfully"));
         }
 
-        [HttpPut("updateProfile")]
+        [HttpPut("update-profile")]
         public async Task<ActionResult<ApiResponse<UpdateUserProfileDto>>> UpdateProfile(
              [FromBody] UpdateUserProfileRequest request)
         {
@@ -71,7 +71,7 @@ namespace FitPick_EXE201.Controllers
 
 
 
-        [HttpPut("changePassword")]
+        [HttpPut("change-Password")]
         public async Task<ActionResult<ApiResponse<object>>> ChangePassword([FromBody] string newPassword)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -84,8 +84,8 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(null, "Password changed successfully"));
         }
 
-        
-        [HttpPut("changeAvatar")]
+
+        [HttpPut("avatar")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<ApiResponse<object>>> ChangeAvatar(
             [FromForm] ChangeAvatarRequest request,

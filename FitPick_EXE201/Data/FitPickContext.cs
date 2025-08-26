@@ -64,6 +64,8 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserIngredient> UserIngredients { get; set; }
+
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
 //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -309,14 +311,27 @@ public partial class FitPickContext : DbContext
             entity.Property(e => e.RoleId).HasDefaultValue(2);
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
-
             entity.Property(e => e.AvatarUrl)
-                  .HasColumnName("avatar_url");
+                             .HasColumnName("avatar_url");
 
             entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
             entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
         });
 
+        modelBuilder.Entity<UserIngredient>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("user_ingredients_pkey");
+
+            entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Ingredient).WithMany(p => p.UserIngredients)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("user_ingredients_ingredientid_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserIngredients)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("user_ingredients_userid_fkey");
+        });
 
         modelBuilder.Entity<UserRole>(entity =>
         {
