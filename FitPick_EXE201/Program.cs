@@ -79,6 +79,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<HealthprofileService>();
 builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
+builder.Services.AddScoped<SpendinglogService>();
+builder.Services.AddScoped<ISpendinglogRepo, SpendinglogRepo>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
