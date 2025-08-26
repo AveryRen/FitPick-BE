@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
-    [Route("api/adminblog")]
+    [Route("api/admin/blogs")]
     [ApiController]
     [Authorize(Roles = "Admin")]
     public class AdminBlogController : ControllerBase

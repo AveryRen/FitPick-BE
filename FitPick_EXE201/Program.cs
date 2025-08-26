@@ -97,6 +97,9 @@ builder.Services.AddScoped<CloudinaryService>();
 builder.Services.AddScoped<IUserRepo, UserRepo>();
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddScoped<IAdminIngredientRepo, AdminIngredientRepo>();
+builder.Services.AddScoped<AdminIngredientService>();
+
 var app = builder.Build();
 
 // Swagger UI (Local Host)
