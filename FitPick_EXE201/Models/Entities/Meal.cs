@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Models.Entities;
@@ -11,6 +12,7 @@ public partial class Meal
 {
     [Key]
     [Column("mealid")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Mealid { get; set; }
 
     [Column("name")]
@@ -48,22 +50,29 @@ public partial class Meal
 
     [ForeignKey("CategoryId")]
     [InverseProperty("Meals")]
+    [JsonIgnore]
+
     public virtual MealCategory? Category { get; set; }
 
     [ForeignKey("Createdby")]
     [InverseProperty("Meals")]
+    [JsonIgnore]
     public virtual User? CreatedbyNavigation { get; set; }
 
     [InverseProperty("Meal")]
+    [JsonIgnore]
     public virtual ICollection<Favoritemeal> Favoritemeals { get; set; } = new List<Favoritemeal>();
 
     [InverseProperty("Meal")]
+    [JsonIgnore]
     public virtual ICollection<Mealingredient> Mealingredients { get; set; } = new List<Mealingredient>();
 
     [InverseProperty("Meal")]
+    [JsonIgnore]
     public virtual ICollection<Mealplan> Mealplans { get; set; } = new List<Mealplan>();
 
     [ForeignKey("StatusId")]
     [InverseProperty("Meals")]
+    [JsonIgnore]
     public virtual MealStatus? Status { get; set; }
 }
