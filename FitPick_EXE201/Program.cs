@@ -106,6 +106,11 @@ builder.Services.AddScoped<UserIngredientService>();
 builder.Services.AddScoped<IAdminMealRepo, AdminMealRepo>();
 builder.Services.AddScoped<AdminMealService>();
 
+
+builder.Services.AddScoped<IUserMealRepository, UserMealRepository>();
+builder.Services.AddScoped<UserMealService>();
+
+
 var app = builder.Build();
 
 // Swagger UI (Local Host)
