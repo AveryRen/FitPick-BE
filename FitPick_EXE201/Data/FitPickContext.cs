@@ -22,10 +22,6 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<Blogpost> Blogposts { get; set; }
 
-    public virtual DbSet<Chatbotlog> Chatbotlogs { get; set; }
-
-    public virtual DbSet<Favoritemeal> Favoritemeals { get; set; }
-
     public virtual DbSet<Gender> Genders { get; set; }
 
     public virtual DbSet<Healthgoal> Healthgoals { get; set; }
@@ -39,6 +35,8 @@ public partial class FitPickContext : DbContext
     public virtual DbSet<Meal> Meals { get; set; }
 
     public virtual DbSet<MealCategory> MealCategories { get; set; }
+
+    public virtual DbSet<MealReview> MealReviews { get; set; }
 
     public virtual DbSet<MealStatus> MealStatuses { get; set; }
 
@@ -56,21 +54,15 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<Spendinglog> Spendinglogs { get; set; }
 
-    public virtual DbSet<Subscription> Subscriptions { get; set; }
-
-    public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
-
-    public virtual DbSet<SubscriptionStatus> SubscriptionStatuses { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserIngredient> UserIngredients { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,30 +112,6 @@ public partial class FitPickContext : DbContext
                 .HasConstraintName("blogposts_categoryid_fkey");
         });
 
-        modelBuilder.Entity<Chatbotlog>(entity =>
-        {
-            entity.HasKey(e => e.Logid).HasName("chatbotlogs_pkey");
-
-            entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Chatbotlogs)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("chatbotlogs_userid_fkey");
-        });
-
-        modelBuilder.Entity<Favoritemeal>(entity =>
-        {
-            entity.HasKey(e => e.Favoriteid).HasName("favoritemeals_pkey");
-
-            entity.HasOne(d => d.Meal).WithMany(p => p.Favoritemeals)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("favoritemeals_mealid_fkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Favoritemeals)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("favoritemeals_userid_fkey");
-        });
-
         modelBuilder.Entity<Gender>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("genders_pkey");
@@ -187,6 +155,7 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Mealid).HasName("meals_pkey");
 
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsPremium).HasDefaultValue(false);
             entity.Property(e => e.StatusId).HasDefaultValue(2);
 
             entity.HasOne(d => d.Category).WithMany(p => p.Meals).HasConstraintName("meals_category_id_fkey");
@@ -201,6 +170,19 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<MealCategory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("meal_categories_pkey");
+        });
+
+        modelBuilder.Entity<MealReview>(entity =>
+        {
+            entity.HasKey(e => e.Reviewid).HasName("meal_reviews_pkey");
+
+            entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsFavorite).HasDefaultValue(false);
+            entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Meal).WithMany(p => p.MealReviews).HasConstraintName("meal_reviews_mealid_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.MealReviews).HasConstraintName("meal_reviews_userid_fkey");
         });
 
         modelBuilder.Entity<MealStatus>(entity =>
@@ -278,31 +260,6 @@ public partial class FitPickContext : DbContext
                 .HasConstraintName("spendinglogs_userid_fkey");
         });
 
-        modelBuilder.Entity<Subscription>(entity =>
-        {
-            entity.HasKey(e => e.Subscriptionid).HasName("subscriptions_pkey");
-
-            entity.Property(e => e.StatusId).HasDefaultValue(1);
-
-            entity.HasOne(d => d.Plan).WithMany(p => p.Subscriptions).HasConstraintName("subscriptions_plan_id_fkey");
-
-            entity.HasOne(d => d.Status).WithMany(p => p.Subscriptions).HasConstraintName("subscriptions_status_id_fkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Subscriptions)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("subscriptions_userid_fkey");
-        });
-
-        modelBuilder.Entity<SubscriptionPlan>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("subscription_plans_pkey");
-        });
-
-        modelBuilder.Entity<SubscriptionStatus>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("subscription_statuses_pkey");
-        });
-
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Userid).HasName("users_pkey");
@@ -311,10 +268,9 @@ public partial class FitPickContext : DbContext
             entity.Property(e => e.RoleId).HasDefaultValue(2);
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
-            entity.Property(e => e.AvatarUrl)
-                             .HasColumnName("avatar_url");
 
             entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
+
             entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
         });
 

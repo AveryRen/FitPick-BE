@@ -12,7 +12,6 @@ public partial class Meal
 {
     [Key]
     [Column("mealid")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Mealid { get; set; }
 
     [Column("name")]
@@ -48,20 +47,21 @@ public partial class Meal
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
 
+    [Column("is_premium")]
+    public bool? IsPremium { get; set; }
+
     [ForeignKey("CategoryId")]
     [InverseProperty("Meals")]
     [JsonIgnore]
-
     public virtual MealCategory? Category { get; set; }
 
     [ForeignKey("Createdby")]
     [InverseProperty("Meals")]
-    [JsonIgnore]
     public virtual User? CreatedbyNavigation { get; set; }
 
     [InverseProperty("Meal")]
     [JsonIgnore]
-    public virtual ICollection<Favoritemeal> Favoritemeals { get; set; } = new List<Favoritemeal>();
+    public virtual ICollection<MealReview> MealReviews { get; set; } = new List<MealReview>();
 
     [InverseProperty("Meal")]
     [JsonIgnore]
@@ -73,6 +73,5 @@ public partial class Meal
 
     [ForeignKey("StatusId")]
     [InverseProperty("Meals")]
-    [JsonIgnore]
     public virtual MealStatus? Status { get; set; }
 }

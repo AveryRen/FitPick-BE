@@ -13,6 +13,7 @@ using System;
 using System.Text;
 using FitPick_EXE201.Data;
 using Microsoft.Extensions.Options;
+using FitPick_EXE201.Models.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,9 @@ builder.Services.AddScoped<AdminMealService>();
 builder.Services.AddScoped<IUserMealRepository, UserMealRepository>();
 builder.Services.AddScoped<UserMealService>();
 
+
+builder.Services.AddScoped<IMealReviewRepo, MealReviewRepo>();
+builder.Services.AddScoped<MealReviewService>();
 
 var app = builder.Build();
 

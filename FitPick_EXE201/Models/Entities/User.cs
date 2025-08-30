@@ -67,20 +67,16 @@ public partial class User
     [InverseProperty("Author")]
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
 
-    [InverseProperty("User")]
-    public virtual ICollection<Chatbotlog> Chatbotlogs { get; set; } = new List<Chatbotlog>();
-
-    [InverseProperty("User")]
-    public virtual ICollection<Favoritemeal> Favoritemeals { get; set; } = new List<Favoritemeal>();
-
     [ForeignKey("GenderId")]
     [InverseProperty("Users")]
     [JsonIgnore]
-
     public virtual Gender? Gender { get; set; }
 
     [InverseProperty("User")]
     public virtual ICollection<Healthprofile> Healthprofiles { get; set; } = new List<Healthprofile>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<MealReview> MealReviews { get; set; } = new List<MealReview>();
 
     [InverseProperty("User")]
     public virtual ICollection<Mealplan> Mealplans { get; set; } = new List<Mealplan>();
@@ -98,9 +94,6 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Spendinglog> Spendinglogs { get; set; } = new List<Spendinglog>();
-
-    [InverseProperty("User")]
-    public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 
     [InverseProperty("User")]
     public virtual ICollection<UserIngredient> UserIngredients { get; set; } = new List<UserIngredient>();
