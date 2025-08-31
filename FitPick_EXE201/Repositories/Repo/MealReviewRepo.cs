@@ -67,7 +67,7 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             return await _context.MealReviews
                 .Include(r => r.User) // load user info
-                .Where(r => r.Mealid == mealId && r.Rating != null)
+                .Where(r => r.Mealid == mealId && r.Rating != null) // chỉ lấy review có rating
                 .ToListAsync();
         }
 
@@ -77,23 +77,35 @@ namespace FitPick_EXE201.Repositories.Repo
                 .FirstOrDefaultAsync(r => r.Userid == userId && r.Mealid == mealId);
         }
 
-        public async Task AddOrUpdateReviewAsync(MealReview review)
+        public async Task<MealReview> CreateReviewAsync(MealReview review)
         {
             var existing = await _context.MealReviews
                 .FirstOrDefaultAsync(r => r.Userid == review.Userid && r.Mealid == review.Mealid);
 
             if (existing != null)
-            {
-                existing.Rating = review.Rating;
-                existing.Comment = review.Comment;
-                existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-                _context.MealReviews.Update(existing);
-            }
-            else
-            {
-                review.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-                _context.MealReviews.Add(review);
-            }
+                throw new InvalidOperationException("Review already exists. Use Update instead.");
+
+            review.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified); ;
+            _context.MealReviews.Add(review);
+            await _context.SaveChangesAsync();
+            return review;
+        }
+
+        public async Task<MealReview> UpdateReviewAsync(MealReview review)
+        {
+            var existing = await _context.MealReviews
+                .FirstOrDefaultAsync(r => r.Userid == review.Userid && r.Mealid == review.Mealid);
+
+            if (existing == null)
+                throw new KeyNotFoundException("Review not found");
+
+            existing.Rating = review.Rating;
+            existing.Comment = review.Comment;
+            existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified); ;
+
+            _context.MealReviews.Update(existing);
+            await _context.SaveChangesAsync();
+            return existing;
         }
 
         public async Task DeleteReviewAsync(int userId, int mealId)
@@ -101,16 +113,12 @@ namespace FitPick_EXE201.Repositories.Repo
             var existing = await _context.MealReviews
                 .FirstOrDefaultAsync(r => r.Userid == userId && r.Mealid == mealId);
 
-            if (existing != null)
-            {
-                // Xoá review nhưng vẫn giữ favorite
-                existing.Rating = null;
-                existing.Comment = null;
-                existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            if (existing == null)
+                throw new KeyNotFoundException("Review not found");
 
-                _context.MealReviews.Update(existing);
-            }
-        } 
+            _context.MealReviews.Remove(existing);
+            await _context.SaveChangesAsync();
+        }
 
         public async Task SaveChangesAsync()
         {
