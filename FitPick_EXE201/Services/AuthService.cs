@@ -43,12 +43,14 @@ namespace FitPick_EXE201.Services
                 Fullname = dto.Email.Split('@')[0],
                 RoleId = 2,
                 Createdat = DateTime.Now,
+
                 Status = true
             };
 
             await _authRepo.AddAsync(newAccount);
             return true;
         }
+
         public string GenerateAccessToken(User acc)
         {
             var claims = new[]
@@ -101,9 +103,11 @@ namespace FitPick_EXE201.Services
             var account = await _authRepo.GetAccountByEmailAsync(dto.Email);
             if (account == null) return null;
 
-            //Kiểm tra status
-            if (account.Status == false) return null;
+            if (account.Status == null || account.Status == false) return null;
 
+            if (account.IsEmailVerified == null || account.IsEmailVerified == false) return null;
+
+            // Kiểm tra password
             var isValidPassword = BCrypt.Net.BCrypt.Verify(dto.Password, account.Passwordhash);
             if (!isValidPassword) return null;
 
@@ -115,6 +119,7 @@ namespace FitPick_EXE201.Services
                 User = account
             };
         }
+
 
 
         public AuthResultDto? RefreshAccessToken(string refreshToken)

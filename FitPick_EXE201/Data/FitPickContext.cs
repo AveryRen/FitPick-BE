@@ -266,6 +266,7 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Userid).HasName("users_pkey");
 
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsEmailVerified).HasDefaultValue(false);
             entity.Property(e => e.RoleId).HasDefaultValue(2);
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");

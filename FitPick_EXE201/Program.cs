@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
-using FitPick_EXE201.Data;
 using Microsoft.Extensions.Options;
 using FitPick_EXE201.Models.Entities;
 
@@ -26,6 +25,7 @@ builder.Services.AddDbContext<FitPickContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 // Add JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -114,6 +114,13 @@ builder.Services.AddScoped<UserMealService>();
 
 builder.Services.AddScoped<IMealReviewRepo, MealReviewRepo>();
 builder.Services.AddScoped<MealReviewService>();
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailVerificationRepo, EmailVerificationRepo>();
+builder.Services.AddScoped<EmailVerificationService>();
+
+builder.Services.AddScoped<IForgetPasswordRepo, ForgetPasswordRepo>();
+builder.Services.AddScoped<ForgetPasswordService>();
 
 var app = builder.Build();
 

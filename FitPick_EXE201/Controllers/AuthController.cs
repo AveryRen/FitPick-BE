@@ -12,26 +12,37 @@ namespace FitPick_EXE201.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        private readonly EmailVerificationService _emailService;
 
-        public AuthController(AuthService authService)
+
+        public AuthController(AuthService authService, EmailVerificationService emailService)
         {
             _authService = authService;
+            _emailService = emailService;
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] AccountRegisterDto dto)
         {
-            bool result = await _authService.RegisterAsync(dto);
+            // Thử đăng ký
+            var registerResult = await _authService.RegisterAsync(dto);
 
-            if (!result)
+            if (!registerResult)
             {
                 var error = new List<string> { "Email already exists or passwords do not match." };
                 return BadRequest(ApiResponse<string>.ErrorResponse(error, "Register failed"));
             }
 
-            return Ok(ApiResponse<string>.SuccessResponse(null, "Register successful"));
+            // Gửi email xác thực
+            var verifySent = await _emailService.RequestEmailVerificationAsync(dto.Email);
+            var message = verifySent
+                ? "Register successful. Verification code sent to your email."
+                : "Register successful, but failed to send verification code.";
+
+            return Ok(ApiResponse<string>.SuccessResponse(null, message));
         }
+
 
         [AllowAnonymous]
         [HttpPost("login")]

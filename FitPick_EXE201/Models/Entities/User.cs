@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Models.Entities;
@@ -59,6 +60,9 @@ public partial class User
     [Column("avatar_url")]
     public string? AvatarUrl { get; set; }
 
+    [Column("is_email_verified")]
+    public bool? IsEmailVerified { get; set; }
+
     [InverseProperty("Author")]
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
 
@@ -67,15 +71,19 @@ public partial class User
     public virtual Gender? Gender { get; set; }
 
     [InverseProperty("User")]
+    [JsonIgnore]
     public virtual ICollection<Healthprofile> Healthprofiles { get; set; } = new List<Healthprofile>();
 
     [InverseProperty("User")]
+    [JsonIgnore]
     public virtual ICollection<MealReview> MealReviews { get; set; } = new List<MealReview>();
 
     [InverseProperty("User")]
+    [JsonIgnore]
     public virtual ICollection<Mealplan> Mealplans { get; set; } = new List<Mealplan>();
 
     [InverseProperty("CreatedbyNavigation")]
+    [JsonIgnore] 
     public virtual ICollection<Meal> Meals { get; set; } = new List<Meal>();
 
     [InverseProperty("User")]
@@ -83,11 +91,13 @@ public partial class User
 
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
+    [JsonIgnore]
     public virtual UserRole? Role { get; set; }
 
     [InverseProperty("User")]
     public virtual ICollection<Spendinglog> Spendinglogs { get; set; } = new List<Spendinglog>();
 
     [InverseProperty("User")]
+    [JsonIgnore]
     public virtual ICollection<UserIngredient> UserIngredients { get; set; } = new List<UserIngredient>();
 }
