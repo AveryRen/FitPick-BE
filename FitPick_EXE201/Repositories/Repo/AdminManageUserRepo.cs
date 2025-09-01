@@ -45,8 +45,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 query = query.Where(u =>
                     (u.Fullname != null && u.Fullname.ToLower().Contains(lowerKeyword)) ||
                     u.Email.ToLower().Contains(lowerKeyword) ||
-                    (u.Country != null && u.Country.ToLower().Contains(lowerKeyword)) ||
-                    (u.City != null && u.City.ToLower().Contains(lowerKeyword))
+                    (u.Country != null && u.Country.ToLower().Contains(lowerKeyword))
                 );
             }
 
@@ -72,7 +71,6 @@ namespace FitPick_EXE201.Repositories.Repo
                 "email" => sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email),
                 "age" => sortDesc ? query.OrderByDescending(u => u.Age) : query.OrderBy(u => u.Age),
                 "country" => sortDesc ? query.OrderByDescending(u => u.Country) : query.OrderBy(u => u.Country),
-                "city" => sortDesc ? query.OrderByDescending(u => u.City) : query.OrderBy(u => u.City),
                 "createdat" => sortDesc ? query.OrderByDescending(u => u.Createdat) : query.OrderBy(u => u.Createdat),
                 "updatedat" => sortDesc ? query.OrderByDescending(u => u.Updatedat) : query.OrderBy(u => u.Updatedat),
                 _ => query.OrderBy(u => u.Userid) // default sort
@@ -97,7 +95,6 @@ namespace FitPick_EXE201.Repositories.Repo
                     Height = u.Height,
                     Weight = u.Weight,
                     Country = u.Country,
-                    City = u.City,
                     Role = u.Role != null ? u.Role.Name : null,
                     Status = u.Status,
                     GenderId = (int)u.GenderId,
@@ -133,7 +130,6 @@ namespace FitPick_EXE201.Repositories.Repo
             existingUser.Height = user.Height;
             existingUser.Weight = user.Weight;
             existingUser.Country = user.Country;
-            existingUser.City = user.City;
             existingUser.RoleId = user.RoleId;
             existingUser.Status = user.Status;
 

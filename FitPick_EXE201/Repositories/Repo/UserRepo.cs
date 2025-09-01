@@ -30,7 +30,6 @@ namespace FitPick_EXE201.Repositories.Repo
                 Height = user.Height,
                 Weight = user.Weight,
                 Country = user.Country,
-                City = user.City,
                 AvatarUrl = user.AvatarUrl
             };
         }
@@ -45,7 +44,6 @@ namespace FitPick_EXE201.Repositories.Repo
             user.Height = request.Height ?? user.Height;
             user.Weight = request.Weight ?? user.Weight;
             user.Country = request.Country ?? user.Country;
-            user.City = request.City ?? user.City;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -58,7 +56,6 @@ namespace FitPick_EXE201.Repositories.Repo
                 Height = user.Height,
                 Weight = user.Weight,
                 Country = user.Country,
-                City = user.City,
                 AvatarUrl = user.AvatarUrl  
             };
         }

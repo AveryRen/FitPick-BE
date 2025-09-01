@@ -43,7 +43,6 @@ namespace FitPick_EXE201.Controllers
                 Height = user.Height,
                 Weight = user.Weight,
                 Country = user.Country,
-                City = user.City,
                 AvatarUrl = user.AvatarUrl
             };
 

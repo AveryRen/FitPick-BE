@@ -95,9 +95,6 @@ namespace FitPick_EXE201.Services
             if (!string.IsNullOrWhiteSpace(dto.Country))
                 user.Country = dto.Country;
 
-            if (!string.IsNullOrWhiteSpace(dto.City))
-                user.City = dto.City;
-
             if (dto.GenderId.HasValue)
                 user.GenderId = dto.GenderId.Value;
 

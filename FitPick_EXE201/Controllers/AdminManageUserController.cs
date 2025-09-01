@@ -88,7 +88,6 @@ namespace FitPick_EXE201.Controllers
                 Height = request.Height,
                 Weight = request.Weight,
                 Country = request.Country,
-                City = request.City,
                 RoleId = request.RoleId,
                 AvatarUrl = avatarUrl,
                 Status = true 
@@ -105,7 +104,6 @@ namespace FitPick_EXE201.Controllers
                 createdUser.Height,
                 createdUser.Weight,
                 createdUser.Country,
-                createdUser.City,
                 createdUser.RoleId,
                 createdUser.AvatarUrl,
                 createdUser.Status

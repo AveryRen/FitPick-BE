@@ -8,7 +8,6 @@
         public decimal? Height { get; set; }
         public decimal? Weight { get; set; }
         public string? Country { get; set; }
-        public string? City { get; set; }
         public string? AvatarUrl { get; set; }
     }
 }
