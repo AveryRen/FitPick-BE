@@ -59,7 +59,7 @@ namespace FitPick_EXE201.Services
 
              user.Status = user.Status ?? true;
 
-             user.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            user.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
             user.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
              return await _userRepo.CreateUserAsync(user);

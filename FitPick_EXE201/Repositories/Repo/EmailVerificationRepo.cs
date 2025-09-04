@@ -49,10 +49,14 @@ namespace FitPick_EXE201.Repositories.Repo
             if (account == null) return false;
 
             account.IsEmailVerified = true;
+            account.Status = true;
+            account.Updatedat = DateTime.Now;
+
             _verifyStore.TryRemove(email, out _);
 
             await _context.SaveChangesAsync();
             return true;
         }
+
     }
 }

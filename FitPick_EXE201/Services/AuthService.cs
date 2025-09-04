@@ -44,7 +44,8 @@ namespace FitPick_EXE201.Services
                 RoleId = 2,
                 Createdat = DateTime.Now,
 
-                Status = true
+                Status = false,         
+                IsEmailVerified = false
             };
 
             await _authRepo.AddAsync(newAccount);

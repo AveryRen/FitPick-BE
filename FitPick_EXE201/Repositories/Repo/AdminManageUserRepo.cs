@@ -146,12 +146,13 @@ namespace FitPick_EXE201.Repositories.Repo
         public async Task<bool> DeleteUserAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null) return false; 
-            user.Status = false; 
-            _context.Users.Update(user);
+            if (user == null) return false;
+
+            _context.Users.Remove(user);  
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<bool> ChangePasswordAsync(int userId, string newPasswordHash)
         {
             var user = await _context.Users.FindAsync(userId);
