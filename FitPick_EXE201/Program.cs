@@ -122,6 +122,18 @@ builder.Services.AddScoped<EmailVerificationService>();
 builder.Services.AddScoped<IForgetPasswordRepo, ForgetPasswordRepo>();
 builder.Services.AddScoped<ForgetPasswordService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+
 var app = builder.Build();
 
 // Swagger UI (Local Host)
@@ -153,6 +165,8 @@ app.Use(async (context, next) =>
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 app.Urls.Add($"http://*:{port}");
 Console.WriteLine($"Listening on port {port}");
+
+app.UseCors("AllowReactApp");
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
