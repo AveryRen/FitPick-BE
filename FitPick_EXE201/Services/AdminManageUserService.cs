@@ -12,16 +12,18 @@ namespace FitPick_EXE201.Services
         public AdminManageUserService(IAdminManageUserRepo userRepo)
         {
             _userRepo = userRepo;
-        } 
-        public async Task<IEnumerable<User>> GetAllUsersAsync(
-            int currentAdminId,
-            string? searchKeyword,
-            string? sortBy,
-            bool sortDesc,
-            int? genderId,
-            int? roleId,
-            bool? status
-        )
+        }
+        public async Task<PagedResult<User>> GetAllUsersAsync(
+             int currentAdminId,
+             string? searchKeyword,
+             string? sortBy,
+             bool sortDesc,
+             int? genderId,
+             int? roleId,
+             bool? status,
+             int pageNumber = 1,
+             int pageSize = 10
+            )
         {
             return await _userRepo.GetAllUsersAsync(
                 currentAdminId,
@@ -30,9 +32,12 @@ namespace FitPick_EXE201.Services
                 sortDesc,
                 genderId,
                 roleId,
-                status
+                status,
+                pageNumber,
+                pageSize
             );
-        } 
+        }
+
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
         {
             return await _userRepo.GetUserByIdForAdminAsync(id);

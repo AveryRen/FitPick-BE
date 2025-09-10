@@ -26,31 +26,36 @@ namespace FitPick_EXE201.Controllers
 
         // Lấy danh sách user
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<User>>>> GetAllUsers(
-            [FromQuery] string? searchKeyword,
-            [FromQuery] string? sortBy,
-            [FromQuery] bool sortDesc = false,
-            [FromQuery] int? genderId = null,
-            [FromQuery] int? roleId = null,
-            [FromQuery] bool? status = null
-        )
+        public async Task<ActionResult<ApiResponse<PagedResult<User>>>> GetAllUsers(
+    [FromQuery] string? searchKeyword,
+    [FromQuery] string? sortBy,
+    [FromQuery] bool sortDesc = false,
+    [FromQuery] int? genderId = null,
+    [FromQuery] int? roleId = null,
+    [FromQuery] bool? status = null,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10
+)
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentAdminId))
-                return Unauthorized(ApiResponse<IEnumerable<User>>.ErrorResponse(
+                return Unauthorized(ApiResponse<PagedResult<User>>.ErrorResponse(
                     new List<string> { "Unauthorized" }, "You must be logged in as Admin"));
 
-            var users = await _userService.GetAllUsersAsync(
+            var usersPaged = await _userService.GetAllUsersAsync(
                 currentAdminId,
                 searchKeyword,
                 sortBy,
                 sortDesc,
                 genderId,
                 roleId,
-                status
+                status,
+                pageNumber,
+                pageSize
             );
 
-            return Ok(ApiResponse<IEnumerable<User>>.SuccessResponse(users, "Users retrieved successfully"));
+            return Ok(ApiResponse<PagedResult<User>>.SuccessResponse(usersPaged, "Users retrieved successfully"));
         }
+
 
         // Lấy thông tin user theo ID
         [HttpGet("{id:int}")]

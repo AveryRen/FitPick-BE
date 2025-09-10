@@ -21,15 +21,17 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             _context = context;
         }
-        public async Task<IEnumerable<User>> GetAllUsersAsync(
-            int currentAdminId,
-            string? searchKeyword,
-            string? sortBy,
-            bool sortDesc,
-            int? genderId,
-            int? roleId,
-            bool? status
-                            )
+        public async Task<PagedResult<User>> GetAllUsersAsync(
+             int currentAdminId,
+             string? searchKeyword,
+             string? sortBy,
+             bool sortDesc,
+             int? genderId,
+             int? roleId,
+             bool? status,
+             int pageNumber = 1,
+             int pageSize = 10
+         )
         {
             var query = _context.Users
                 .Where(u => u.Userid != currentAdminId)
@@ -50,19 +52,13 @@ namespace FitPick_EXE201.Repositories.Repo
             }
 
             if (genderId.HasValue)
-            {
                 query = query.Where(u => u.GenderId == genderId.Value);
-            }
 
             if (roleId.HasValue)
-            {
                 query = query.Where(u => u.RoleId == roleId.Value);
-            }
 
             if (status.HasValue)
-            {
                 query = query.Where(u => u.Status == status.Value);
-            }
 
             // Sort
             query = sortBy?.ToLower() switch
@@ -73,11 +69,29 @@ namespace FitPick_EXE201.Repositories.Repo
                 "country" => sortDesc ? query.OrderByDescending(u => u.Country) : query.OrderBy(u => u.Country),
                 "createdat" => sortDesc ? query.OrderByDescending(u => u.Createdat) : query.OrderBy(u => u.Createdat),
                 "updatedat" => sortDesc ? query.OrderByDescending(u => u.Updatedat) : query.OrderBy(u => u.Updatedat),
-                _ => query.OrderBy(u => u.Userid) // default sort
+                _ => query.OrderBy(u => u.Userid)
             };
 
-            return await query.ToListAsync();
+            // Tổng số bản ghi trước phân trang
+            var totalItems = await query.CountAsync();
+
+            // Phân trang
+            var skip = (pageNumber - 1) * pageSize;
+            var items = await query.Skip(skip).Take(pageSize).ToListAsync();
+
+            // Tính tổng số trang
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            return new PagedResult<User>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                PageNumber = pageNumber
+            };
         }
+
 
         // Lấy user theo ID
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
