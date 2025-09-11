@@ -82,6 +82,9 @@ builder.Services.AddScoped<HealthprofileService>();
 builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
 builder.Services.AddScoped<SpendinglogService>();
 builder.Services.AddScoped<ISpendinglogRepo, SpendinglogRepo>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<INotificationRepo, NotificationRepo>();
+builder.Services.AddScoped<INotificationTypeRepo, NotificationTypeRepo>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

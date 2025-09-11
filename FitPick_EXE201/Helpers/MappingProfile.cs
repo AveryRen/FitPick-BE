@@ -17,6 +17,9 @@
 
             CreateMap<Spendinglog, SpendinglogDTO>().ReverseMap();
 
+            CreateMap<Notification, NotificationDTO>().ReverseMap();
+            CreateMap<NotificationType, NotificationTypeDTO>().ReverseMap();
+
         }
     }
 }
