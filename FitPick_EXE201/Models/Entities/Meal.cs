@@ -61,6 +61,10 @@ public partial class Meal
 
     [InverseProperty("Meal")]
     [JsonIgnore]
+    public virtual ICollection<MealHistory> MealHistories { get; set; } = new List<MealHistory>();
+
+    [InverseProperty("Meal")]
+    [JsonIgnore]
     public virtual ICollection<MealReview> MealReviews { get; set; } = new List<MealReview>();
 
     [InverseProperty("Meal")]

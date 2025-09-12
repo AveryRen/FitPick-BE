@@ -114,6 +114,8 @@ builder.Services.AddScoped<AdminMealService>();
 builder.Services.AddScoped<IUserMealRepository, UserMealRepository>();
 builder.Services.AddScoped<UserMealService>();
 
+builder.Services.AddScoped<IMealHistoryRepo, MealHistoryRepo>();
+builder.Services.AddScoped<MealHistoryService>();
 
 builder.Services.AddScoped<IMealReviewRepo, MealReviewRepo>();
 builder.Services.AddScoped<MealReviewService>();

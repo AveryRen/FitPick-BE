@@ -36,6 +36,8 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<MealCategory> MealCategories { get; set; }
 
+    public virtual DbSet<MealHistory> MealHistories { get; set; }
+
     public virtual DbSet<MealReview> MealReviews { get; set; }
 
     public virtual DbSet<MealStatus> MealStatuses { get; set; }
@@ -59,10 +61,6 @@ public partial class FitPickContext : DbContext
     public virtual DbSet<UserIngredient> UserIngredients { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -171,6 +169,23 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<MealCategory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("meal_categories_pkey");
+        });
+
+        modelBuilder.Entity<MealHistory>(entity =>
+        {
+            entity.HasKey(e => e.Historyid).HasName("meal_history_pkey");
+
+            entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.Date).HasDefaultValueSql("CURRENT_DATE");
+            entity.Property(e => e.Quantity).HasDefaultValueSql("1");
+
+            entity.HasOne(d => d.Meal).WithMany(p => p.MealHistories)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("meal_history_mealid_fkey");
+
+            entity.HasOne(d => d.Mealtime).WithMany(p => p.MealHistories).HasConstraintName("meal_history_mealtime_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.MealHistories).HasConstraintName("meal_history_userid_fkey");
         });
 
         modelBuilder.Entity<MealReview>(entity =>

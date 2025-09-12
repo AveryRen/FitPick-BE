@@ -19,5 +19,8 @@ public partial class MealTime
     public string Name { get; set; } = null!;
 
     [InverseProperty("Mealtime")]
+    public virtual ICollection<MealHistory> MealHistories { get; set; } = new List<MealHistory>();
+
+    [InverseProperty("Mealtime")]
     public virtual ICollection<Mealplan> Mealplans { get; set; } = new List<Mealplan>();
 }

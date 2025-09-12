@@ -27,15 +27,15 @@ namespace FitPick_EXE201.Controllers
         // Lấy danh sách user
         [HttpGet]
         public async Task<ActionResult<ApiResponse<PagedResult<User>>>> GetAllUsers(
-    [FromQuery] string? searchKeyword,
-    [FromQuery] string? sortBy,
-    [FromQuery] bool sortDesc = false,
-    [FromQuery] int? genderId = null,
-    [FromQuery] int? roleId = null,
-    [FromQuery] bool? status = null,
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 10
-)
+            [FromQuery] string? searchKeyword,
+            [FromQuery] string? sortBy,
+            [FromQuery] bool sortDesc = false,
+            [FromQuery] int? genderId = null,
+            [FromQuery] int? roleId = null,
+            [FromQuery] bool? status = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentAdminId))
                 return Unauthorized(ApiResponse<PagedResult<User>>.ErrorResponse(
