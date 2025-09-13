@@ -2,6 +2,7 @@
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
 using FitPick_EXE201.Repositories.Interface;
+using FitPick_EXE201.Repositories.Repo;
 
 namespace FitPick_EXE201.Services
 {
@@ -128,5 +129,10 @@ namespace FitPick_EXE201.Services
 
             return await _userRepo.ChangePasswordAsync(id, hashedPassword);
         }
+        public async Task<User?> UpdateUserAvatarAsync(int userId, string avatarUrl)
+        {
+            return await _userRepo.UpdateUserAvatarAsync(userId, avatarUrl);
+        }
+
     }
 }

@@ -176,5 +176,19 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<User?> UpdateUserAvatarAsync(int userId, string avatarUrl)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            user.AvatarUrl = avatarUrl;
+            user.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+
     }
 }

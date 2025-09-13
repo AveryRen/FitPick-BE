@@ -28,5 +28,7 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<User?> GetByEmailAsync(string email);
         Task<bool> ChangePasswordAsync(int userId, string newPasswordHash);
 
+        Task<User?> UpdateUserAvatarAsync(int userId, string avatarUrl);
+
     }
 }

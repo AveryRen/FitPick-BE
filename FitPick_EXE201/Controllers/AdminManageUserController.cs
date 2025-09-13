@@ -68,19 +68,18 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<AdminUserDetailDto>.SuccessResponse(user, "User retrieved successfully"));
         }
-
         [HttpPost]
         public async Task<IActionResult> Create(
-         [FromForm] CreateUserRequest request,
-         [FromServices] CloudinaryService cloudinary)
+            [FromBody] CreateUserRequest request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            string? avatarUrl = null;
-            if (request.Avatar != null)
             {
-                avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResponse<object>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
             }
 
             var newUser = new User
@@ -94,14 +93,14 @@ namespace FitPick_EXE201.Controllers
                 Weight = request.Weight,
                 Country = request.Country,
                 RoleId = request.RoleId,
-                AvatarUrl = avatarUrl,
-                Status = true 
+                Status = true
             };
 
             var createdUser = await _userService.CreateUserAsync(newUser);
 
-             var response = new
+            var responseData = new
             {
+                createdUser.Userid,
                 createdUser.Fullname,
                 createdUser.Email,
                 createdUser.GenderId,
@@ -110,11 +109,57 @@ namespace FitPick_EXE201.Controllers
                 createdUser.Weight,
                 createdUser.Country,
                 createdUser.RoleId,
-                createdUser.AvatarUrl,
                 createdUser.Status
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<object>.SuccessResponse(responseData, "Tạo người dùng thành công"));
+        }
+        [HttpPut("{id}/avatar")]
+        public async Task<IActionResult> UpdateAvatar(
+           int id,
+           [FromForm] UpdateAvatarUserRequestDto request,
+           [FromServices] CloudinaryService cloudinary)
+        {
+            if (request.Avatar == null || request.Avatar.Length == 0)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "Không có file để upload." },
+                    "Cập nhật ảnh thất bại"
+                ));
+            }
+
+            // Upload ảnh
+            var avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
+            if (string.IsNullOrEmpty(avatarUrl))
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "Upload ảnh thất bại." },
+                    "Không thể lưu ảnh"
+                ));
+            }
+
+            // Cập nhật DB
+            var updatedUser = await _userService.UpdateUserAvatarAsync(id, avatarUrl);
+            if (updatedUser == null)
+            {
+                return NotFound(ApiResponse<object>.ErrorResponse(
+                    new List<string> { $"Không tìm thấy user với id = {id}" },
+                    "Người dùng không tồn tại"
+                ));
+            }
+
+            var responseDto = new UserAvatarResponseDto
+            {
+                Userid = updatedUser.Userid,
+                Fullname = updatedUser.Fullname,
+                Email = updatedUser.Email,
+                AvatarUrl = updatedUser.AvatarUrl
+            };
+
+            return Ok(ApiResponse<UserAvatarResponseDto>.SuccessResponse(
+                responseDto,
+                "Cập nhật ảnh đại diện thành công"
+            ));
         }
 
         [HttpPut("{id:int}")]
