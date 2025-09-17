@@ -40,7 +40,9 @@ namespace FitPick_EXE201.Repositories.Repo
                 query = query.Where(m => m.Price <= maxPrice.Value);
 
             return await query
-                .Include(m => m.Category)   // nếu Meal có navigation Category
+                .Include(m => m.Category)
+                .Include(m => m.MealInstructions)
+                .Include(m => m.Status)       
                 .ToListAsync();
         }
         public async Task<Meal?> GetByIdAsync(int id)
@@ -49,8 +51,11 @@ namespace FitPick_EXE201.Repositories.Repo
                 .Include(m => m.Category)
                 .Include(m => m.Mealingredients)
                     .ThenInclude(mi => mi.Ingredient)
+                .Include(m => m.MealInstructions)
+                .Include(m => m.Status)
                 .FirstOrDefaultAsync(m => m.Mealid == id);
         }
+
 
         public async Task<Meal> AddAsync(Meal meal)
         {
@@ -75,5 +80,16 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<Meal?> UpdateImageAsync(int id, string imageUrl)
+        {
+            var meal = await _context.Meals.FindAsync(id);
+            if (meal == null) return null;
+
+            meal.ImageUrl = imageUrl;
+            await _context.SaveChangesAsync();
+
+            return meal;
+        }
+
     }
 } 

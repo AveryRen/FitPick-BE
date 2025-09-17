@@ -16,5 +16,7 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<Meal> AddAsync(Meal meal);
         Task<Meal> UpdateAsync(Meal meal);
         Task<bool> DeleteAsync(int id);
+        Task<Meal?> UpdateImageAsync(int id, string imageUrl);
+
     }
 }

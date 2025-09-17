@@ -85,10 +85,6 @@ public partial class User
     [JsonIgnore]
     public virtual ICollection<Mealplan> Mealplans { get; set; } = new List<Mealplan>();
 
-    [InverseProperty("CreatedbyNavigation")]
-    [JsonIgnore] 
-    public virtual ICollection<Meal> Meals { get; set; } = new List<Meal>();
-
     [InverseProperty("User")]
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 

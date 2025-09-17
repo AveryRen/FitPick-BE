@@ -42,5 +42,9 @@ namespace FitPick_EXE201.Services
         {
             return await _mealRepo.DeleteAsync(id);
         }
+        public async Task<Meal?> UpdateImageAsync(int id, string imageUrl)
+        {
+            return await _mealRepo.UpdateImageAsync(id, imageUrl);
+        } 
     }
 } 

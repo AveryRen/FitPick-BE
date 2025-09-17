@@ -41,27 +41,26 @@ public partial class Meal
     [Column("status_id")]
     public int? StatusId { get; set; }
 
-    [Column("createdby")]
-    public int? Createdby { get; set; }
-
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
 
     [Column("is_premium")]
     public bool? IsPremium { get; set; }
 
+    [Column("image_url")]
+    [StringLength(255)]
+    public string? ImageUrl { get; set; }
+
     [ForeignKey("CategoryId")]
     [InverseProperty("Meals")]
     [JsonIgnore]
     public virtual MealCategory? Category { get; set; }
 
-    [ForeignKey("Createdby")]
-    [InverseProperty("Meals")]
-    public virtual User? CreatedbyNavigation { get; set; }
+    [InverseProperty("Meal")]
+    public virtual ICollection<MealHistory> MealHistories { get; set; } = new List<MealHistory>();
 
     [InverseProperty("Meal")]
-    [JsonIgnore]
-    public virtual ICollection<MealHistory> MealHistories { get; set; } = new List<MealHistory>();
+    public virtual ICollection<MealInstruction> MealInstructions { get; set; } = new List<MealInstruction>();
 
     [InverseProperty("Meal")]
     [JsonIgnore]
