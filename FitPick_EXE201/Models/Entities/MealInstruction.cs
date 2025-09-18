@@ -25,6 +25,5 @@ public partial class MealInstruction
 
     [ForeignKey("MealId")]
     [InverseProperty("MealInstructions")]
-    [JsonIgnore]
     public virtual Meal? Meal { get; set; }
 }

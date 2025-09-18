@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using System.Collections.Generic;
+using FitPick_EXE201.Models.DTOs; // ✅ dùng DTO
+using System.Linq;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -19,7 +21,7 @@ namespace FitPick_EXE201.Controllers
 
         // GET: api/users/meals
         [HttpGet]
-        public async Task<IActionResult> GetMeals(
+        public async Task<ActionResult<ApiResponse<IEnumerable<MealDto>>>> GetMeals(
             [FromQuery] string? name,
             [FromQuery] int? categoryId,
             [FromQuery] string? dietType,
@@ -38,31 +40,32 @@ namespace FitPick_EXE201.Controllers
                 minPrice, maxPrice, 1
             );
 
-            if (meals == null || meals.Count() == 0)
+            if (meals == null || !meals.Any())
             {
-                return NotFound(ApiResponse<List<object>>.ErrorResponse(
+                return Ok(ApiResponse<IEnumerable<MealDto>>.ErrorResponse(
                     new List<string> { "No meals found" },
                     "No data"
                 ));
             }
 
-            return Ok(ApiResponse<object>.SuccessResponse(meals, "Meals retrieved successfully"));
+            return Ok(ApiResponse<IEnumerable<MealDto>>.SuccessResponse(meals, "Meals retrieved successfully"));
         }
 
         // GET: api/users/meals/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetMealById(int id)
+        public async Task<ActionResult<ApiResponse<MealDto>>> GetMealById(int id)
         {
             var meal = await _userMealService.GetMealByIdAsync(id);
+
             if (meal == null)
             {
-                return NotFound(ApiResponse<object>.ErrorResponse(
+                return Ok(ApiResponse<MealDto>.ErrorResponse(
                     new List<string> { $"Meal with id {id} not found" },
                     "Not Found"
                 ));
             }
 
-            return Ok(ApiResponse<object>.SuccessResponse(meal, "Meal retrieved successfully"));
+            return Ok(ApiResponse<MealDto>.SuccessResponse(meal, "Meal retrieved successfully"));
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using FitPick_EXE201.Models.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FitPick_EXE201.Repositories.Interface
 {
@@ -14,8 +16,8 @@ namespace FitPick_EXE201.Repositories.Interface
             int? maxCookingTime = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
-            int? statusId = null);
-
+            int? statusId = null
+        ); 
         Task<Meal?> GetMealByIdAsync(int id);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using FitPick_EXE201.Data;
-using FitPick_EXE201.Models;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -17,58 +16,68 @@ namespace FitPick_EXE201.Repositories.Repo
 
         // GET /api/meals (có filter)
         public async Task<IEnumerable<Meal>> GetMealsAsync(
-            string? name = null,
-            int? categoryId = null,
-            string? dietType = null,
-            int? minCalories = null,
-            int? maxCalories = null,
-            int? minCookingTime = null,
-            int? maxCookingTime = null,
-            decimal? minPrice = null,
-            decimal? maxPrice = null,
-            int? statusId = null)
+            string? name,
+            int? categoryId,
+            string? dietType,
+            int? minCalories,
+            int? maxCalories,
+            int? minCookingTime,
+            int? maxCookingTime,
+            decimal? minPrice,
+            decimal? maxPrice,
+            int? statusId
+        )
         {
-            var query = _context.Meals.AsQueryable();
+            var query = _context.Meals
+                .Include(m => m.Category)
+                .Include(m => m.Status)
+                .Include(m => m.MealInstructions)
+                .AsQueryable();
 
+            // Apply filters
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(m => m.Name.Contains(name));
 
             if (categoryId.HasValue)
-                query = query.Where(m => m.CategoryId == categoryId.Value);
+                query = query.Where(m => m.CategoryId == categoryId);
 
             if (!string.IsNullOrEmpty(dietType))
                 query = query.Where(m => m.Diettype == dietType);
 
             if (minCalories.HasValue)
-                query = query.Where(m => m.Calories >= minCalories.Value);
+                query = query.Where(m => m.Calories >= minCalories);
 
             if (maxCalories.HasValue)
-                query = query.Where(m => m.Calories <= maxCalories.Value);
+                query = query.Where(m => m.Calories <= maxCalories);
 
             if (minCookingTime.HasValue)
-                query = query.Where(m => m.Cookingtime >= minCookingTime.Value);
+                query = query.Where(m => m.Cookingtime >= minCookingTime);
 
             if (maxCookingTime.HasValue)
-                query = query.Where(m => m.Cookingtime <= maxCookingTime.Value);
-            
+                query = query.Where(m => m.Cookingtime <= maxCookingTime);
+
             if (minPrice.HasValue)
-                query = query.Where(m => m.Price >= minPrice.Value);
+                query = query.Where(m => m.Price >= minPrice);
 
             if (maxPrice.HasValue)
-                query = query.Where(m => m.Price <= maxPrice.Value);
+                query = query.Where(m => m.Price <= maxPrice);
 
             if (statusId.HasValue)
-                query = query.Where(m => m.StatusId == statusId.Value);
+                query = query.Where(m => m.StatusId == statusId);
 
             return await query.ToListAsync();
         }
 
-         // GET /api/meals/{id}
+        // GET /api/meals/{id} (full include)
         public async Task<Meal?> GetMealByIdAsync(int id)
         {
             return await _context.Meals
-                .Include(m => m.Category)   // nếu cần load category
-                .Include(m => m.Status)     // nếu cần load status
+                .Include(m => m.Category)
+                .Include(m => m.Status)
+                .Include(m => m.MealInstructions)
+                .Include(m => m.Mealingredients)
+                    .ThenInclude(mi => mi.Ingredient)
+                .Include(m => m.MealHistories)
                 .FirstOrDefaultAsync(m => m.Mealid == id);
         }
     }
