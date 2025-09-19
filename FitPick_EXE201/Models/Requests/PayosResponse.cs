@@ -11,3 +11,4 @@
     {
         public string checkoutUrl { get; set; }
     }
+}
