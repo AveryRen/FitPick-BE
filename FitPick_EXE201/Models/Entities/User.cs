@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -87,6 +86,9 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<PayosPayment> PayosPayments { get; set; } = new List<PayosPayment>();
 
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]

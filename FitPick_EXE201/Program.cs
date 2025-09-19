@@ -13,6 +13,7 @@ using System;
 using System.Text;
 using Microsoft.Extensions.Options;
 using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,6 +132,12 @@ builder.Services.AddScoped<EmailVerificationService>();
 
 builder.Services.AddScoped<IForgetPasswordRepo, ForgetPasswordRepo>();
 builder.Services.AddScoped<ForgetPasswordService>();
+
+builder.Services.AddScoped<IPayosPaymentRepo, PayosPaymentRepo>();
+builder.Services.AddScoped<PayosPaymentService>();
+builder.Services.AddHttpClient<UserPaymentsController>();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {

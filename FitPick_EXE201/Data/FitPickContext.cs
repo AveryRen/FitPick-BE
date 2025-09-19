@@ -54,6 +54,8 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<NotificationType> NotificationTypes { get; set; }
 
+    public virtual DbSet<PayosPayment> PayosPayments { get; set; }
+
     public virtual DbSet<PlanStatus> PlanStatuses { get; set; }
 
     public virtual DbSet<Spendinglog> Spendinglogs { get; set; }
@@ -271,6 +273,17 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<NotificationType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("notification_types_pkey");
+        });
+
+        modelBuilder.Entity<PayosPayment>(entity =>
+        {
+            entity.HasKey(e => e.Paymentid).HasName("payos_payments_pkey");
+
+            entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.Status).HasDefaultValueSql("'PENDING'::character varying");
+            entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PayosPayments).HasConstraintName("payos_payments_userid_fkey");
         });
 
         modelBuilder.Entity<PlanStatus>(entity =>
