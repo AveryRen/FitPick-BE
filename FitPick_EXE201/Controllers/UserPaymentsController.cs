@@ -8,11 +8,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
 using FitPick_EXE201.Models.Requests;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FitPick_EXE201.Controllers
 {
     [Route("api/user/payments")]
     [ApiController]
+    [Authorize  ]
     public class UserPaymentsController : ControllerBase
     {
         private readonly PayosPaymentService _paymentService;
@@ -134,5 +136,64 @@ namespace FitPick_EXE201.Controllers
                 "Payment created successfully"
             ));
         }
+
+        [HttpPost("mock")]
+        public async Task<IActionResult> CreatePaymentMock([FromBody] CreatePaymentDto dto)
+        {
+            // 1. Lấy userId từ JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User not authenticated" },
+                    "Unauthorized"));
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            // 2. Lấy thông tin user từ DB
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+                return NotFound(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User not found" },
+                    "Failed"));
+
+            // 3. Tạo payment mới (status Pending)
+            var payment = new PayosPayment
+            {
+                Userid = userId,
+                Amount = dto.Amount,
+                Description = dto.Description,
+                Status = "Pending",
+                OrderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+
+            // 4. Tạo mock checkout URL
+            payment.CheckoutUrl = $"https://mock-payos.checkout/{payment.OrderCode}";
+
+            // 5. Lưu vào DB
+            var createdPayment = await _paymentService.CreatePaymentAsync(payment);
+
+            // 6. Trả về response
+            return Ok(ApiResponse<object>.SuccessResponse(
+                new
+                {
+                    payment = new
+                    {
+                        createdPayment.Paymentid,
+                        createdPayment.Userid,
+                        createdPayment.Amount,
+                        createdPayment.Description,
+                        createdPayment.Status,
+                        createdPayment.OrderCode,
+                        createdPayment.CheckoutUrl
+                    },
+                    payosResponse = new
+                    {
+                        checkoutUrl = payment.CheckoutUrl,
+                        message = "This is a mock checkout URL"
+                    }
+                },
+                "Mock payment created successfully"
+            ));
+        } 
     }
 }
