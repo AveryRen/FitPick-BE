@@ -23,8 +23,10 @@ namespace FitPick_EXE201.Controllers
             _cloudinaryService = cloudinaryService ?? throw new ArgumentNullException(nameof(cloudinaryService));
         }
 
+        /// <summary>📜 Lấy danh sách blog (phân trang + lọc + sắp xếp)</summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll(
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<BlogResponse>>), 200)]
+        public async Task<ActionResult<ApiResponse<PagedResult<BlogResponse>>>> GetAll(
             [FromQuery] string? search,
             [FromQuery] int? categoryId,
             [FromQuery] DateTime? startDate,
@@ -37,28 +39,18 @@ namespace FitPick_EXE201.Controllers
             var query = _blogService.GetQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
-            {
                 query = query.Where(b => b.Title.Contains(search) || b.Content.Contains(search));
-            }
-
             if (categoryId.HasValue)
-            {
                 query = query.Where(b => b.Categoryid == categoryId.Value);
-            }
-
             if (startDate.HasValue)
-            {
                 query = query.Where(b => b.Createdat >= startDate.Value);
-            }
             if (endDate.HasValue)
-            {
                 query = query.Where(b => b.Createdat <= endDate.Value);
-            }
 
             query = (sortBy?.ToLower()) switch
             {
                 "updatedat" => sortDesc ? query.OrderByDescending(b => b.Updatedat) : query.OrderBy(b => b.Updatedat),
-                _ => sortDesc ? query.OrderByDescending(b => b.Createdat) : query.OrderBy(b => b.Createdat),
+                _ => sortDesc ? query.OrderByDescending(b => b.Createdat) : query.OrderBy(b => b.Createdat)
             };
 
             var totalItems = await query.CountAsync();
@@ -69,82 +61,42 @@ namespace FitPick_EXE201.Controllers
                 .Include(b => b.Author)
                 .ToListAsync();
 
-            var blogDtos = blogs.Select(b => new BlogResponse
-            {
-                Postid = b.Postid,
-                Title = b.Title,
-                Content = b.Content,
-                Categoryid = b.Categoryid,
-                Status = b.Status,
-                Createdat = b.Createdat,
-                Updatedat = b.Updatedat,
-                Medias = b.BlogMedia?.Select(m => new BlogMediaResponse
-                {
-                    MediaId = m.MediaId,
-                    MediaUrl = m.MediaUrl,
-                    MediaType = m.MediaType,
-                    OrderIndex = m.OrderIndex
-                }).ToList(),
-                Author = b.Author == null ? null : new AuthorResponse
-                {
-                    UserId = b.Author.Userid,
-                    UserName = b.Author.Fullname
-                }
-            });
-
-            return Ok(ApiResponse<object>.SuccessResponse(new
+            var result = new PagedResult<BlogResponse>
             {
                 TotalItems = totalItems,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
-                Items = blogDtos
-            }, "Lấy danh sách blog thành công"));
+                Items = blogs.Select(ToDto).ToList()
+            };
+
+            return Ok(ApiResponse<PagedResult<BlogResponse>>.SuccessResponse(result, "Lấy danh sách blog thành công"));
         }
 
+        /// <summary>🔎 Lấy chi tiết blog theo Id</summary>
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [ProducesResponseType(typeof(ApiResponse<BlogResponse>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<string>), 404)]
+        public async Task<ActionResult<ApiResponse<BlogResponse>>> GetById(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
             if (blog == null)
-            {
-                return NotFound(ApiResponse<string>.ErrorResponse(new List<string> { "Không tìm thấy blog" }, "Thất bại"));
-            }
+                return NotFound(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
 
-            var dto = new BlogResponse
-            {
-                Postid = blog.Postid,
-                Title = blog.Title,
-                Content = blog.Content,
-                Categoryid = blog.Categoryid,
-                Status = blog.Status,
-                Createdat = blog.Createdat,
-                Updatedat = blog.Updatedat,
-                Medias = blog.BlogMedia?.Select(m => new BlogMediaResponse
-                {
-                    MediaId = m.MediaId,
-                    MediaUrl = m.MediaUrl,
-                    MediaType = m.MediaType,
-                    OrderIndex = m.OrderIndex
-                }).ToList(),
-                Author = blog.Author == null ? null : new AuthorResponse
-                {
-                    UserId = blog.Author.Userid,
-                    UserName = blog.Author.Fullname
-                }
-            };
-
-            return Ok(ApiResponse<BlogResponse>.SuccessResponse(dto, "Lấy blog thành công"));
+            return Ok(ApiResponse<BlogResponse>.SuccessResponse(ToDto(blog), "Lấy blog thành công"));
         }
 
+        /// <summary>➕ Tạo blog mới</summary>
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> CreateBlog(
-    [FromForm] string title,
-    [FromForm] string content,
-    [FromForm] int categoryId,
-    [FromForm] List<IFormFile>? files)
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+        public async Task<ActionResult<ApiResponse<string>>> CreateBlog(
+            [FromForm] string title,
+            [FromForm] string content,
+            [FromForm] int categoryId,
+            [FromForm] List<IFormFile>? files)
         {
-            var authorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var authorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var blog = new Blogpost
             {
@@ -166,9 +118,7 @@ namespace FitPick_EXE201.Controllers
                 {
                     var url = await _cloudinaryService.UploadFileAsync(file);
                     if (!string.IsNullOrEmpty(url))
-                    {
                         mediaList.Add((url, file.FileName));
-                    }
                 }
                 await _blogService.AddMediaRangeByFilesAsync(created.Postid, mediaList);
             }
@@ -176,10 +126,12 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<string>.SuccessResponse("OK", "Tạo blog thành công"));
         }
 
-
+        /// <summary>✏️ Cập nhật blog</summary>
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UpdateBlog(
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<string>), 404)]
+        public async Task<ActionResult<ApiResponse<string>>> UpdateBlog(
             int id,
             [FromForm] string title,
             [FromForm] string content,
@@ -189,9 +141,8 @@ namespace FitPick_EXE201.Controllers
         {
             var existing = await _blogService.GetByIdAsync(id);
             if (existing == null)
-            {
-                return NotFound(ApiResponse<string>.ErrorResponse(new List<string> { "Không tìm thấy blog" }, "Thất bại"));
-            }
+                return NotFound(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
 
             existing.Title = title;
             existing.Content = content;
@@ -209,9 +160,7 @@ namespace FitPick_EXE201.Controllers
                 {
                     var url = await _cloudinaryService.UploadFileAsync(file);
                     if (!string.IsNullOrEmpty(url))
-                    {
                         mediaList.Add((url, file.FileName));
-                    }
                 }
                 await _blogService.AddMediaRangeByFilesAsync(id, mediaList);
             }
@@ -219,16 +168,43 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<string>.SuccessResponse("OK", "Cập nhật blog thành công"));
         }
 
+        /// <summary>🗑️ Xóa blog</summary>
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteBlog(int id)
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<string>), 404)]
+        public async Task<ActionResult<ApiResponse<string>>> DeleteBlog(int id)
         {
             var success = await _blogService.DeleteAsync(id);
             if (!success)
-            {
-                return NotFound(ApiResponse<string>.ErrorResponse(new List<string> { "Không tìm thấy blog" }, "Thất bại"));
-            }
+                return NotFound(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
 
             return Ok(ApiResponse<string>.SuccessResponse("OK", "Xóa blog thành công"));
         }
+
+        #region Private Mapper
+        private static BlogResponse ToDto(Blogpost b) => new()
+        {
+            Postid = b.Postid,
+            Title = b.Title,
+            Content = b.Content,
+            Categoryid = b.Categoryid,
+            Status = b.Status,
+            Createdat = b.Createdat,
+            Updatedat = b.Updatedat,
+            Medias = b.BlogMedia?.Select(m => new BlogMediaResponse
+            {
+                MediaId = m.MediaId,
+                MediaUrl = m.MediaUrl,
+                MediaType = m.MediaType,
+                OrderIndex = m.OrderIndex
+            }).ToList(),
+            Author = b.Author == null ? null : new AuthorResponse
+            {
+                UserId = b.Author.Userid,
+                UserName = b.Author.Fullname
+            }
+        };
+        #endregion
     }
 }

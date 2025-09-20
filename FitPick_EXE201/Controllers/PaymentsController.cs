@@ -18,44 +18,54 @@ namespace FitPick_EXE201.Controllers
             _paymentService = paymentService;
         }
 
-        // GET: api/admin/payments
-        // Lấy tất cả giao dịch (dành cho admin)
+
         [HttpGet]
-        public async Task<IActionResult> GetAllPayments()
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<PayosPayment>>), 200)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<PayosPayment>>>> GetAllPayments()
         {
             var payments = await _paymentService.GetAllPaymentsAsync();
-            return Ok(ApiResponse<IEnumerable<PayosPayment>>.SuccessResponse(payments, "All payments retrieved successfully"));
+            return Ok(ApiResponse<IEnumerable<PayosPayment>>
+                .SuccessResponse(payments, "All payments retrieved successfully"));
         }
 
-        // GET: api/admin/payments/{id} 
+
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetPaymentById(int id)
+        [ProducesResponseType(typeof(ApiResponse<PayosPayment>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<PayosPayment>), 404)]
+        public async Task<ActionResult<ApiResponse<PayosPayment>>> GetPaymentById(int id)
         {
             var payment = await _paymentService.GetPaymentByIdAsync(id);
             if (payment == null)
-                return NotFound(ApiResponse<PayosPayment>.ErrorResponse(new List<string> { "Payment not found" }, "Failed"));
+                return NotFound(ApiResponse<PayosPayment>
+                    .ErrorResponse(new List<string> { "Payment not found" }, "Failed"));
 
-            return Ok(ApiResponse<PayosPayment>.SuccessResponse(payment, "Payment retrieved successfully"));
+            return Ok(ApiResponse<PayosPayment>
+                .SuccessResponse(payment, "Payment retrieved successfully"));
         }
 
-        // GET: api/admin/payments/user/{userId}
-        // Lấy tất cả giao dịch của 1 user
+
         [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetPaymentsByUser(int userId)
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<PayosPayment>>), 200)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<PayosPayment>>>> GetPaymentsByUser(int userId)
         {
             var payments = await _paymentService.GetPaymentsByUserIdAsync(userId);
-            return Ok(ApiResponse<IEnumerable<PayosPayment>>.SuccessResponse(payments, "Payments retrieved successfully"));
+            return Ok(ApiResponse<IEnumerable<PayosPayment>>
+                .SuccessResponse(payments, "Payments retrieved successfully"));
         }
 
-        // DELETE: api/admin/payments/{id}
+
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeletePayment(int id)
+        [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+        public async Task<ActionResult<ApiResponse<object>>> DeletePayment(int id)
         {
             var deleted = await _paymentService.DeletePaymentAsync(id);
             if (!deleted)
-                return NotFound(ApiResponse<object>.ErrorResponse(new List<string> { "Payment not found" }, "Delete failed"));
+                return NotFound(ApiResponse<object>
+                    .ErrorResponse(new List<string> { "Payment not found" }, "Delete failed"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Payment deleted successfully"));
+            return Ok(ApiResponse<object>
+                .SuccessResponse(null, "Payment deleted successfully"));
         }
     }
 }
