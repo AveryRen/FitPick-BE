@@ -27,6 +27,7 @@ builder.Services.AddDbContext<FitPickContext>(options =>
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOS"));
 
 // Add JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -135,7 +136,9 @@ builder.Services.AddScoped<ForgetPasswordService>();
 
 builder.Services.AddScoped<IPayosPaymentRepo, PayosPaymentRepo>();
 builder.Services.AddScoped<PayosPaymentService>();
-builder.Services.AddHttpClient<UserPaymentsController>();
+
+builder.Services.AddScoped<IUserPremiumRepo, UserPremiumRepo>();
+builder.Services.AddScoped<UserPremiumService>();
 
 builder.Services.AddHttpClient();
 

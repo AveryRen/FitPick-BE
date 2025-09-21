@@ -25,13 +25,7 @@ namespace FitPick_EXE201.Services
         public async Task<bool> DeletePaymentAsync(int paymentId)
         {
             return await _repository.DeleteAsync(paymentId);
-        } 
-        public async Task<PayosPayment> CreatePaymentAsync(PayosPayment payment)
-        {
-            var createdPayment = await _repository.CreatePaymentAsync(payment);
-            return createdPayment;
         }
-
         public async Task<IEnumerable<PayosPayment>> GetAllPaymentsAsync()
         {
             return await _repository.GetAllAsync();
