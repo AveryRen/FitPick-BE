@@ -80,28 +80,38 @@ namespace FitPick_EXE201.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Callback()
         {
-            // Lấy tham số từ query string
-            string code = Request.Query["code"];
-            string id = Request.Query["id"];
-            string status = Request.Query["status"];
-            long orderCode = 0;
-            long.TryParse(Request.Query["orderCode"], out orderCode);
+            try
+            {
+                string code = Request.Query["code"];
+                string id = Request.Query["id"];
+                string status = Request.Query["status"];
+                long orderCode = 0;
+                long.TryParse(Request.Query["orderCode"], out orderCode);
 
-            var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
-            if (payment == null)
-                return NotFound(new { message = "OrderCode not found" });
+                var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
+                if (payment == null)
+                    return NotFound(new { message = "OrderCode not found" });
 
-            int userId = payment.Userid;
-            var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                int userId = payment.Userid;
+                var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-            var updated = await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
-            if (!updated)
-                return NotFound(new { message = "OrderCode not found" });
+                // Cố gắng update payment, nếu lỗi sẽ catch
+                await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
 
-            if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
-                await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
+                if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Cố gắng nâng cấp user, nếu lỗi sẽ catch
+                    await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
+                }
 
-            return Ok(new { message = "Callback processed" });
+                return Ok(new { message = "Callback processed" });
+            }
+            catch (Exception ex)
+            {
+                // Log ra console hoặc file để kiểm tra
+                Console.WriteLine(ex);
+                return Ok(new { message = "Callback received but error occurred", error = ex.Message });
+            }
         }
     }
 }
