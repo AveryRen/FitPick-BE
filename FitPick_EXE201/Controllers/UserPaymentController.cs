@@ -2,8 +2,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using FitPick_EXE201.Models.Requests;
-using FitPick_EXE201.Services;           // ✅ add service namespace
+using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Services;
 using FitPick_EXE201.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,124 +19,112 @@ namespace FitPick_EXE201.Controllers
     public class UserPaymentController : ControllerBase
     {
         private readonly PayOS _payOS;
-        private readonly string _checksumKey;
         private readonly string _returnUrl;
         private readonly string _webhookUrl;
         private readonly UserPremiumService _premiumService;
 
-        public UserPaymentController(
-            IOptions<PayOSSettings> options,
-            UserPremiumService premiumService  
-        )
+        public UserPaymentController(IOptions<PayOSSettings> options, UserPremiumService premiumService)
         {
             var opts = options.Value;
             _payOS = new PayOS(opts.ClientId, opts.ApiKey, opts.ChecksumKey);
-            _checksumKey = opts.ChecksumKey;
             _returnUrl = opts.ReturnUrl;
             _webhookUrl = opts.WebhookUrl;
             _premiumService = premiumService;
         }
 
-        /// <summary>
-        /// Tạo link thanh toán PayOS (mua 1 gói Premium/tháng)
-        /// </summary>
         [HttpPost("create")]
         public async Task<IActionResult> CreatePayment()
         {
-            // ✅ Lấy userId từ JWT token
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized("User ID not found in token");
-
             if (!int.TryParse(userIdClaim, out var userId))
                 return Unauthorized("Invalid user id");
 
             const string productName = "Gói Premium (1 tháng)";
             const int quantity = 1;
             const int price = 50000;
-
-            var item = new ItemData(productName, quantity, price);
-            var items = new List<ItemData> { item };
-
-            var orderID = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var total = quantity * price;
 
-            var description = $"Premium: {userId}";
+            var items = new List<ItemData> { new ItemData(productName, quantity, price) };
 
-            var paymentData = new PaymentData(
-                orderID,
-                total,
-                description,
-                items,
-                _returnUrl,
-                _webhookUrl
-            );
+            // Sử dụng Guid để tránh trùng OrderCode
+            var orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var description = $"UserId:{userId}";
+
+            var paymentData = new PaymentData(orderCode, total, description, items, _returnUrl, _webhookUrl);
 
             var result = await _payOS.createPaymentLink(paymentData);
 
+            // Lưu PENDING, không gán PaymentId
+            await _premiumService.CreatePaymentAsync(new PayosPayment
+            {
+                Userid = userId,
+                OrderCode = orderCode,
+                PaymentLinkId = result.paymentLinkId,
+                Amount = total,
+                Description = description,
+                Status = "PENDING",
+                CheckoutUrl = result.checkoutUrl,
+                Createdat = DateTime.UtcNow,
+                Updatedat = DateTime.UtcNow
+            });
+
             return Ok(new
             {
-                orderId = orderID,
+                orderId = orderCode,
                 checkoutUrl = result.checkoutUrl,
-                userId = userId
+                userId
             });
         }
 
-
-        /// <summary>
-        /// Webhook PayOS callback kết quả thanh toán
-        /// </summary>
-        [HttpPost("callback")]
+        // Callback chung GET/POST
+        [HttpGet("callback")]
+        [AllowAnonymous]
         public async Task<IActionResult> Callback()
         {
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var signature = Request.Headers["X-PAYOS-SIGNATURE"].FirstOrDefault();
+            string code = null, id = null, status = null, description = null;
+            long orderCode = 0;
 
-            if (!VerifySignature(body, signature))
-                return Unauthorized("Invalid signature");
-
-            try
+            // POST JSON
+            if (Request.Method == "POST")
             {
+                using var reader = new StreamReader(Request.Body);
+                var body = await reader.ReadToEndAsync();
                 var payload = JsonSerializer.Deserialize<JsonElement>(body);
                 var data = payload.GetProperty("data");
-                var status = data.GetProperty("status").GetString();
-                var description = data.GetProperty("description").GetString();
 
-                if (string.IsNullOrEmpty(description))
-                    return BadRequest(new { message = "Missing description" });
-
-                // ✅ Tìm userId trong chuỗi mô tả
-                var match = System.Text.RegularExpressions.Regex.Match(description, @"UserId:(\d+)");
-                if (!match.Success || !int.TryParse(match.Groups[1].Value, out var userId))
-                    return BadRequest(new { message = "Invalid userId format" });
-
-                // ✅ Chỉ nâng cấp khi trạng thái là PAID
-                if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
-                {
-                    var ok = await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
-                    if (!ok)
-                        return NotFound(new { message = "User not found to upgrade" });
-                }
+                status = data.GetProperty("status").GetString();
+                orderCode = data.GetProperty("orderCode").GetInt64();
+                description = data.GetProperty("description").GetString();
+                code = payload.GetProperty("code").GetString();
+                id = data.GetProperty("id").GetString();
             }
-            catch (Exception ex)
+            else // GET query
             {
-                return BadRequest(new { message = "Invalid JSON payload", error = ex.Message });
+                status = Request.Query["status"];
+                description = Request.Query["description"];
+                code = Request.Query["code"];
+                id = Request.Query["id"];
+                long.TryParse(Request.Query["orderCode"], out orderCode);
             }
+
+            if (string.IsNullOrEmpty(description))
+                return BadRequest(new { message = "Missing description" });
+
+            var match = System.Text.RegularExpressions.Regex.Match(description, @"UserId:(\d+)");
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, out var userId))
+                return BadRequest(new { message = "Invalid userId format" });
+
+            var paidTime = DateTime.UtcNow;
+
+            // Cập nhật transaction, check tồn tại trước
+            var updated = await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
+            if (!updated)
+                return NotFound(new { message = "OrderCode not found" });
+
+            if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
+                await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
             return Ok(new { message = "Callback processed" });
-        }
-
-        private bool VerifySignature(string body, string? signature)
-        {
-            if (string.IsNullOrEmpty(signature)) return false;
-
-            var key = Encoding.UTF8.GetBytes(_checksumKey);
-            using var hmac = new HMACSHA256(key);
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(body));
-            var expected = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-
-            return expected == signature.ToLowerInvariant();
         }
     }
 }
