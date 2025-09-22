@@ -64,8 +64,8 @@ namespace FitPick_EXE201.Controllers
                 Description = description,
                 Status = "PENDING",
                 CheckoutUrl = result.checkoutUrl,
-                Createdat = DateTime.UtcNow,
-                Updatedat = DateTime.UtcNow
+                Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
             return Ok(new
