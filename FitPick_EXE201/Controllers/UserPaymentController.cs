@@ -85,40 +85,23 @@ namespace FitPick_EXE201.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Callback()
         {
-            try
-            {
-                // --- 1. Lấy query params ---
-                string status = Request.Query["status"];
-                long orderCode = 0;
-                long.TryParse(Request.Query["orderCode"], out orderCode);
+            string status = Request.Query["status"];
+            string id = Request.Query["id"];
+            long orderCode = long.TryParse(Request.Query["orderCode"], out var oc) ? oc : 0;
 
-                if (orderCode == 0)
-                    return Ok(new { message = "Invalid orderCode" });
+            // Lấy thông tin thanh toán từ DB
+            var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
+            if (payment == null)
+                return Ok(new { message = "Không tìm thấy đơn hàng" });
 
-                // --- 2. Lấy payment từ DB ---
-                var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
-                if (payment == null)
-                    return Ok(new { message = "OrderCode not found" });
+            // Cập nhật trạng thái thanh toán
+            await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", DateTime.UtcNow);
 
-                int userId = payment.Userid;
+            // Nếu đã thanh toán, nâng cấp tài khoản
+            if (status == "PAID")
+                await _premiumService.UpgradeUserRoleToPremiumAsync(payment.Userid);
 
-                // --- 3. Update trạng thái payment ---
-                await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", DateTime.UtcNow);
-
-                // --- 4. Nếu PAID, nâng cấp user ---
-                if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
-                {
-                    await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
-                }
-
-                // --- 5. Trả về OK để PayOS xác nhận ---
-                return Ok(new { message = "Payment processed successfully" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Callback error: " + ex);
-                return Ok(new { message = "Callback received but error occurred", error = ex.Message });
-            }
+            return Ok(new { message = "Xử lý callback thành công" });
         }
     }
 }
