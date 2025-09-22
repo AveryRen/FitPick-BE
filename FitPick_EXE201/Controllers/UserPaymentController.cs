@@ -72,7 +72,6 @@ namespace FitPick_EXE201.Controllers
             });
         }
 
-        // --- Sửa callback sang POST ---
         [HttpPost("callback")]
         [AllowAnonymous]
         public async Task<IActionResult> Callback()
@@ -82,27 +81,47 @@ namespace FitPick_EXE201.Controllers
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                // Deserialize JSON từ PayOS
                 var payload = JsonSerializer.Deserialize<PayOSCallbackPayload>(body);
 
                 if (payload?.data == null)
                     return Ok(new { message = "Payload không hợp lệ" });
 
                 long orderCode = payload.data.orderCode;
-                string status = "PAID"; // giả định PayOS trả thành công
+                int amount = payload.data.amount;
+                string description = payload.data.description;
+                string paymentLinkId = payload.data.paymentLinkId;
 
                 // Lấy payment từ DB
                 var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
-                if (payment == null)
-                    return Ok(new { message = "Không tìm thấy đơn hàng" });
 
-                // Cập nhật trạng thái và nâng cấp user
-                await _premiumService.UpdatePaymentStatusAsync(
-                    orderCode,
-                    status,
-                    DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                );
-                await _premiumService.UpgradeUserRoleToPremiumAsync(payment.Userid);
+                if (payment == null)
+                {
+                    // Nếu chưa có payment, tạo mới luôn để tránh lỗi Entity Framework
+                    await _premiumService.CreatePaymentAsync(new PayosPayment
+                    {
+                        Userid = ExtractUserIdFromDescription(description), // Parse UserId từ description nếu cần
+                        OrderCode = orderCode,
+                        PaymentLinkId = paymentLinkId,
+                        Amount = amount,
+                        Description = description,
+                        Status = "PAID",
+                        TransactionDatetime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                        Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                        Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                    });
+                }
+                else
+                {
+                    // Cập nhật trạng thái payment
+                    await _premiumService.UpdatePaymentStatusAsync(
+                        orderCode,
+                        "PAID",
+                        DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                    );
+                }
+
+                // Nâng cấp user nếu chưa premium
+                await _premiumService.UpgradeUserRoleToPremiumAsync(payment?.Userid ?? ExtractUserIdFromDescription(description));
 
                 return Ok(new { message = "Callback xử lý thành công" });
             }
@@ -112,22 +131,38 @@ namespace FitPick_EXE201.Controllers
                 return Ok(new { message = "Callback xảy ra lỗi", error = ex.Message });
             }
         }
-    }
 
-    // --- Class để deserialize JSON từ PayOS ---
-    public class PayOSCallbackPayload
-    {
-        public string code { get; set; }
-        public string desc { get; set; }
-        public PayOSData data { get; set; }
-        public string signature { get; set; }
-    }
+        // --- Helper parse UserId từ description (ví dụ: "CSJH8XARL45 UserId10") ---
+        private int ExtractUserIdFromDescription(string description)
+        {
+            try
+            {
+                var parts = description.Split(' ');
+                foreach (var part in parts)
+                {
+                    if (part.StartsWith("UserId"))
+                        return int.Parse(part.Substring(6));
+                }
+            }
+            catch { }
+            return 0;
+        }
 
-    public class PayOSData
-    {
-        public long orderCode { get; set; }
-        public int amount { get; set; }
-        public string description { get; set; }
-        public string paymentLinkId { get; set; }
+        // --- Class deserialize JSON ---
+        public class PayOSCallbackPayload
+        {
+            public string code { get; set; }
+            public string desc { get; set; }
+            public PayOSData data { get; set; }
+            public string signature { get; set; }
+        }
+
+        public class PayOSData
+        {
+            public long orderCode { get; set; }
+            public int amount { get; set; }
+            public string description { get; set; }
+            public string paymentLinkId { get; set; }
+        }
     }
 }
