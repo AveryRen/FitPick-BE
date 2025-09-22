@@ -88,82 +88,37 @@ namespace FitPick_EXE201.Controllers
             try
             {
                 // --- 1. Lấy query params ---
-                string code = Request.Query["code"];
-                string id = Request.Query["id"];
                 string status = Request.Query["status"];
-                string receivedChecksum = Request.Query["checksum"];
                 long orderCode = 0;
                 long.TryParse(Request.Query["orderCode"], out orderCode);
 
-                // --- 2. Xác thực checksum ---
-                if (!VerifyPayOSChecksum(Request.Query, receivedChecksum))
-                {
-                    Console.WriteLine("Invalid PayOS checksum for OrderCode: " + orderCode);
-                    return Ok(new { message = "Invalid checksum" }); // vẫn trả 200 cho PayOS
-                }
+                if (orderCode == 0)
+                    return Ok(new { message = "Invalid orderCode" });
 
-                // --- 3. Lấy payment từ DB ---
+                // --- 2. Lấy payment từ DB ---
                 var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
                 if (payment == null)
-                {
-                    Console.WriteLine("OrderCode not found: " + orderCode);
                     return Ok(new { message = "OrderCode not found" });
-                }
 
                 int userId = payment.Userid;
-                var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-                // --- 4. Update trạng thái payment ---
-                try
-                {
-                    var updated = await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
-                    if (!updated)
-                        Console.WriteLine("Failed to update payment for OrderCode: " + orderCode);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("UpdatePaymentStatusAsync error: " + ex);
-                }
+                // --- 3. Update trạng thái payment ---
+                await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", DateTime.UtcNow);
 
-                // --- 5. Nếu PAID, nâng cấp user ---
+                // --- 4. Nếu PAID, nâng cấp user ---
                 if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
                 {
-                    try
-                    {
-                        await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("UpgradeUserRoleToPremiumAsync error: " + ex);
-                    }
+                    await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
                 }
 
-                return Ok(new { message = "Callback processed successfully" });
+                // --- 5. Trả về OK để PayOS xác nhận ---
+                return Ok(new { message = "Payment processed successfully" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Callback outer error: " + ex);
+                Console.WriteLine("Callback error: " + ex);
                 return Ok(new { message = "Callback received but error occurred", error = ex.Message });
             }
         }
-
-        // --- Helper method verify checksum ---
-        private bool VerifyPayOSChecksum(IQueryCollection query, string receivedChecksum)
-        {
-            // Tạo string query theo thứ tự PayOS yêu cầu, bỏ checksum ra
-            var sortedKeys = query.Keys.Where(k => k != "checksum").OrderBy(k => k);
-            var data = string.Join("&", sortedKeys.Select(k => $"{k}={query[k]}"));
-
-            // Hash HMAC-SHA256 với checksum key
-            var keyBytes = Encoding.UTF8.GetBytes(_checksumKey);
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-
-            using var hmac = new HMACSHA256(keyBytes);
-            var hash = hmac.ComputeHash(dataBytes);
-            var computedChecksum = BitConverter.ToString(hash).Replace("-", "").ToLower();
-
-            return computedChecksum == receivedChecksum?.ToLower();
-        }
-
     }
 }
