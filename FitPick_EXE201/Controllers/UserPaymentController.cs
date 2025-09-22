@@ -20,6 +20,7 @@ namespace FitPick_EXE201.Controllers
         private readonly PayOS _payOS;
         private readonly string _returnUrl;
         private readonly string _webhookUrl;
+        private readonly string _checksumKey;
         private readonly UserPremiumService _premiumService;
 
         public UserPaymentController(IOptions<PayOSSettings> options, UserPremiumService premiumService)
@@ -29,7 +30,11 @@ namespace FitPick_EXE201.Controllers
             _returnUrl = opts.ReturnUrl;
             _webhookUrl = opts.WebhookUrl;
             _premiumService = premiumService;
+
+            // Lưu checksum key để verify callback
+            _checksumKey = opts.ChecksumKey;
         }
+
 
         [HttpPost("create")]
         [Authorize]
@@ -82,29 +87,58 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
+                // --- 1. Lấy query params ---
                 string code = Request.Query["code"];
                 string id = Request.Query["id"];
                 string status = Request.Query["status"];
+                string receivedChecksum = Request.Query["checksum"];
                 long orderCode = 0;
                 long.TryParse(Request.Query["orderCode"], out orderCode);
 
+                // --- 2. Xác thực checksum ---
+                if (!VerifyPayOSChecksum(Request.Query, receivedChecksum))
+                {
+                    Console.WriteLine("Invalid PayOS checksum for OrderCode: " + orderCode);
+                    return Ok(new { message = "Invalid checksum" }); // vẫn trả 200 cho PayOS
+                }
+
+                // --- 3. Lấy payment từ DB ---
                 var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
                 if (payment == null)
-                    return Ok(new { message = "OrderCode not found" }); // trả 200 để PayOS không fail
+                {
+                    Console.WriteLine("OrderCode not found: " + orderCode);
+                    return Ok(new { message = "OrderCode not found" });
+                }
 
                 int userId = payment.Userid;
                 var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-                try { await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime); }
-                catch (Exception ex) { Console.WriteLine("UpdatePaymentStatusAsync error: " + ex); }
-
-                if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
+                // --- 4. Update trạng thái payment ---
+                try
                 {
-                    try { await _premiumService.UpgradeUserRoleToPremiumAsync(userId); }
-                    catch (Exception ex) { Console.WriteLine("UpgradeUserRoleToPremiumAsync error: " + ex); }
+                    var updated = await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
+                    if (!updated)
+                        Console.WriteLine("Failed to update payment for OrderCode: " + orderCode);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("UpdatePaymentStatusAsync error: " + ex);
                 }
 
-                return Ok(new { message = "Callback processed" });
+                // --- 5. Nếu PAID, nâng cấp user ---
+                if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("UpgradeUserRoleToPremiumAsync error: " + ex);
+                    }
+                }
+
+                return Ok(new { message = "Callback processed successfully" });
             }
             catch (Exception ex)
             {
@@ -112,5 +146,24 @@ namespace FitPick_EXE201.Controllers
                 return Ok(new { message = "Callback received but error occurred", error = ex.Message });
             }
         }
+
+        // --- Helper method verify checksum ---
+        private bool VerifyPayOSChecksum(IQueryCollection query, string receivedChecksum)
+        {
+            // Tạo string query theo thứ tự PayOS yêu cầu, bỏ checksum ra
+            var sortedKeys = query.Keys.Where(k => k != "checksum").OrderBy(k => k);
+            var data = string.Join("&", sortedKeys.Select(k => $"{k}={query[k]}"));
+
+            // Hash HMAC-SHA256 với checksum key
+            var keyBytes = Encoding.UTF8.GetBytes(_checksumKey);
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+
+            using var hmac = new HMACSHA256(keyBytes);
+            var hash = hmac.ComputeHash(dataBytes);
+            var computedChecksum = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+            return computedChecksum == receivedChecksum?.ToLower();
+        }
+
     }
 }
