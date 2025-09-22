@@ -15,7 +15,6 @@ namespace FitPick_EXE201.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UserPaymentController : ControllerBase
     {
         private readonly PayOS _payOS;
@@ -33,6 +32,7 @@ namespace FitPick_EXE201.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> CreatePayment()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -90,26 +90,25 @@ namespace FitPick_EXE201.Controllers
 
                 var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
                 if (payment == null)
-                    return NotFound(new { message = "OrderCode not found" });
+                    return Ok(new { message = "OrderCode not found" }); // trả 200 để PayOS không fail
 
                 int userId = payment.Userid;
                 var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-                // Cố gắng update payment, nếu lỗi sẽ catch
-                await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
+                try { await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime); }
+                catch (Exception ex) { Console.WriteLine("UpdatePaymentStatusAsync error: " + ex); }
 
                 if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Cố gắng nâng cấp user, nếu lỗi sẽ catch
-                    await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
+                    try { await _premiumService.UpgradeUserRoleToPremiumAsync(userId); }
+                    catch (Exception ex) { Console.WriteLine("UpgradeUserRoleToPremiumAsync error: " + ex); }
                 }
 
                 return Ok(new { message = "Callback processed" });
             }
             catch (Exception ex)
             {
-                // Log ra console hoặc file để kiểm tra
-                Console.WriteLine(ex);
+                Console.WriteLine("Callback outer error: " + ex);
                 return Ok(new { message = "Callback received but error occurred", error = ex.Message });
             }
         }
