@@ -146,13 +146,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5173",           //local
-            "https://fitpick-admin.vercel.app" //web
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrEmpty(origin)) return false;
+                // Cho phép localhost và tất cả domain *.vercel.app
+                var host = new Uri(origin).Host;
+                return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                       || host.EndsWith("vercel.app", StringComparison.OrdinalIgnoreCase);
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
