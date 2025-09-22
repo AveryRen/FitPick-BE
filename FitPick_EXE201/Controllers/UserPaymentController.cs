@@ -76,47 +76,24 @@ namespace FitPick_EXE201.Controllers
             });
         }
 
-        // Callback chung GET/POST
         [HttpGet("callback")]
         [AllowAnonymous]
         public async Task<IActionResult> Callback()
         {
-            string code = null, id = null, status = null, description = null;
+            // Lấy tham số từ query string
+            string code = Request.Query["code"];
+            string id = Request.Query["id"];
+            string status = Request.Query["status"];
             long orderCode = 0;
+            long.TryParse(Request.Query["orderCode"], out orderCode);
 
-            // POST JSON
-            if (Request.Method == "POST")
-            {
-                using var reader = new StreamReader(Request.Body);
-                var body = await reader.ReadToEndAsync();
-                var payload = JsonSerializer.Deserialize<JsonElement>(body);
-                var data = payload.GetProperty("data");
+            var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
+            if (payment == null)
+                return NotFound(new { message = "OrderCode not found" });
 
-                status = data.GetProperty("status").GetString();
-                orderCode = data.GetProperty("orderCode").GetInt64();
-                description = data.GetProperty("description").GetString();
-                code = payload.GetProperty("code").GetString();
-                id = data.GetProperty("id").GetString();
-            }
-            else // GET query
-            {
-                status = Request.Query["status"];
-                description = Request.Query["description"];
-                code = Request.Query["code"];
-                id = Request.Query["id"];
-                long.TryParse(Request.Query["orderCode"], out orderCode);
-            }
+            int userId = payment.Userid;
+            var paidTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-            if (string.IsNullOrEmpty(description))
-                return BadRequest(new { message = "Missing description" });
-
-            var match = System.Text.RegularExpressions.Regex.Match(description, @"UserId:(\d+)");
-            if (!match.Success || !int.TryParse(match.Groups[1].Value, out var userId))
-                return BadRequest(new { message = "Invalid userId format" });
-
-            var paidTime = DateTime.UtcNow;
-
-            // Cập nhật transaction, check tồn tại trước
             var updated = await _premiumService.UpdatePaymentStatusAsync(orderCode, status ?? "UNKNOWN", paidTime);
             if (!updated)
                 return NotFound(new { message = "OrderCode not found" });

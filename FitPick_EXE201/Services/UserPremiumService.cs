@@ -74,5 +74,9 @@ namespace FitPick_EXE201.Services
         {
             return _repo.UpdatePaymentStatusAsync(orderCode, status, transactionTime);
         }
+        public async Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode)
+        {
+            return await _repo.GetPaymentByOrderCodeAsync(orderCode);
+        }
     }
 }

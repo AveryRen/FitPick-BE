@@ -73,5 +73,11 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode)
+        {
+            return await _context.PayosPayments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+        }
     }
 }

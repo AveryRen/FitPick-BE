@@ -11,6 +11,7 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<bool> IsUserPremiumAsync(int userId);
 
         //Payment 
+        Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode);
         Task<bool> InsertPaymentAsync(PayosPayment payment);
         Task<bool> UpdatePaymentStatusAsync(long orderCode, string status, DateTime? transactionTime);
     }
