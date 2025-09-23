@@ -91,6 +91,22 @@ namespace FitPick_EXE201.Controllers
                 if (userId <= 0)
                     return Ok(new { message = "Không lấy được userId từ description" });
 
+                // ⚡️ Parse transactionDateTime thủ công
+                DateTime? transTime = null;
+                if (!string.IsNullOrWhiteSpace(payload.data.transactionDateTime))
+                {
+                    // PayOS format: "yyyy-MM-dd HH:mm:ss"
+                    if (DateTime.TryParseExact(
+                        payload.data.transactionDateTime,
+                        "yyyy-MM-dd HH:mm:ss",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out var parsed))
+                    {
+                        transTime = parsed;
+                    }
+                }
+
                 // ⚡️ Nâng cấp User lên Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
@@ -98,7 +114,7 @@ namespace FitPick_EXE201.Controllers
                 await _premiumService.UpdatePaymentStatusAsync(
                     orderCode: payload.data.orderCode,
                     status: "PAID",
-                    transactionTime: payload.data.transactionDateTime,
+                    transactionTime: transTime,
                     amount: payload.data.amount,
                     description: payload.data.description
                 );
@@ -142,7 +158,7 @@ namespace FitPick_EXE201.Controllers
             public decimal amount { get; set; }
             public string description { get; set; }
             public string reference { get; set; }
-            public DateTime? transactionDateTime { get; set; }  // ⚡️ kiểu DateTime?
+            public string transactionDateTime { get; set; }   // ⚡ string để tự parse
             public string virtualAccountNumber { get; set; }
             public string counterAccountBankId { get; set; }
             public string counterAccountBankName { get; set; }
