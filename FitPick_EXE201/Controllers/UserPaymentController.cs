@@ -86,21 +86,34 @@ namespace FitPick_EXE201.Controllers
                 if (payload?.data == null)
                     return Ok(new { message = "Payload không hợp lệ" });
 
-                // Parse userId trực tiếp từ description (ở CreatePayment bạn truyền userId trong description)
-                if (!int.TryParse(payload.data.description, out var userId))
+                // Lấy userId từ description
+                var userId = ExtractUserIdFromDescription(payload.data.description);
+                if (userId <= 0)
                     return Ok(new { message = "Không lấy được userId từ description" });
 
                 // Nâng cấp user lên Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
-                return Ok(new { message = "Người dùng đã được nâng cấp Premium thành công" });
+                return Ok(new { message = $"Người dùng {userId} đã được nâng cấp Premium thành công" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("CallbackSimple error: " + ex);
+                Console.WriteLine("Callback error: " + ex);
                 return Ok(new { message = "Có lỗi khi xử lý callback", error = ex.Message });
             }
         }
+
+        private int ExtractUserIdFromDescription(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+                return 0;
+
+            var parts = description.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var lastPart = parts.LastOrDefault();
+
+            return int.TryParse(lastPart, out var userId) ? userId : 0;
+        }
+
 
         // --- Class deserialize JSON ---
         public class PayOSCallbackPayload
