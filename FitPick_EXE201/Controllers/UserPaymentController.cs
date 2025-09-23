@@ -91,38 +91,39 @@ namespace FitPick_EXE201.Controllers
                 string description = payload.data.description;
                 string paymentLinkId = payload.data.paymentLinkId;
 
+                int userId = ExtractUserIdFromDescription(description); // ✅ parse 1 lần
+
                 // Lấy payment từ DB
                 var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
 
                 if (payment == null)
                 {
-                    // Nếu chưa có payment, tạo mới luôn để tránh lỗi Entity Framework
                     await _premiumService.CreatePaymentAsync(new PayosPayment
                     {
-                        Userid = ExtractUserIdFromDescription(description), // Parse UserId từ description nếu cần
+                        Userid = userId,
                         OrderCode = orderCode,
                         PaymentLinkId = paymentLinkId,
                         Amount = amount,
                         Description = description,
                         Status = "PAID",
-                        TransactionDatetime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-                        Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-                        Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                        Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                        TransactionDatetime = DateTime.UtcNow,
+                        Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                     });
                 }
                 else
                 {
-                    // Cập nhật trạng thái payment
                     await _premiumService.UpdatePaymentStatusAsync(
                         orderCode,
                         "PAID",
-                        DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                        DateTime.UtcNow
                     );
                 }
 
-                // Nâng cấp user nếu chưa premium
-                await _premiumService.UpgradeUserRoleToPremiumAsync(payment?.Userid ?? ExtractUserIdFromDescription(description));
+                // 👉 Luôn dùng userId đã parse
+                await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
+                // ✅ Trả về response thành công
                 return Ok(new { message = "Callback xử lý thành công" });
             }
             catch (Exception ex)
@@ -131,6 +132,7 @@ namespace FitPick_EXE201.Controllers
                 return Ok(new { message = "Callback xảy ra lỗi", error = ex.Message });
             }
         }
+
 
         // --- Helper parse UserId từ description (ví dụ: "CSJH8XARL45 UserId10") ---
         private int ExtractUserIdFromDescription(string description)
