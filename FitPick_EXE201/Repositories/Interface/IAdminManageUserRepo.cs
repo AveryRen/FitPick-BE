@@ -6,16 +6,14 @@ namespace FitPick_EXE201.Repositories.Interface
 {
     public interface IAdminManageUserRepo
     {
-        Task<PagedResult<User>> GetAllUsersAsync(
+        Task<List<User>> GetAllUsersAsync(
             int currentAdminId,
             string? searchKeyword,
             string? sortBy,
             bool sortDesc,
             int? genderId,
             int? roleId,
-            bool? status,
-            int pageNumber = 1,
-            int pageSize = 10
+            bool? status
         );
 
         Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id);

@@ -86,20 +86,32 @@ namespace FitPick_EXE201.Controllers
                 if (payload?.data == null)
                     return Ok(new { message = "Payload không hợp lệ" });
 
-                // Lấy userId từ description
+                // 🔑 Lấy userId từ description (VD: "CSDN5AQ5B25 35")
                 var userId = ExtractUserIdFromDescription(payload.data.description);
                 if (userId <= 0)
                     return Ok(new { message = "Không lấy được userId từ description" });
 
-                // Nâng cấp user lên Premium
+                // ⚡️ Nâng cấp User lên Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
-                return Ok(new { message = $"Người dùng {userId} đã được nâng cấp Premium thành công" });
+                // ⚡️ Cập nhật trạng thái giao dịch
+                await _premiumService.UpdatePaymentStatusAsync(
+                    orderCode: payload.data.orderCode,
+                    status: "PAID",
+                    transactionTime: payload.data.transactionDateTime,
+                    amount: payload.data.amount,
+                    description: payload.data.description
+                );
+
+                return Ok(new
+                {
+                    message = $"✅ User {userId} đã được nâng cấp Premium và cập nhật giao dịch thành công"
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Callback error: " + ex);
-                return Ok(new { message = "Có lỗi khi xử lý callback", error = ex.Message });
+                return Ok(new { message = "❌ Lỗi khi xử lý callback", error = ex.Message });
             }
         }
 
@@ -114,22 +126,34 @@ namespace FitPick_EXE201.Controllers
             return int.TryParse(lastPart, out var userId) ? userId : 0;
         }
 
-
         // --- Class deserialize JSON ---
         public class PayOSCallbackPayload
         {
             public string code { get; set; }
             public string desc { get; set; }
+            public bool success { get; set; }
             public PayOSData data { get; set; }
             public string signature { get; set; }
         }
 
         public class PayOSData
         {
+            public string accountNumber { get; set; }
+            public decimal amount { get; set; }
+            public string description { get; set; }
+            public string reference { get; set; }
+            public DateTime? transactionDateTime { get; set; }  // ⚡️ kiểu DateTime?
+            public string virtualAccountNumber { get; set; }
+            public string counterAccountBankId { get; set; }
+            public string counterAccountBankName { get; set; }
+            public string counterAccountName { get; set; }
+            public string counterAccountNumber { get; set; }
+            public string virtualAccountName { get; set; }
+            public string currency { get; set; }
             public long orderCode { get; set; }
-            public int amount { get; set; }
-            public string description { get; set; } // description = userId
             public string paymentLinkId { get; set; }
+            public string code { get; set; }
+            public string desc { get; set; }
         }
     }
 }

@@ -70,10 +70,17 @@ namespace FitPick_EXE201.Services
         /// <summary>
         /// Cập nhật trạng thái giao dịch khi PayOS callback
         /// </summary>
-        public Task<bool> UpdatePaymentStatusAsync(long orderCode, string status, DateTime? transactionTime = null)
+        public Task<bool> UpdatePaymentStatusAsync(
+            long orderCode,
+            string status,
+            DateTime? transactionTime = null,
+            decimal? amount = null,
+            string? description = null
+        )
         {
-            return _repo.UpdatePaymentStatusAsync(orderCode, status, transactionTime);
+            return _repo.UpdatePaymentStatusAsync(orderCode, status, transactionTime, amount, description);
         }
+
         public async Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode)
         {
             return await _repo.GetPaymentByOrderCodeAsync(orderCode);

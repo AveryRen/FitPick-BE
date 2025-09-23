@@ -13,6 +13,12 @@ namespace FitPick_EXE201.Repositories.Interface
         //Payment 
         Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode);
         Task<bool> InsertPaymentAsync(PayosPayment payment);
-        Task<bool> UpdatePaymentStatusAsync(long orderCode, string status, DateTime? transactionTime);
+        Task<bool> UpdatePaymentStatusAsync(
+            long orderCode,
+            string status,
+            DateTime? transactionTime,
+            decimal? amount = null,
+            string? description = null
+        );
     }
 }

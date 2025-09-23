@@ -14,17 +14,15 @@ namespace FitPick_EXE201.Services
         {
             _userRepo = userRepo;
         }
-        public async Task<PagedResult<User>> GetAllUsersAsync(
-             int currentAdminId,
-             string? searchKeyword,
-             string? sortBy,
-             bool sortDesc,
-             int? genderId,
-             int? roleId,
-             bool? status,
-             int pageNumber = 1,
-             int pageSize = 10
-            )
+        public async Task<List<User>> GetAllUsersAsync(
+            int currentAdminId,
+            string? searchKeyword,
+            string? sortBy,
+            bool sortDesc,
+            int? genderId,
+            int? roleId,
+            bool? status
+        )
         {
             return await _userRepo.GetAllUsersAsync(
                 currentAdminId,
@@ -33,9 +31,7 @@ namespace FitPick_EXE201.Services
                 sortDesc,
                 genderId,
                 roleId,
-                status,
-                pageNumber,
-                pageSize
+                status
             );
         }
 

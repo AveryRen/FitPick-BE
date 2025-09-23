@@ -21,17 +21,15 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             _context = context;
         }
-        public async Task<PagedResult<User>> GetAllUsersAsync(
-             int currentAdminId,
-             string? searchKeyword,
-             string? sortBy,
-             bool sortDesc,
-             int? genderId,
-             int? roleId,
-             bool? status,
-             int pageNumber = 1,
-             int pageSize = 10
-         )
+        public async Task<List<User>> GetAllUsersAsync(
+            int currentAdminId,
+            string? searchKeyword,
+            string? sortBy,
+            bool sortDesc,
+            int? genderId,
+            int? roleId,
+            bool? status
+        )
         {
             var query = _context.Users
                 .Where(u => u.Userid != currentAdminId)
@@ -40,7 +38,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 .AsNoTracking()
                 .AsQueryable();
 
-            // Filter search keyword
+            // --- Filter ---
             if (!string.IsNullOrWhiteSpace(searchKeyword))
             {
                 string lowerKeyword = searchKeyword.ToLower();
@@ -60,7 +58,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (status.HasValue)
                 query = query.Where(u => u.Status == status.Value);
 
-            // Sort
+            // --- Sort ---
             query = sortBy?.ToLower() switch
             {
                 "fullname" => sortDesc ? query.OrderByDescending(u => u.Fullname) : query.OrderBy(u => u.Fullname),
@@ -72,24 +70,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 _ => query.OrderBy(u => u.Userid)
             };
 
-            // Tổng số bản ghi trước phân trang
-            var totalItems = await query.CountAsync();
-
-            // Phân trang
-            var skip = (pageNumber - 1) * pageSize;
-            var items = await query.Skip(skip).Take(pageSize).ToListAsync();
-
-            // Tính tổng số trang
-            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            return new PagedResult<User>
-            {
-                Items = items,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                PageSize = pageSize,
-                PageNumber = pageNumber
-            };
+            return await query.ToListAsync();
         }
 
 

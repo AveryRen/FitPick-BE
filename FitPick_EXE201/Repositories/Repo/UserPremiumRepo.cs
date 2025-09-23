@@ -59,20 +59,43 @@ namespace FitPick_EXE201.Repositories.Repo
         }
 
         // Cập nhật trạng thái giao dịch
-        public async Task<bool> UpdatePaymentStatusAsync(long orderCode, string status, DateTime? transactionTime)
+        public async Task<bool> UpdatePaymentStatusAsync(
+            long orderCode,
+            string status,
+            DateTime? transactionTime,
+            decimal? amount = null,
+            string? description = null
+)
         {
-            var payment = await _context.PayosPayments.FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+            var payment = await _context.PayosPayments
+                .FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+
             if (payment == null) return false;
 
+            // Cập nhật trạng thái
             payment.Status = status;
+
+            // Nếu có thời gian giao dịch (thanh toán thành công)
             if (transactionTime.HasValue)
-                payment.TransactionDatetime = transactionTime;
-            payment.Updatedat = DateTime.UtcNow;
+                payment.TransactionDatetime = DateTime.SpecifyKind(transactionTime.Value, DateTimeKind.Unspecified);
+            else if (status.Equals("PAID", StringComparison.OrdinalIgnoreCase) && payment.TransactionDatetime == null)
+                payment.TransactionDatetime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+
+            // Cập nhật số tiền/description nếu callback gửi lại
+            if (amount.HasValue)
+                payment.Amount = amount.Value;
+
+            if (!string.IsNullOrWhiteSpace(description))
+                payment.Description = description;
+
+            // Luôn cập nhật Updatedat
+            payment.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             _context.PayosPayments.Update(payment);
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<PayosPayment?> GetPaymentByOrderCodeAsync(long orderCode)
         {
             return await _context.PayosPayments
