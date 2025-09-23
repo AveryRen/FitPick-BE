@@ -45,7 +45,7 @@ namespace FitPick_EXE201.Controllers
             var items = new List<ItemData> { new ItemData(productName, quantity, price) };
 
             var orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var description = $"UserId:{userId}";
+            var description = $"{userId}";
 
             var paymentData = new PaymentData(orderCode, total, description, items, _returnUrl, _webhookUrl);
 
@@ -86,68 +86,20 @@ namespace FitPick_EXE201.Controllers
                 if (payload?.data == null)
                     return Ok(new { message = "Payload không hợp lệ" });
 
-                long orderCode = payload.data.orderCode;
-                int amount = payload.data.amount;
-                string description = payload.data.description;
-                string paymentLinkId = payload.data.paymentLinkId;
+                // Parse userId trực tiếp từ description (ở CreatePayment bạn truyền userId trong description)
+                if (!int.TryParse(payload.data.description, out var userId))
+                    return Ok(new { message = "Không lấy được userId từ description" });
 
-                int userId = ExtractUserIdFromDescription(description); // ✅ parse 1 lần
-
-                // Lấy payment từ DB
-                var payment = await _premiumService.GetPaymentByOrderCodeAsync(orderCode);
-
-                if (payment == null)
-                {
-                    await _premiumService.CreatePaymentAsync(new PayosPayment
-                    {
-                        Userid = userId,
-                        OrderCode = orderCode,
-                        PaymentLinkId = paymentLinkId,
-                        Amount = amount,
-                        Description = description,
-                        Status = "PAID",
-                        Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-                        TransactionDatetime = DateTime.UtcNow,
-                        Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                    });
-                }
-                else
-                {
-                    await _premiumService.UpdatePaymentStatusAsync(
-                        orderCode,
-                        "PAID",
-                        DateTime.UtcNow
-                    );
-                }
-
-                // 👉 Luôn dùng userId đã parse
+                // Nâng cấp user lên Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
-                // ✅ Trả về response thành công
-                return Ok(new { message = "Callback xử lý thành công" });
+                return Ok(new { message = "Người dùng đã được nâng cấp Premium thành công" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Callback error: " + ex);
-                return Ok(new { message = "Callback xảy ra lỗi", error = ex.Message });
+                Console.WriteLine("CallbackSimple error: " + ex);
+                return Ok(new { message = "Có lỗi khi xử lý callback", error = ex.Message });
             }
-        }
-
-
-        // --- Helper parse UserId từ description (ví dụ: "CSJH8XARL45 UserId10") ---
-        private int ExtractUserIdFromDescription(string description)
-        {
-            try
-            {
-                var parts = description.Split(' ');
-                foreach (var part in parts)
-                {
-                    if (part.StartsWith("UserId"))
-                        return int.Parse(part.Substring(6));
-                }
-            }
-            catch { }
-            return 0;
         }
 
         // --- Class deserialize JSON ---
@@ -163,7 +115,7 @@ namespace FitPick_EXE201.Controllers
         {
             public long orderCode { get; set; }
             public int amount { get; set; }
-            public string description { get; set; }
+            public string description { get; set; } // description = userId
             public string paymentLinkId { get; set; }
         }
     }
