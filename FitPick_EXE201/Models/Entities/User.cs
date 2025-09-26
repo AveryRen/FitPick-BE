@@ -95,4 +95,7 @@ public partial class User
     [InverseProperty("Users")]
     [JsonIgnore]
     public virtual UserRole? Role { get; set; }
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();
 }

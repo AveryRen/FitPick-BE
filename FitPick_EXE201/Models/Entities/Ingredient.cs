@@ -30,4 +30,7 @@ public partial class Ingredient
 
     [InverseProperty("Ingredient")]
     public virtual ICollection<Mealingredient> Mealingredients { get; set; } = new List<Mealingredient>();
+
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();
 }

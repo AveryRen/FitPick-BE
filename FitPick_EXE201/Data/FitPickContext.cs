@@ -60,9 +60,9 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserMealIngredientMark> UserMealIngredientMarks { get; set; }
+
     public virtual DbSet<UserRole> UserRoles { get; set; }
-
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -298,6 +298,19 @@ public partial class FitPickContext : DbContext
             entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
+        });
+
+        modelBuilder.Entity<UserMealIngredientMark>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("user_meal_ingredient_marks_pkey");
+
+            entity.Property(e => e.HasIt).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Ingredient).WithMany(p => p.UserMealIngredientMarks).HasConstraintName("user_meal_ingredient_marks_ingredientid_fkey");
+
+            entity.HasOne(d => d.Meal).WithMany(p => p.UserMealIngredientMarks).HasConstraintName("user_meal_ingredient_marks_mealid_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserMealIngredientMarks).HasConstraintName("user_meal_ingredient_marks_userid_fkey");
         });
 
         modelBuilder.Entity<UserRole>(entity =>

@@ -77,4 +77,7 @@ public partial class Meal
     [ForeignKey("StatusId")]
     [InverseProperty("Meals")]
     public virtual MealStatus? Status { get; set; }
+
+    [InverseProperty("Meal")]
+    public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();
 }
