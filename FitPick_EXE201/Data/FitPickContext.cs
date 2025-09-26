@@ -58,17 +58,11 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<PlanStatus> PlanStatuses { get; set; }
 
-    public virtual DbSet<Spendinglog> Spendinglogs { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
-
-    public virtual DbSet<UserIngredient> UserIngredients { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -291,15 +285,6 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Id).HasName("plan_statuses_pkey");
         });
 
-        modelBuilder.Entity<Spendinglog>(entity =>
-        {
-            entity.HasKey(e => e.Spendingid).HasName("spendinglogs_pkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Spendinglogs)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("spendinglogs_userid_fkey");
-        });
-
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Userid).HasName("users_pkey");
@@ -313,21 +298,6 @@ public partial class FitPickContext : DbContext
             entity.HasOne(d => d.Gender).WithMany(p => p.Users).HasConstraintName("users_gender_id_fkey");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users).HasConstraintName("users_role_id_fkey");
-        });
-
-        modelBuilder.Entity<UserIngredient>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("user_ingredients_pkey");
-
-            entity.Property(e => e.Updatedat).HasDefaultValueSql("now()");
-
-            entity.HasOne(d => d.Ingredient).WithMany(p => p.UserIngredients)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("user_ingredients_ingredientid_fkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserIngredients)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("user_ingredients_userid_fkey");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
