@@ -64,6 +64,10 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -155,8 +159,11 @@ public partial class FitPickContext : DbContext
         {
             entity.HasKey(e => e.Mealid).HasName("meals_pkey");
 
+            entity.Property(e => e.Carbs).HasDefaultValueSql("0");
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.Fat).HasDefaultValueSql("0");
             entity.Property(e => e.IsPremium).HasDefaultValue(false);
+            entity.Property(e => e.Protein).HasDefaultValueSql("0");
             entity.Property(e => e.StatusId).HasDefaultValue(2);
 
             entity.HasOne(d => d.Category).WithMany(p => p.Meals).HasConstraintName("meals_category_id_fkey");
@@ -173,6 +180,7 @@ public partial class FitPickContext : DbContext
         {
             entity.HasKey(e => e.Historyid).HasName("meal_history_pkey");
 
+            entity.Property(e => e.ConsumedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
             entity.Property(e => e.Date).HasDefaultValueSql("CURRENT_DATE");
             entity.Property(e => e.Quantity).HasDefaultValueSql("1");

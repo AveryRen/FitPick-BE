@@ -135,6 +135,14 @@ builder.Services.AddScoped<PayosPaymentService>();
 builder.Services.AddScoped<IUserPremiumRepo, UserPremiumRepo>();
 builder.Services.AddScoped<UserPremiumService>();
 
+builder.Services.AddScoped<IMealPlanRepo, MealPlanRepo>();
+builder.Services.AddScoped<MealPlanService>();
+
+
+builder.Services.AddScoped<IUserMealIngredientRepo, UserMealIngredientRepo>();
+builder.Services.AddScoped<UserMealIngredientService>();
+
+
 builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
