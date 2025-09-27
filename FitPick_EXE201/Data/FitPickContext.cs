@@ -263,6 +263,7 @@ public partial class FitPickContext : DbContext
             entity.HasKey(e => e.Notificationid).HasName("notifications_pkey");
 
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsDone).HasDefaultValue(false);
             entity.Property(e => e.Isread).HasDefaultValue(false);
 
             entity.HasOne(d => d.Type).WithMany(p => p.Notifications).HasConstraintName("notifications_type_id_fkey");

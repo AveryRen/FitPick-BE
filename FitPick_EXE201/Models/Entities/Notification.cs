@@ -35,6 +35,9 @@ public partial class Notification
     [Column("scheduledat", TypeName = "timestamp without time zone")]
     public DateTime? Scheduledat { get; set; }
 
+    [Column("is_done")]
+    public bool? IsDone { get; set; }
+
     [ForeignKey("TypeId")]
     [InverseProperty("Notifications")]
     public virtual NotificationType? Type { get; set; }
