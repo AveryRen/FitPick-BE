@@ -5,11 +5,13 @@ using FitPick_EXE201.Helpers;
 using System.Collections.Generic;
 using FitPick_EXE201.Models.DTOs; // ✅ dùng DTO
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FitPick_EXE201.Controllers
 {
     [Route("api/users/meals")]
     [ApiController]
+    [Authorize]
     public class UserMealController : ControllerBase
     {
         private readonly UserMealService _userMealService;
