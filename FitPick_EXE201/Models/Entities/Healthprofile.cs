@@ -46,6 +46,10 @@ public partial class Healthprofile
     [Column("updatedat", TypeName = "timestamp without time zone")]
     public DateTime? Updatedat { get; set; }
 
+    [Column("targetweight")]
+    [Precision(5, 2)]
+    public decimal? Targetweight { get; set; }
+
     [ForeignKey("Healthgoalid")]
     [InverseProperty("Healthprofiles")]
     public virtual Healthgoal? Healthgoal { get; set; }

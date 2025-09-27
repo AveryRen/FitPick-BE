@@ -51,6 +51,18 @@ public partial class Meal
     [StringLength(255)]
     public string? ImageUrl { get; set; }
 
+    [Column("protein")]
+    [Precision(6, 2)]
+    public decimal? Protein { get; set; }
+
+    [Column("carbs")]
+    [Precision(6, 2)]
+    public decimal? Carbs { get; set; }
+
+    [Column("fat")]
+    [Precision(6, 2)]
+    public decimal? Fat { get; set; }
+
     [ForeignKey("CategoryId")]
     [InverseProperty("Meals")]
     [JsonIgnore]
@@ -77,4 +89,7 @@ public partial class Meal
     [ForeignKey("StatusId")]
     [InverseProperty("Meals")]
     public virtual MealStatus? Status { get; set; }
+
+    [InverseProperty("Meal")]
+    public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();
 }

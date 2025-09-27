@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -96,9 +97,5 @@ public partial class User
     public virtual UserRole? Role { get; set; }
 
     [InverseProperty("User")]
-    public virtual ICollection<Spendinglog> Spendinglogs { get; set; } = new List<Spendinglog>();
-
-    [InverseProperty("User")]
-    [JsonIgnore]
-    public virtual ICollection<UserIngredient> UserIngredients { get; set; } = new List<UserIngredient>();
+    public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();
 }

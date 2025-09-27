@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FitPick_EXE201.Models.Entities;
 
 [Table("payos_payments")]
+[Index("OrderCode", Name = "unique_order_code", IsUnique = true)]
 public partial class PayosPayment
 {
     [Key]

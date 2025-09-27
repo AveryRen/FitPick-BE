@@ -87,8 +87,6 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<HealthprofileService>();
 builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
-builder.Services.AddScoped<SpendinglogService>();
-builder.Services.AddScoped<ISpendinglogRepo, SpendinglogRepo>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<INotificationRepo, NotificationRepo>();
 builder.Services.AddScoped<INotificationTypeRepo, NotificationTypeRepo>();
@@ -110,9 +108,6 @@ builder.Services.AddScoped<UserService>();
 
 builder.Services.AddScoped<IAdminIngredientRepo, AdminIngredientRepo>();
 builder.Services.AddScoped<AdminIngredientService>();
-
-builder.Services.AddScoped<IUserIngredientRepo, UserIngredientRepo>();
-builder.Services.AddScoped<UserIngredientService>();
 
 builder.Services.AddScoped<IAdminMealRepo, AdminMealRepo>();
 builder.Services.AddScoped<AdminMealService>();
@@ -139,6 +134,22 @@ builder.Services.AddScoped<PayosPaymentService>();
 
 builder.Services.AddScoped<IUserPremiumRepo, UserPremiumRepo>();
 builder.Services.AddScoped<UserPremiumService>();
+
+builder.Services.AddScoped<IMealPlanRepo, MealPlanRepo>();
+builder.Services.AddScoped<MealPlanService>();
+
+builder.Services.AddScoped<IReminderRepo, ReminderRepo>();
+builder.Services.AddScoped<ReminderService>();
+
+builder.Services.AddScoped<IUserMealIngredientRepo, UserMealIngredientRepo>();
+builder.Services.AddScoped<UserMealIngredientService>();
+
+builder.Services.AddScoped<IUserMealPremiumRepo, UserMealPremiumRepo>();
+builder.Services.AddScoped<MealPremiumService>();
+
+builder.Services.AddScoped<IRecommendationRepo, RecommendationRepo>();
+builder.Services.AddScoped<RecommendationService>();
+
 
 builder.Services.AddHttpClient();
 

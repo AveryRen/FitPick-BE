@@ -77,5 +77,57 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<HealthprofileDTO>.SuccessResponse(profile, "Get By UserId successfully"));
         }
+        [HttpGet("user/progress")]
+        public async Task<ActionResult<ApiResponse<ProgressDto>>> GetUserProgress()
+        {
+            // Lấy userId từ JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(ApiResponse<ProgressDto>.ErrorResponse(
+                    new List<string> { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            var progress = await _service.GetUserProgressAsync(userId);
+            if (progress == null)
+            {
+                return NotFound(ApiResponse<ProgressDto>.ErrorResponse(
+                    new List<string> { "No progress data found." },
+                    "No progress data found."
+                ));
+            }
+
+            return Ok(ApiResponse<ProgressDto>.SuccessResponse(progress, "User progress retrieved successfully"));
+        }
+        [HttpGet("user/goal")]
+        public async Task<ActionResult<ApiResponse<UserGoalDto>>> GetUserGoal()
+        {
+            // Lấy userId từ JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(ApiResponse<UserGoalDto>.ErrorResponse(
+                    new List<string> { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            // Gọi service
+            var goal = await _service.GetUserGoalAsync(userId);
+            if (goal == null)
+            {
+                return NotFound(ApiResponse<UserGoalDto>.ErrorResponse(
+                    new List<string> { "No goal data found for this user." },
+                    "No goal data found for this user."
+                ));
+            }
+
+            return Ok(ApiResponse<UserGoalDto>.SuccessResponse(
+                goal,
+                "User goal retrieved successfully"
+            ));
+        }
     }
 }

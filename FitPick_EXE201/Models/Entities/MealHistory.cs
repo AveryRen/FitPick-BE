@@ -39,6 +39,9 @@ public partial class MealHistory
     [Column("createdat", TypeName = "timestamp without time zone")]
     public DateTime? Createdat { get; set; }
 
+    [Column("consumed_at", TypeName = "timestamp without time zone")]
+    public DateTime? ConsumedAt { get; set; }
+
     [ForeignKey("Mealid")]
     [InverseProperty("MealHistories")]
     public virtual Meal? Meal { get; set; }
