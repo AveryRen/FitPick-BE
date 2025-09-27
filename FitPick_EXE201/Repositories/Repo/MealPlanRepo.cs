@@ -1,5 +1,6 @@
 ﻿using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,7 +71,7 @@ namespace FitPick_EXE201.Repositories.Repo
                                               return new MealIngredientDto
                                               {
                                                   Name = joined.i.Name,
-                                                  Quantity = joined.mi.Quantity ?? 0m, 
+                                                  Quantity = joined.mi.Quantity ?? 0m,
                                                   Unit = joined.i.Unit,
                                                   HasIt = mark?.HasIt ?? false
                                               };
@@ -80,5 +81,87 @@ namespace FitPick_EXE201.Repositories.Repo
 
             return result;
         }
+        public async Task<List<Mealplan>> GetUserMealPlansAsync(int userId)
+        {
+            return await _context.Mealplans
+                .Include(mp => mp.Meal)
+                .Include(mp => mp.Mealtime)
+                .Where(mp => mp.Userid == userId)
+                .OrderBy(mp => mp.Date)
+                .ThenBy(mp => mp.MealtimeId)
+                .ToListAsync();
+        }
+
+        // Sinh meal plan mới cho 1 ngày, tránh duplicate
+        public async Task<List<Mealplan>> GenerateMealPlanAsync(int userId, DateOnly date)
+        {
+            // Xóa meal plan cũ của user trong ngày (nếu có)
+            var existingPlans = await _context.Mealplans
+                .Where(mp => mp.Userid == userId && mp.Date == date)
+                .ToListAsync();
+
+            if (existingPlans.Any())
+                _context.Mealplans.RemoveRange(existingPlans);
+
+            // Lấy user profile
+            var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
+            if (profile == null) return null!;
+
+            // Lấy meals phù hợp calories / goal
+            var meals = await _context.Meals
+                .Where(m => (m.Calories ?? 0) <= (profile.Targetcalories ?? 0))
+                .ToListAsync();
+
+            if (!meals.Any()) return null!;
+
+            // Mỗi ngày 3 bữa: sáng, trưa, tối
+            var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
+            var random = new Random();
+
+            var mealPlans = new List<Mealplan>();
+
+            foreach (var mt in mealTimes)
+            {
+                // Giả sử mỗi bữa có 2 món ngẫu nhiên (có thể thay đổi số lượng)
+                var mealsInTime = meals.OrderBy(x => random.Next()).Take(2).ToList();
+                foreach (var meal in mealsInTime)
+                {
+                    mealPlans.Add(new Mealplan
+                    {
+                        Userid = userId,
+                        Date = date,
+                        MealtimeId = mt.Id,
+                        Mealid = meal.Mealid,
+                        StatusId = 1 // default
+                    });
+                }
+            }
+
+            _context.Mealplans.AddRange(mealPlans);
+            await _context.SaveChangesAsync();
+            return mealPlans;
+        }
+
+        // Hoán đổi 1 món
+        public async Task<Mealplan?> SwapMealAsync(int planId, int newMealId)
+        {
+            var plan = await _context.Mealplans.FindAsync(planId);
+            if (plan == null) return null;
+
+            plan.Mealid = newMealId;
+            await _context.SaveChangesAsync();
+            return plan;
+        }
+
+        // Xoá meal plan (1 món)
+        public async Task<bool> DeleteMealPlanAsync(int planId)
+        {
+            var plan = await _context.Mealplans.FindAsync(planId);
+            if (plan == null) return false;
+
+            _context.Mealplans.Remove(plan);
+            await _context.SaveChangesAsync();
+            return true;
+        } 
     }
 }

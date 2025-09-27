@@ -1,4 +1,5 @@
 ﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 
 namespace FitPick_EXE201.Services
@@ -20,5 +21,16 @@ namespace FitPick_EXE201.Services
             var orderedPlans = mealPlans.OrderBy(mp => mp.MealTime).ToList();
             return orderedPlans;
         }
+        public Task<List<Mealplan>> GetUserMealPlansAsync(int userId) => _mealPlanRepo.GetUserMealPlansAsync(userId);
+
+        public async Task<Mealplan?> GenerateMealPlanAsync(int userId, DateOnly date)
+        {
+            var plans = await _mealPlanRepo.GenerateMealPlanAsync(userId, date);
+            return plans.FirstOrDefault();
+        }
+        
+        public Task<Mealplan> SwapMealAsync(int planId, int newMealId) => _mealPlanRepo.SwapMealAsync(planId, newMealId);
+
+        public Task<bool> DeleteMealPlanAsync(int planId) => _mealPlanRepo.DeleteMealPlanAsync(planId);
     }
 }
