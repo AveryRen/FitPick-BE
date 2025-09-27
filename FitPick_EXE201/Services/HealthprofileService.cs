@@ -191,6 +191,13 @@ namespace FitPick_EXE201.Services
 
             return healthprofileDto;
         }
-
+        public async Task<ProgressDto?> GetUserProgressAsync(int userId)
+        {
+            return await _repo.GetUserProgressAsync(userId);
+        }
+        public async Task<UserGoalDto?> GetUserGoalAsync(int userId)
+        {
+            return await _repo.GetUserGoalAsync(userId);
+        }
     }
 }

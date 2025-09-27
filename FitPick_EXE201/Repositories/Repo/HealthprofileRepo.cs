@@ -21,35 +21,51 @@ namespace FitPick_EXE201.Repositories.Repo
                 .Include(h => h.Healthgoal)
                 .FirstOrDefaultAsync(h => h.Userid == id);
         }
-        //public async Task<ProgressDto?> GetUserProgressAsync(int userId)
-        //{
-        //    // Lấy Healthprofile active của user
-        //    var profile = await _context.Healthprofiles
-        //        .Include(h => h.User)
-        //        .Include(h => h.Healthgoal)   // nếu trong Healthgoal có TargetWeight/TargetCalories
-        //        .AsNoTracking()
-        //        .FirstOrDefaultAsync(h => h.Userid == userId && h.Status == true);
+        public async Task<ProgressDto?> GetUserProgressAsync(int userId)
+        {
+            var profile = await _context.Healthprofiles
+                .Include(h => h.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.Userid == userId && h.Status == true);
 
-        //    if (profile == null) return null;
+            if (profile == null) return null;
 
-        //    // Lấy tổng calories đã ăn hôm nay (nếu có bảng MealHistories)
-        //    var today = DateTime.UtcNow.Date;
-        //    double currentCalories = 0;
+            var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Unspecified);
+            double currentCalories = 0;
 
-        //    if (_context.MealHistories != null)
-        //    {
-        //        currentCalories = await _context.MealHistories
-        //            .Where(m => m.Userid == userId && m.ConsumedAt.Date == today)
-        //            .SumAsync(m => (double?)m.TotalCalories) ?? 0;
-        //    }
+            if (_context.MealHistories != null)
+            {
+                currentCalories = await _context.MealHistories
+                    .Where(m => m.Userid == userId
+                             && m.ConsumedAt.HasValue
+                             && m.ConsumedAt.Value.Date == today)
+                    .SumAsync(m => (double?)(m.Calories ?? 0)) ?? 0;
+            }
 
-        //    // Map vào ProgressDto
-        //    return new ProgressDto
-        //    {
-        //        CurrentWeight = profile.User?.Weight,
-        //        TargetWeight = profile.Healthgoal?.TargetWeight,   // nếu cột này tồn tại
-        //        CurrentCalories = currentCalories,
-        //        TargetCalories = profile.Targetcalories
-        //    };
+            return new ProgressDto
+            {
+                CurrentWeight = profile.User?.Weight,
+                TargetWeight = profile.Targetweight,
+                CurrentCalories = currentCalories,
+                TargetCalories = profile.Targetcalories
+            };
         }
-    } 
+        public async Task<UserGoalDto?> GetUserGoalAsync(int userId)
+        {
+            var profile = await _context.Healthprofiles
+                .Include(h => h.Healthgoal)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.Userid == userId && h.Status == true);
+
+            if (profile == null) return null;
+
+            return new UserGoalDto
+            {
+                UserId = (int)profile.Userid,
+                TargetWeight = profile.Targetweight,
+                TargetCalories = profile.Targetcalories,
+                GoalName = profile.Healthgoal?.Name
+            };
+        }
+    }
+}

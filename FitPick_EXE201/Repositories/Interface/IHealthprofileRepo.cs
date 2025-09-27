@@ -6,6 +6,7 @@ namespace FitPick_EXE201.Repositories.Interface
     public interface IHealthprofileRepo : IBaseRepo<Healthprofile, int>
     {
         Task<Healthprofile?> GetByUserIdAsync(int userid);
-        //Task<ProgressDto?> GetUserProgressAsync(int userId);
+        Task<ProgressDto?> GetUserProgressAsync(int userId);
+        Task<UserGoalDto?> GetUserGoalAsync(int userId);
     }
 }
