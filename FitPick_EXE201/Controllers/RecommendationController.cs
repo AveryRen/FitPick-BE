@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+﻿using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,40 +7,86 @@ using System.Security.Claims;
 namespace FitPick_EXE201.Controllers
 {
     [ApiController]
-    [Route("api/recommendations")]
+    [Route("api/[controller]")]
     [Authorize]
-    public class RecommendationController : ControllerBase
+    public class RecommendationsController : ControllerBase
     {
-        private readonly RecommendationService _service;
+        private readonly AiService _aiService;
 
-        public RecommendationController(RecommendationService service)
+        public RecommendationsController(AiService aiService)
         {
-            _service = service;
+            _aiService = aiService;
         }
 
-        // GET /api/recommendations/meal
-        [HttpGet("meal")]
-        public async Task<ActionResult<List<MealRecommendationDto>>> GetMealRecommendations([FromQuery] int count = 5)
+        [HttpGet("drinks")]
+        public async Task<IActionResult> GetDrinkRecommendation([FromQuery] string? timeOfDay, [FromQuery] string? goal)
         {
-            // Lấy userId từ JWT token
+            var userId = GetUserIdFromClaims();
+            if (userId <= 0)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
+
+            var result = await _aiService.GetDrinkRecommendation(userId, timeOfDay, goal);
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Gợi ý nước uống thành công"));
+        }
+
+        [HttpGet("mealplan")]
+        public async Task<IActionResult> GenerateMealPlan([FromQuery] DateTime date, [FromQuery] string? healthGoal, [FromQuery] string? lifestyle)
+        {
+            var userId = GetUserIdFromClaims();
+            if (userId <= 0)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
+
+            var result = await _aiService.GenerateMealPlan(userId, date, healthGoal, lifestyle);
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Tạo thực đơn thành công"));
+        }
+
+        [HttpGet("drinknotification")]
+        public async Task<IActionResult> GenerateDrinkNotification()
+        {
+            var userId = GetUserIdFromClaims();
+            if (userId <= 0)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
+
+            var result = await _aiService.GenerateDrinkNotification(userId);
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Tạo thông báo nhắc uống nước thành công"));
+        }
+
+        [HttpGet("weeklymealplan")]
+        public async Task<IActionResult> GenerateWeeklyMealPlan([FromQuery] string? healthGoal, [FromQuery] string? lifestyle)
+        {
+            var userId = GetUserIdFromClaims();
+            if (userId <= 0)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
+
+            // gọi đúng tên method trong AiService
+            var result = await _aiService.GenerateWeeklyMealPlanWithAI(userId, healthGoal, lifestyle);
+
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Tạo thực đơn 7 ngày thành công"));
+        }
+
+
+        [HttpGet("meals")]
+        public async Task<IActionResult> GetMealRecommendation([FromQuery] string? mealType, [FromQuery] string? goal)
+        {
+            var userId = GetUserIdFromClaims();
+            if (userId <= 0)
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
+
+            var result = await _aiService.GetMealRecommendation(userId, mealType, goal);
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Gợi ý món ăn thành công"));
+        }
+
+
+        // --- Helper private method ---
+        private int GetUserIdFromClaims()
+        {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId) || userId <= 0)
-                return Unauthorized("User không hợp lệ hoặc chưa đăng nhập.");
-
-            var meals = await _service.GetMealRecommendationsAsync(userId, count);
-            return Ok(meals);
-        }
-
-        // GET /api/recommendations/ingredient?mealId=1&count=5
-        [HttpGet("ingredient")]
-        public async Task<ActionResult<List<IngredientRecommendationDto>>> GetIngredientRecommendations(
-            [FromQuery] int mealId,
-            [FromQuery] int count = 5)
-        {
-            if (mealId <= 0) return BadRequest("MealId không hợp lệ.");
-
-            var ingredients = await _service.GetIngredientRecommendationsAsync(mealId, count);
-            return Ok(ingredients);
+            return int.TryParse(userIdClaim, out int userId) ? userId : 0;
         }
     }
 }

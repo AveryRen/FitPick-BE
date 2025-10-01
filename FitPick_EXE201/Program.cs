@@ -147,8 +147,8 @@ builder.Services.AddScoped<UserMealIngredientService>();
 builder.Services.AddScoped<IUserMealPremiumRepo, UserMealPremiumRepo>();
 builder.Services.AddScoped<MealPremiumService>();
 
-builder.Services.AddScoped<IRecommendationRepo, RecommendationRepo>();
-builder.Services.AddScoped<RecommendationService>();
+builder.Services.AddScoped<IAIIngredientRepo, AIIngredientRepo>();
+builder.Services.AddScoped<AiService>();
 
 
 builder.Services.AddHttpClient();

@@ -84,5 +84,30 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<UserAIProfileDto?> GetUserAIProfileAsync(int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Healthprofiles)
+                .FirstOrDefaultAsync(u => u.Userid == id);
+
+            if (user == null) return null;
+
+            var healthProfile = await _context.Healthprofiles
+                .Where(h => h.Userid == id)
+                .OrderByDescending(h => h.Updatedat)
+                .FirstOrDefaultAsync();
+
+            return new UserAIProfileDto
+            {
+                UserId = user.Userid,
+                FullName = user.Fullname,
+                HealthGoal = healthProfile?.Healthgoal?.Name,
+                Lifestyle = healthProfile?.Lifestyle?.Name,
+                DietPreferences = healthProfile?.Dietarypreferences,  // ✅ lấy nguyên List<int>
+                TargetCalories = healthProfile?.Targetcalories,
+                ProgressPercent = 0m // tự tính nếu cần
+            };
+        }
     }
 }
+
