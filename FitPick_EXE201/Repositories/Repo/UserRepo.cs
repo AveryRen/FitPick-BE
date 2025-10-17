@@ -23,14 +23,14 @@ namespace FitPick_EXE201.Repositories.Repo
 
             return new UserProfileDto
             {
-                Fullname = user.Fullname,
-                Email = user.Email,
-                GenderId = user.GenderId,
-                Age = user.Age,
-                Height = user.Height,
-                Weight = user.Weight,
-                Country = user.Country,
-                AvatarUrl = user.AvatarUrl
+                FullName = user.Fullname ?? "",
+                Email = user.Email ?? "",
+                Gender = user.GenderId == 1 ? "Male" : "Female",
+                Age = user.Age ?? 0,
+                Height = (int)(user.Height ?? 0),
+                Weight = (int)(user.Weight ?? 0),
+                TargetWeight = (int)(user.TargetWeight ?? 0),
+                IsOnboardingCompleted = user.IsOnboardingCompleted ?? false
             };
         }
         public async Task<UpdateUserProfileDto?> UpdateProfileAsync(int userId, UpdateUserProfileRequest request)

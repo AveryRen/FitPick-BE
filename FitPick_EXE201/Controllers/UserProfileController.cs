@@ -36,14 +36,14 @@ namespace FitPick_EXE201.Controllers
 
             var dto = new UserProfileDto
             {
-                Fullname = user.Fullname,
+                FullName = user.FullName,
                 Email = user.Email,
-                GenderId = user.GenderId,
+                Gender = user.Gender,
                 Age = user.Age,
                 Height = user.Height,
                 Weight = user.Weight,
-                Country = user.Country,
-                AvatarUrl = user.AvatarUrl
+                TargetWeight = user.TargetWeight,
+                IsOnboardingCompleted = user.IsOnboardingCompleted
             };
 
             return Ok(ApiResponse<UserProfileDto>.SuccessResponse(dto, "User retrieved successfully"));

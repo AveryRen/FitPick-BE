@@ -155,6 +155,14 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+    
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy
@@ -164,7 +172,8 @@ builder.Services.AddCors(options =>
                 // Cho phép localhost và tất cả domain *.vercel.app
                 var host = new Uri(origin).Host;
                 return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
-                       || host.EndsWith("vercel.app", StringComparison.OrdinalIgnoreCase);
+                       || host.EndsWith("vercel.app", StringComparison.OrdinalIgnoreCase)
+                       || host.EndsWith("ngrok.io", StringComparison.OrdinalIgnoreCase);
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -175,19 +184,22 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Swagger UI (Local Host)
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI(c =>
-//    {
-//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API v1");
-//        c.RoutePrefix = string.Empty;
-//    });
-//}
+// Enable Swagger UI for development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API v1");
+        c.RoutePrefix = string.Empty; // Swagger UI at root for local development
+    });
+}
 
-
-app.UseHttpsRedirection();
+// Configure HTTPS redirection based on environment
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection(); // Only redirect in production
+}
 
 // Fix token without Bearer prefix
 app.Use(async (context, next) =>
@@ -200,19 +212,41 @@ app.Use(async (context, next) =>
     await next();
 });
 
-//To deploy
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-app.Urls.Add($"http://*:{port}");
-Console.WriteLine($"Listening on port {port}");
-
-app.UseCors("AllowReactApp");
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Configure CORS based on environment
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    c.RoutePrefix = "swagger";  // Để swagger UI chạy ở /swagger thay vì /
-});
+    app.UseCors("AllowAll"); // Allow all origins for local development
+}
+else
+{
+    app.UseCors("AllowReactApp"); // Restrictive CORS for production
+}
+
+// Configure ports
+if (app.Environment.IsDevelopment())
+{
+    // For local development
+    app.Urls.Add("http://localhost:5000");
+    app.Urls.Add("https://localhost:5001");
+    Console.WriteLine("FitPick API is running on:");
+    Console.WriteLine("HTTP: http://localhost:5000");
+    Console.WriteLine("HTTPS: https://localhost:5001");
+    Console.WriteLine("Swagger UI: http://localhost:5000");
+}
+else
+{
+    // For production deployment
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+    app.Urls.Add($"http://*:{port}");
+    Console.WriteLine($"Listening on port {port}");
+    
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FitPick API V1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -44,8 +44,8 @@ namespace FitPick_EXE201.Services
                 RoleId = 2,
                 Createdat = DateTime.Now,
 
-                Status = false,         
-                IsEmailVerified = false
+                Status = true,         // Auto-activate for demo
+                IsEmailVerified = true // Auto-verify for demo
             };
 
             await _authRepo.AddAsync(newAccount);
@@ -159,5 +159,25 @@ namespace FitPick_EXE201.Services
         }
 
         public int GetTokenExpirationMinutes() => _jwtSettings.ExpirationMinutes;
+
+        // Auto-verify email for demo purposes
+        public async Task<bool> AutoVerifyEmailAsync(string email)
+        {
+            try
+            {
+                var account = await _authRepo.GetAccountByEmailAsync(email);
+                if (account == null) return false;
+
+                account.IsEmailVerified = true;
+                account.Status = true;
+                
+                await _authRepo.UpdateAsync(account);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

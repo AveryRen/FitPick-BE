@@ -63,6 +63,22 @@ public partial class User
     [Column("is_email_verified")]
     public bool? IsEmailVerified { get; set; }
 
+    [Column("target_weight")]
+    [Precision(5, 2)]
+    public decimal? TargetWeight { get; set; }
+
+    [Column("diet_plan_id")]
+    public int? DietPlanId { get; set; }
+
+    [Column("cooking_level_id")]
+    public int? CookingLevelId { get; set; }
+
+    [Column("is_onboarding_completed")]
+    public bool? IsOnboardingCompleted { get; set; }
+
+    [Column("onboarding_completed_at", TypeName = "timestamp without time zone")]
+    public DateTime? OnboardingCompletedAt { get; set; }
+
     [InverseProperty("Author")]
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
 
@@ -95,6 +111,14 @@ public partial class User
     [InverseProperty("Users")]
     [JsonIgnore]
     public virtual UserRole? Role { get; set; }
+
+    [ForeignKey("DietPlanId")]
+    [InverseProperty("Users")]
+    public virtual DietPlan? DietPlan { get; set; }
+
+    [ForeignKey("CookingLevelId")]
+    [InverseProperty("Users")]
+    public virtual CookingLevel? CookingLevel { get; set; }
 
     [InverseProperty("User")]
     public virtual ICollection<UserMealIngredientMark> UserMealIngredientMarks { get; set; } = new List<UserMealIngredientMark>();

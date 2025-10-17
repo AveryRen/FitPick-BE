@@ -34,11 +34,11 @@ namespace FitPick_EXE201.Controllers
                 return BadRequest(ApiResponse<string>.ErrorResponse(error, "Register failed"));
             }
 
-            // Gửi email xác thực
-            var verifySent = await _emailService.RequestEmailVerificationAsync(dto.Email);
-            var message = verifySent
-                ? "Register successful. Verification code sent to your email."
-                : "Register successful, but failed to send verification code.";
+            // Auto-verify email for demo purposes (skip email verification)
+            var verifyResult = await _authService.AutoVerifyEmailAsync(dto.Email);
+            var message = verifyResult
+                ? "Register successful. Account is ready to use!"
+                : "Register successful, but failed to auto-verify email.";
 
             return Ok(ApiResponse<string>.SuccessResponse(null, message));
         }
