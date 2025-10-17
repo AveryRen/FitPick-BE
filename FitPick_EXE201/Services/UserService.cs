@@ -195,16 +195,47 @@ namespace FitPick_EXE201.Services
                     Height = (int)(user.Height ?? 0),
                     Weight = (int)(user.Weight ?? 0),
                     TargetWeight = (int)(user.TargetWeight ?? 0),
-                    Gender = user.GenderId == 1 ? "Male" : "Female",
+                    Gender = user.GenderId == 1 ? "Nam" : "Nữ",
                     DietPlan = user.DietPlan?.Name ?? "",
                     CookingLevel = user.CookingLevel?.Name ?? "",
-                    IsOnboardingCompleted = user.IsOnboardingCompleted ?? false
+                    IsOnboardingCompleted = user.IsOnboardingCompleted ?? false,
+                    AvatarUrl = user.AvatarUrl ?? "https://i.pravatar.cc/100?img=1",
+                    AccountType = "FREE", // Có thể thêm logic để check Premium sau
+                    TargetCalories = CalculateTargetCalories(user)
                 };
             }
             catch
             {
                 return null;
             }
+        }
+
+        // Helper method to calculate target calories
+        private int? CalculateTargetCalories(User user)
+        {
+            if (user.Age == null || user.Height == null || user.Weight == null)
+                return null;
+
+            var weight = (double)user.Weight;
+            var height = (double)user.Height;
+            var age = (int)user.Age;
+            var isMale = user.GenderId == 1;
+
+            // Calculate BMR (Basal Metabolic Rate) using Mifflin-St Jeor Equation
+            double bmr;
+            if (isMale)
+            {
+                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            }
+            else
+            {
+                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+
+            // Default activity multiplier (có thể lấy từ healthprofile sau)
+            var activityMultiplier = 1.375; // Vừa phải
+
+            return (int)(bmr * activityMultiplier);
         }
     }
 }

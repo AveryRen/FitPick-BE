@@ -150,6 +150,9 @@ builder.Services.AddScoped<MealPremiumService>();
 builder.Services.AddScoped<IAIIngredientRepo, AIIngredientRepo>();
 builder.Services.AddScoped<AiService>();
 
+// Personalization Services
+builder.Services.AddScoped<IPersonalizationService, PersonalizationService>();
+
 
 builder.Services.AddHttpClient();
 

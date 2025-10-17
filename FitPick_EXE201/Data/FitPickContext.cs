@@ -68,6 +68,21 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<CookingLevel> CookingLevels { get; set; }
 
+    // Personalization tables
+    public virtual DbSet<UserMealPreference> UserMealPreferences { get; set; }
+
+    public virtual DbSet<UserMealRating> UserMealRatings { get; set; }
+
+    public virtual DbSet<UserNutritionGoal> UserNutritionGoals { get; set; }
+
+    public virtual DbSet<UserNutritionHistory> UserNutritionHistories { get; set; }
+
+    public virtual DbSet<UserMealRecommendation> UserMealRecommendations { get; set; }
+
+    public virtual DbSet<UserMealExclusion> UserMealExclusions { get; set; }
+
+    public virtual DbSet<UserMealPattern> UserMealPatterns { get; set; }
+
 //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
 //        => optionsBuilder.UseNpgsql("Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.myzpdmmkqowmaetmlejy;Password=!MrFCq9d?7cGR7v;SSL Mode=Require;Trust Server Certificate=true");

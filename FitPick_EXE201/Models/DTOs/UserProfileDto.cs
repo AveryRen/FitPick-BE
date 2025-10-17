@@ -15,5 +15,8 @@
         public string DietPlan { get; set; } = string.Empty;
         public string CookingLevel { get; set; } = string.Empty;
         public bool IsOnboardingCompleted { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string AccountType { get; set; } = "FREE"; // FREE, PREMIUM
+        public int? TargetCalories { get; set; }
     }
 }
