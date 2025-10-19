@@ -526,7 +526,7 @@ namespace FitPick_EXE201.Services
             }
         }
 
-        public async Task<bool> DeleteAccountAsync(int userId)
+        public async Task<bool> DeactivateAccountAsync(int userId)
         {
             try
             {
@@ -537,15 +537,11 @@ namespace FitPick_EXE201.Services
                     return false;
                 }
 
-                // Delete related data first (if any)
-                var healthProfile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
-                if (healthProfile != null)
-                {
-                    _context.Healthprofiles.Remove(healthProfile);
-                }
-
-                // Delete the user
-                _context.Users.Remove(user);
+                // Deactivate account: Set status to false to prevent login
+                user.Status = false;
+                user.Updatedat = DateTime.Now;
+                
+                _context.Users.Update(user);
                 await _context.SaveChangesAsync();
                 
                 return true;

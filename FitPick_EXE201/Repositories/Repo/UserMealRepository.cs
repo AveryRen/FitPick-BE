@@ -14,7 +14,7 @@ namespace FitPick_EXE201.Repositories.Repo
             _context = context;
         }
 
-        // GET /api/meals (có filter)
+        // GET /api/meals (cï¿½ filter)
         public async Task<IEnumerable<Meal>> GetMealsAsync(
             string? name,
             int? categoryId,
@@ -36,7 +36,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             // Apply filters
             if (!string.IsNullOrEmpty(name))
-                query = query.Where(m => m.Name.Contains(name));
+                query = query.Where(m => m.Name.ToLower().Contains(name.ToLower()));
 
             if (categoryId.HasValue)
                 query = query.Where(m => m.CategoryId == categoryId);

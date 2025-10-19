@@ -17,13 +17,13 @@ namespace FitPick_EXE201.Services
             string? name, int? categoryId, string? dietType,
             int? minCalories, int? maxCalories,
             int? minCookingTime, int? maxCookingTime,
-            decimal? minPrice, decimal? maxPrice, int userId)
+            decimal? minPrice, decimal? maxPrice)
         {
             var meals = await _mealRepository.GetMealsAsync(
                 name, categoryId, dietType,
                 minCalories, maxCalories,
                 minCookingTime, maxCookingTime,
-                minPrice, maxPrice, statusId: 1 // ch? l?y Published
+                minPrice, maxPrice, statusId: 1 // chỉ lấy Published
             );
 
             return meals.Select(m => new MealDto

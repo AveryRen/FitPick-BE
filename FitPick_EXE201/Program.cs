@@ -161,6 +161,10 @@ builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IAdminDataRepo, AdminDataRepo>();
 builder.Services.AddScoped<IAdminDataService, AdminDataService>();
 
+// Meal Detail Services
+builder.Services.AddScoped<IMealDetailRepository, MealDetailRepository>();
+builder.Services.AddScoped<IMealDetailService, MealDetailService>();
+
 builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
@@ -179,7 +183,7 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(origin =>
             {
                 if (string.IsNullOrEmpty(origin)) return false;
-                // Cho phép localhost và t?t c? domain *.vercel.app
+                // Cho phï¿½p localhost vï¿½ t?t c? domain *.vercel.app
                 var host = new Uri(origin).Host;
                 return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
                        || host.EndsWith("vercel.app", StringComparison.OrdinalIgnoreCase)

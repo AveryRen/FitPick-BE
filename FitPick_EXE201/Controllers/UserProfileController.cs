@@ -115,14 +115,14 @@ namespace FitPick_EXE201.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var result = await _userService.DeleteAccountAsync(userId);
+            var result = await _userService.DeactivateAccountAsync(userId);
             if (!result)
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Delete account failed" }, "Could not delete account"));
+                    new List<string> { "Deactivate account failed" }, "Could not deactivate account"));
             }
 
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Account deleted successfully"));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Account deactivated successfully"));
         }
 
     }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using System.Collections.Generic;
-using FitPick_EXE201.Models.DTOs; // ? dùng DTO
+using FitPick_EXE201.Models.DTOs; // ? dï¿½ng DTO
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 
@@ -39,7 +39,7 @@ namespace FitPick_EXE201.Controllers
                 name, categoryId, dietType,
                 minCalories, maxCalories,
                 minCookingTime, maxCookingTime,
-                minPrice, maxPrice, 1
+                minPrice, maxPrice
             );
 
             if (meals == null || !meals.Any())
