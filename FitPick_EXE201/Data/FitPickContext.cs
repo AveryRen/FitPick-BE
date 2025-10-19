@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using FitPick_EXE201.Models.Entities;
 using Microsoft.EntityFrameworkCore;

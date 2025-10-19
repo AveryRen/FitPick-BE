@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -93,14 +93,14 @@ namespace FitPick_EXE201.Repositories.Repo
             return await _context.Blogposts
                 .Include(b => b.Author)
                 .Include(b => b.Category)
-                .Include(b => b.BlogMedia) // load luôn media
+                .Include(b => b.BlogMedia) // load lu�n media
                 .FirstOrDefaultAsync(b => b.Postid == postId);
         }
 
         public async Task<Blogpost> CreateAsync(Blogpost post)
         {
-            post.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-            post.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            post.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            post.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.Blogposts.Add(post);
             await _context.SaveChangesAsync();
@@ -118,8 +118,8 @@ namespace FitPick_EXE201.Repositories.Repo
             existing.Title = post.Title;
             existing.Content = post.Content;
             existing.Status = post.Status;
-            existing.Categoryid = post.Categoryid;  // Cập nhật category
-            post.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            existing.Categoryid = post.Categoryid;  // C?p nh?t category
+            post.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.Blogposts.Update(existing);
             await _context.SaveChangesAsync();

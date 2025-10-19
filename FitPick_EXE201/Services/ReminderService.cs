@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 
@@ -12,7 +12,7 @@ namespace FitPick_EXE201.Services
             _repo = repo;
         }
 
-        // Tạo reminder mới
+        // T?o reminder m?i
         public async Task<ReminderResponseDto> CreateAsync(int userId, ReminderCreateDto dto)
         {
             var reminder = new Notification
@@ -31,7 +31,7 @@ namespace FitPick_EXE201.Services
 
             var created = await _repo.CreateAsync(reminder);
 
-            // Trả về DTO response
+            // Tr? v? DTO response
             return new ReminderResponseDto
             {
                 Notificationid = created.Notificationid,
@@ -43,7 +43,7 @@ namespace FitPick_EXE201.Services
             };
         }
 
-        // Lấy danh sách reminders của user
+        // L?y danh s�ch reminders c?a user
         public async Task<List<ReminderResponseDto>> GetByUserIdAsync(int userId)
         {
             var list = await _repo.GetByUserIdAsync(userId);
@@ -58,7 +58,7 @@ namespace FitPick_EXE201.Services
             }).ToList();
         }
 
-        // Cập nhật reminder
+        // C?p nh?t reminder
         public async Task<bool> UpdateAsync(int id, int userId, ReminderCreateDto dto)
         {
             var existing = await _repo.GetByIdAsync(id, userId);
@@ -74,7 +74,7 @@ namespace FitPick_EXE201.Services
             return await _repo.UpdateAsync(existing);
         }
 
-        // Xóa reminder
+        // X�a reminder
         public async Task<bool> DeleteAsync(int id, int userId)
         {
             var existing = await _repo.GetByIdAsync(id, userId);

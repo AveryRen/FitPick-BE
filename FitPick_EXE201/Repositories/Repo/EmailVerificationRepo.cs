@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace FitPick_EXE201.Repositories.Repo
         private readonly FitPickContext _context;
         private readonly IEmailService _emailService;
 
-        // Lưu mã xác thực tạm
+        // Luu m� x�c th?c t?m
         private static readonly ConcurrentDictionary<string, EmailVerifyInfo> _verifyStore = new();
 
         public EmailVerificationRepo(FitPickContext context, IEmailService emailService)
@@ -30,7 +30,7 @@ namespace FitPick_EXE201.Repositories.Repo
             _verifyStore[email] = new EmailVerifyInfo
             {
                 Code = code,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+                ExpiresAt = DateTime.Now.AddMinutes(10)
             };
 
             await _emailService.SendAsync(email, "Email Verification Code", $"Your verification code is: {code}");
@@ -42,7 +42,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (!_verifyStore.TryGetValue(email, out var info))
                 return false;
 
-            if (info.Code != code || info.ExpiresAt < DateTime.UtcNow)
+            if (info.Code != code || info.ExpiresAt < DateTime.Now)
                 return false;
 
             var account = await _context.Users.FirstOrDefaultAsync(a => a.Email == email);

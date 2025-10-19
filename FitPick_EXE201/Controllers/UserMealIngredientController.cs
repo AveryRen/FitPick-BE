@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +29,13 @@ namespace FitPick_EXE201.Controllers
                 var data = await _service.GetUserMealIngredientsAsync(userId, mealId);
                 
                 return Ok(ApiResponse<List<UserMealIngredientDto>>
-                    .SuccessResponse(data, "Lấy danh sách nguyên liệu thành công"));
+                    .SuccessResponse(data, "L?y danh s�ch nguy�n li?u th�nh c�ng"));
 
             }
             catch (Exception ex)
             {
                 return BadRequest(ApiResponse<List<MealIngredientDto>>
-                    .ErrorResponse(new List<string> { ex.Message }, "Không thể lấy danh sách nguyên liệu"));
+                    .ErrorResponse(new List<string> { ex.Message }, "Kh�ng th? l?y danh s�ch nguy�n li?u"));
             }
         }
 
@@ -48,12 +48,12 @@ namespace FitPick_EXE201.Controllers
                 await _service.MarkIngredientAsync(userId, dto.MealId, dto.IngredientId, dto.HasIt);
 
                 return Ok(ApiResponse<object>
-                    .SuccessResponse(null, "Cập nhật nguyên liệu thành công"));
+                    .SuccessResponse(null, "C?p nh?t nguy�n li?u th�nh c�ng"));
             }
             catch (Exception ex)
             {
                 return BadRequest(ApiResponse<object>
-                    .ErrorResponse(new List<string> { ex.Message }, "Không thể cập nhật nguyên liệu"));
+                    .ErrorResponse(new List<string> { ex.Message }, "Kh�ng th? c?p nh?t nguy�n li?u"));
             }
         }
     }

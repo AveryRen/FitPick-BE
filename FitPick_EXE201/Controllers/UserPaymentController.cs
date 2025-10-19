@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text.Json;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
@@ -37,7 +37,7 @@ namespace FitPick_EXE201.Controllers
             if (!int.TryParse(userIdClaim, out var userId))
                 return Unauthorized("Invalid user id");
 
-            const string productName = "Gói Premium (1 tháng)";
+            const string productName = "G�i Premium (1 th�ng)";
             const int quantity = 1;
             const int price = 50000;
             var total = quantity * price;
@@ -60,8 +60,8 @@ namespace FitPick_EXE201.Controllers
                 Description = description,
                 Status = "PENDING",
                 CheckoutUrl = result.checkoutUrl,
-                Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-                Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified),
+                Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
             });
 
             return Ok(new
@@ -84,14 +84,14 @@ namespace FitPick_EXE201.Controllers
                 var payload = JsonSerializer.Deserialize<PayOSCallbackPayload>(body);
 
                 if (payload?.data == null)
-                    return Ok(new { message = "Payload không hợp lệ" });
+                    return Ok(new { message = "Payload kh�ng h?p l?" });
 
-                // 🔑 Lấy userId từ description (VD: "CSDN5AQ5B25 35")
+                // ?? L?y userId t? description (VD: "CSDN5AQ5B25 35")
                 var userId = ExtractUserIdFromDescription(payload.data.description);
                 if (userId <= 0)
-                    return Ok(new { message = "Không lấy được userId từ description" });
+                    return Ok(new { message = "Kh�ng l?y du?c userId t? description" });
 
-                // ⚡️ Parse transactionDateTime thủ công
+                // ?? Parse transactionDateTime th? c�ng
                 DateTime? transTime = null;
                 if (!string.IsNullOrWhiteSpace(payload.data.transactionDateTime))
                 {
@@ -107,10 +107,10 @@ namespace FitPick_EXE201.Controllers
                     }
                 }
 
-                // ⚡️ Nâng cấp User lên Premium
+                // ?? N�ng c?p User l�n Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
-                // ⚡️ Cập nhật trạng thái giao dịch
+                // ?? C?p nh?t tr?ng th�i giao d?ch
                 await _premiumService.UpdatePaymentStatusAsync(
                     orderCode: payload.data.orderCode,
                     status: "PAID",
@@ -121,13 +121,13 @@ namespace FitPick_EXE201.Controllers
 
                 return Ok(new
                 {
-                    message = $"✅ User {userId} đã được nâng cấp Premium và cập nhật giao dịch thành công"
+                    message = $"? User {userId} d� du?c n�ng c?p Premium v� c?p nh?t giao d?ch th�nh c�ng"
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Callback error: " + ex);
-                return Ok(new { message = "❌ Lỗi khi xử lý callback", error = ex.Message });
+                return Ok(new { message = "? L?i khi x? l� callback", error = ex.Message });
             }
         }
 
@@ -158,7 +158,7 @@ namespace FitPick_EXE201.Controllers
             public decimal amount { get; set; }
             public string description { get; set; }
             public string reference { get; set; }
-            public string transactionDateTime { get; set; }   // ⚡ string để tự parse
+            public string transactionDateTime { get; set; }   // ? string d? t? parse
             public string virtualAccountNumber { get; set; }
             public string counterAccountBankId { get; set; }
             public string counterAccountBankName { get; set; }

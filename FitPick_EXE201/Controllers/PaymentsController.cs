@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;

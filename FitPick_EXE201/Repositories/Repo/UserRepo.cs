@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
@@ -103,9 +103,9 @@ namespace FitPick_EXE201.Repositories.Repo
                 FullName = user.Fullname,
                 HealthGoal = healthProfile?.Healthgoal?.Name,
                 Lifestyle = healthProfile?.Lifestyle?.Name,
-                DietPreferences = healthProfile?.Dietarypreferences,  // ✅ lấy nguyên List<int>
+                DietPreferences = healthProfile?.Dietarypreferences,  // ? l?y nguy�n List<int>
                 TargetCalories = healthProfile?.Targetcalories,
-                ProgressPercent = 0m // tự tính nếu cần
+                ProgressPercent = 0m // t? t�nh n?u c?n
             };
         }
     }

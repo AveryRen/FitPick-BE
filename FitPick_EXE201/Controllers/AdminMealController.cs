@@ -1,4 +1,4 @@
-﻿    using FitPick_EXE201.Helpers;
+    using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
@@ -37,7 +37,7 @@ namespace FitPick_EXE201.Controllers
         {
             var meals = await _mealService.GetAllAsync(categoryId, minCalories, maxCalories, minPrice, maxPrice);
 
-            return Ok(ApiResponse<IEnumerable<Meal>>.SuccessResponse(meals, "Lấy danh sách meal thành công"));
+            return Ok(ApiResponse<IEnumerable<Meal>>.SuccessResponse(meals, "L?y danh s�ch meal th�nh c�ng"));
         }
 
         // GET: api/admin/meals/{id}
@@ -47,9 +47,9 @@ namespace FitPick_EXE201.Controllers
             var meal = await _mealService.GetByIdAsync(id);
             if (meal == null)
                 return NotFound(ApiResponse<Meal>.ErrorResponse(
-                    new List<string> { "Meal không tồn tại" }, "Không tìm thấy meal"));
+                    new List<string> { "Meal kh�ng t?n t?i" }, "Kh�ng t�m th?y meal"));
 
-            return Ok(ApiResponse<Meal>.SuccessResponse(meal, "Lấy meal thành công"));
+            return Ok(ApiResponse<Meal>.SuccessResponse(meal, "L?y meal th�nh c�ng"));
         }
 
         // POST: api/admin/meals
@@ -63,7 +63,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<Meal>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
+                return BadRequest(ApiResponse<Meal>.ErrorResponse(errors, "D? li?u kh�ng h?p l?"));
             }
 
             var meal = new Meal
@@ -89,7 +89,7 @@ namespace FitPick_EXE201.Controllers
             }
 
             var createdMeal = await _mealService.AddAsync(meal);
-            return Ok(ApiResponse<Meal>.SuccessResponse(createdMeal, "Tạo meal thành công"));
+            return Ok(ApiResponse<Meal>.SuccessResponse(createdMeal, "T?o meal th�nh c�ng"));
         }
 
 
@@ -104,17 +104,17 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<MealUpdateDto>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
+                return BadRequest(ApiResponse<MealUpdateDto>.ErrorResponse(errors, "D? li?u kh�ng h?p l?"));
             }
 
             var meal = await _mealService.GetByIdAsync(id);
             if (meal == null)
             {
                 return NotFound(ApiResponse<MealUpdateDto>.ErrorResponse(
-                    new List<string> { "Meal không tồn tại" }, "Không tìm thấy meal"));
+                    new List<string> { "Meal kh�ng t?n t?i" }, "Kh�ng t�m th?y meal"));
             }
 
-            // Map dữ liệu từ DTO sang entity
+            // Map d? li?u t? DTO sang entity
             meal.Name = dto.Name;
             meal.Description = dto.Description;
             meal.Calories = dto.Calories;
@@ -124,13 +124,13 @@ namespace FitPick_EXE201.Controllers
             meal.Price = dto.Price;
             meal.StatusId = dto.StatusId;
 
-            // Xử lý Instruction
+            // X? l� Instruction
             if (dto.Instructions != null && dto.Instructions.Any())
             {
-                // Xoá instruction cũ
+                // Xo� instruction cu
                 meal.MealInstructions.Clear();
 
-                // Thêm instruction mới
+                // Th�m instruction m?i
                 int step = 1;
                 foreach (var ins in dto.Instructions)
                 {
@@ -145,7 +145,7 @@ namespace FitPick_EXE201.Controllers
 
             var updatedMeal = await _mealService.UpdateAsync(meal);
 
-            return Ok(ApiResponse<Meal>.SuccessResponse(updatedMeal, "Cập nhật meal thành công"));
+            return Ok(ApiResponse<Meal>.SuccessResponse(updatedMeal, "C?p nh?t meal th�nh c�ng"));
         }
 
 
@@ -157,9 +157,9 @@ namespace FitPick_EXE201.Controllers
             var result = await _mealService.DeleteAsync(id);
             if (!result)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Meal không tồn tại" }, "Không tìm thấy meal"));
+                    new List<string> { "Meal kh�ng t?n t?i" }, "Kh�ng t�m th?y meal"));
 
-            return Ok(ApiResponse<string>.SuccessResponse("OK", "Xóa meal thành công"));
+            return Ok(ApiResponse<string>.SuccessResponse("OK", "X�a meal th�nh c�ng"));
         }
 
         [HttpPut("{id}/image")]
@@ -169,26 +169,26 @@ namespace FitPick_EXE201.Controllers
             if (!ModelState.IsValid || dto.File == null || dto.File.Length == 0)
             {
                 return BadRequest(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "File ảnh không hợp lệ" },
-                    "Cập nhật ảnh thất bại"
+                    new List<string> { "File ?nh kh�ng h?p l?" },
+                    "C?p nh?t ?nh th?t b?i"
                 ));
             }
 
-            // Upload ảnh lên Cloudinary
+            // Upload ?nh l�n Cloudinary
             var url = await _cloudinaryService.UploadFileAsync(dto.File);
             if (string.IsNullOrEmpty(url))
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Upload ảnh thất bại" },
-                    "Cập nhật ảnh thất bại"
+                    new List<string> { "Upload ?nh th?t b?i" },
+                    "C?p nh?t ?nh th?t b?i"
                 ));
             } 
             var updatedMeal = await _mealService.UpdateImageAsync(id, url);
             if (updatedMeal == null)
             {
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Meal không tồn tại" },
-                    "Không tìm thấy meal"
+                    new List<string> { "Meal kh�ng t?n t?i" },
+                    "Kh�ng t�m th?y meal"
                 ));
             } 
             var responseDto = new MealImageResponseDto
@@ -197,7 +197,7 @@ namespace FitPick_EXE201.Controllers
                 ImageUrl = updatedMeal.ImageUrl
             };
 
-            return Ok(ApiResponse<MealImageResponseDto>.SuccessResponse(responseDto, "Cập nhật ảnh món ăn thành công"));
+            return Ok(ApiResponse<MealImageResponseDto>.SuccessResponse(responseDto, "C?p nh?t ?nh m�n an th�nh c�ng"));
         }
 
     }

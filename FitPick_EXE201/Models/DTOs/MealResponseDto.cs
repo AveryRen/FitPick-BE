@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.DTOs
+namespace FitPick_EXE201.Models.DTOs
 {
     public class MealResponseDto
     {
@@ -14,7 +14,7 @@
         public decimal? Price { get; set; }
     }
 
-    // DTO dùng để nhận filter query params
+    // DTO d�ng d? nh?n filter query params
     public class MealFilterDto
     {
         public int? CategoryId { get; set; }

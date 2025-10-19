@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -109,7 +109,7 @@ namespace FitPick_EXE201.Controllers
                 }
             }).ToList();
 
-            // Trả về dữ liệu kèm thông tin phân trang
+            // Tr? v? d? li?u k�m th�ng tin ph�n trang
             var result = new
             {
                 TotalItems = totalItems,
@@ -119,10 +119,10 @@ namespace FitPick_EXE201.Controllers
                 Items = blogResponses
             };
 
-            return Ok(ApiResponse<object>.SuccessResponse(result, "Lấy danh sách blog thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "L?y danh s�ch blog th�nh c�ng"));
         }
 
-        // Lấy blog theo ID
+        // L?y blog theo ID
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
@@ -131,8 +131,8 @@ namespace FitPick_EXE201.Controllers
             if (blogEntity == null)
             {
                 return NotFound(ApiResponse<BlogResponse>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog" },
-                    "Blog không tồn tại"
+                    new List<string> { "Kh�ng t�m th?y blog" },
+                    "Blog kh�ng t?n t?i"
                 ));
             }
 
@@ -160,10 +160,10 @@ namespace FitPick_EXE201.Controllers
                 } : null
             };
 
-            return Ok(ApiResponse<BlogResponse>.SuccessResponse(blogDto, "Lấy blog thành công"));
+            return Ok(ApiResponse<BlogResponse>.SuccessResponse(blogDto, "L?y blog th�nh c�ng"));
         }
 
-        // Helper method map từ Blogpost + BlogMedia sang BlogResponse
+        // Helper method map t? Blogpost + BlogMedia sang BlogResponse
         private BlogResponse MapToBlogResponse(Blogpost blogpost, List<BlogMedium>? medias = null)
         {
             return new BlogResponse
@@ -191,7 +191,7 @@ namespace FitPick_EXE201.Controllers
         }
 
 
-        // Tạo blog mới
+        // T?o blog m?i
         [HttpPost]
         [Authorize(Roles = "Admin,Premium,User")]
         [Consumes("multipart/form-data")]
@@ -205,8 +205,8 @@ namespace FitPick_EXE201.Controllers
             if (!int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không xác định được người dùng" },
-                    "Tạo blog thất bại"
+                    new List<string> { "Kh�ng x�c d?nh du?c ngu?i d�ng" },
+                    "T?o blog th?t b?i"
                 ));
             }
 
@@ -229,8 +229,8 @@ namespace FitPick_EXE201.Controllers
                 Content = content,
                 Categoryid = categoryId,
                 Authorid = userId,
-                Createdat = DateTime.UtcNow,
-                Updatedat = DateTime.UtcNow,
+                Createdat = DateTime.Now,
+                Updatedat = DateTime.Now,
                 Status = true
             };
 
@@ -245,7 +245,7 @@ namespace FitPick_EXE201.Controllers
             var response = MapToBlogResponse(created, medias);
 
             return CreatedAtAction(nameof(GetById), new { id = created.Postid },
-                ApiResponse<BlogResponse>.SuccessResponse(response, "Tạo blog thành công"));
+                ApiResponse<BlogResponse>.SuccessResponse(response, "T?o blog th�nh c�ng"));
         }
 
         [HttpPut("{id:int}")]
@@ -265,8 +265,8 @@ namespace FitPick_EXE201.Controllers
             if (!int.TryParse(userIdClaim, out int userId) || string.IsNullOrEmpty(roleClaim))
             {
                 return Unauthorized(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không xác định được người dùng hoặc vai trò" },
-                    "Cập nhật thất bại"
+                    new List<string> { "Kh�ng x�c d?nh du?c ngu?i d�ng ho?c vai tr�" },
+                    "C?p nh?t th?t b?i"
                 ));
             }
 
@@ -274,8 +274,8 @@ namespace FitPick_EXE201.Controllers
             if (existing == null)
             {
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog" },
-                    "Cập nhật thất bại"
+                    new List<string> { "Kh�ng t�m th?y blog" },
+                    "C?p nh?t th?t b?i"
                 ));
             }
 
@@ -288,7 +288,7 @@ namespace FitPick_EXE201.Controllers
 
             try
             {
-                // Cập nhật blogpost
+                // C?p nh?t blogpost
                 existing.Title = title;
                 existing.Content = content;
                 existing.Categoryid = categoryId;
@@ -299,15 +299,15 @@ namespace FitPick_EXE201.Controllers
                 {
                     await transaction.RollbackAsync();
                     return StatusCode(500, ApiResponse<string>.ErrorResponse(
-                        new List<string> { "Lỗi khi cập nhật blog" },
-                        "Cập nhật thất bại"
+                        new List<string> { "L?i khi c?p nh?t blog" },
+                        "C?p nh?t th?t b?i"
                     ));
                 }
 
-                // Xóa media cũ
+                // X�a media cu
                 await _blogService.DeleteAllMediaByBlogIdAsync(id);
 
-                // Upload file media mới (nếu có)
+                // Upload file media m?i (n?u c�)
                 var mediaFiles = new List<(string mediaUrl, string fileName)>();
                 if (files != null && files.Any())
                 {
@@ -331,20 +331,20 @@ namespace FitPick_EXE201.Controllers
                 var medias = (await _blogService.GetMediaByBlogIdAsync(id)).ToList();
                 var response = MapToBlogResponse(existing, medias);
 
-                return Ok(ApiResponse<BlogResponse>.SuccessResponse(response, "Cập nhật blog thành công"));
+                return Ok(ApiResponse<BlogResponse>.SuccessResponse(response, "C?p nh?t blog th�nh c�ng"));
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(); 
                 return StatusCode(500, ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Lỗi hệ thống khi cập nhật blog" },
-                    "Cập nhật thất bại"
+                    new List<string> { "L?i h? th?ng khi c?p nh?t blog" },
+                    "C?p nh?t th?t b?i"
                 ));
             }
         }
 
 
-        // Xóa blog
+        // X�a blog
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin,Premium,User")]
         public async Task<IActionResult> Delete(int id)
@@ -355,8 +355,8 @@ namespace FitPick_EXE201.Controllers
             if (!int.TryParse(userIdClaim, out int userId) || string.IsNullOrEmpty(roleClaim))
             {
                 return Unauthorized(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không xác định được người dùng hoặc vai trò" },
-                    "Xóa thất bại"
+                    new List<string> { "Kh�ng x�c d?nh du?c ngu?i d�ng ho?c vai tr�" },
+                    "X�a th?t b?i"
                 ));
             }
 
@@ -365,12 +365,12 @@ namespace FitPick_EXE201.Controllers
             if (!success)
             {
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog hoặc bạn không có quyền xóa" },
-                    "Xóa thất bại"
+                    new List<string> { "Kh�ng t�m th?y blog ho?c b?n kh�ng c� quy?n x�a" },
+                    "X�a th?t b?i"
                 ));
             }
 
-            return Ok(ApiResponse<string>.SuccessResponse("OK", "Xóa blog thành công"));
+            return Ok(ApiResponse<string>.SuccessResponse("OK", "X�a blog th�nh c�ng"));
         }
     }
 }

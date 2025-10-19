@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
@@ -24,18 +24,18 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Gửi 1 thông báo cho user
+        /// G?i 1 th�ng b�o cho user
         /// </summary>
         public async Task<NotificationDTO> SendNotificationAsync(
             int userId, string title, string message, int? typeId = null, DateTime? scheduleAt = null)
         {
-            // kiểm tra loại thông báo có tồn tại không
+            // ki?m tra lo?i th�ng b�o c� t?n t?i kh�ng
             if (typeId.HasValue)
             {
                 var type = await _typeRepo.GetByIdAsync(typeId.Value);
                 if (type == null)
                 {
-                    throw new KeyNotFoundException($"NotificationType với id {typeId} không tồn tại.");
+                    throw new KeyNotFoundException($"NotificationType v?i id {typeId} kh�ng t?n t?i.");
                 }
             }
 
@@ -45,8 +45,8 @@ namespace FitPick_EXE201.Services
                 Title = title,
                 Message = message,
                 TypeId = typeId,
-                Isread = false, // mặc định là chưa đọc
-                Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                Isread = false, // m?c d?nh l� chua d?c
+                Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified),
                 Scheduledat = scheduleAt.HasValue
                         ? DateTime.SpecifyKind(scheduleAt.Value, DateTimeKind.Unspecified)
                         : null
@@ -57,7 +57,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Lấy danh sách thông báo của 1 user
+        /// L?y danh s�ch th�ng b�o c?a 1 user
         /// </summary>
         public async Task<List<NotificationDTO>> GetNotificationsForUserAsync(int userId, bool? onlyUnread = null)
         {
@@ -68,12 +68,12 @@ namespace FitPick_EXE201.Services
             {
                 if (onlyUnread.Value)
                 {
-                    // chỉ lấy chưa đọc
+                    // ch? l?y chua d?c
                     query = query.Where(n => n.Isread == false || n.Isread == null);
                 }
                 else
                 {
-                    // chỉ lấy đã đọc
+                    // ch? l?y d� d?c
                     query = query.Where(n => n.Isread == true);
                 }
             }
@@ -90,14 +90,14 @@ namespace FitPick_EXE201.Services
 
 
         /// <summary>
-        /// Đánh dấu thông báo là đã đọc
+        /// ��nh d?u th�ng b�o l� d� d?c
         /// </summary>
         public async Task<NotificationDTO> MarkAsReadAsync(int notificationId)
         {
             var notification = await _repo.GetByIdAsync(notificationId);
             if (notification == null)
             {
-                throw new KeyNotFoundException($"Notification với id {notificationId} không tồn tại.");
+                throw new KeyNotFoundException($"Notification v?i id {notificationId} kh�ng t?n t?i.");
             }
 
             notification.Isread = true;
@@ -105,39 +105,39 @@ namespace FitPick_EXE201.Services
             var success = await _repo.UpdateAsync(notificationId, notification);
             if (!success)
             {
-                throw new Exception("Cập nhật trạng thái thông báo thất bại.");
+                throw new Exception("C?p nh?t tr?ng th�i th�ng b�o th?t b?i.");
             }
 
-            // lấy lại notification đã update để map sang DTO
+            // l?y l?i notification d� update d? map sang DTO
             var updated = await _repo.GetByIdAsync(notificationId);
             return _mapper.Map<NotificationDTO>(updated);
         }
 
 
         /// <summary>
-        /// Xóa thông báo
+        /// X�a th�ng b�o
         /// </summary>
         public async Task<bool> DeleteNotificationAsync(int notificationId)
         {
             var notification = await _repo.GetByIdAsync(notificationId);
             if (notification == null)
             {
-                throw new KeyNotFoundException($"Notification với id {notificationId} không tồn tại.");
+                throw new KeyNotFoundException($"Notification v?i id {notificationId} kh�ng t?n t?i.");
             }
 
             return await _repo.Delete(notificationId);
         }
 
         /// <summary>
-        /// Tạo loại thông báo mới
+        /// T?o lo?i th�ng b�o m?i
         /// </summary>
         public async Task<NotificationTypeDTO> CreateTypeAsync(string name)
         {
-            // kiểm tra trùng tên
+            // ki?m tra tr�ng t�n
             var exists = await _context.NotificationTypes.AnyAsync(t => t.Name == name);
             if (exists)
             {
-                throw new InvalidOperationException($"NotificationType với tên '{name}' đã tồn tại.");
+                throw new InvalidOperationException($"NotificationType v?i t�n '{name}' d� t?n t?i.");
             }
 
             var type = new NotificationType { Name = name };
@@ -147,7 +147,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Lấy tất cả loại thông báo
+        /// L?y t?t c? lo?i th�ng b�o
         /// </summary>
         public async Task<List<NotificationTypeDTO>> GetAllTypesAsync()
         {
@@ -156,20 +156,20 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Xóa loại thông báo
+        /// X�a lo?i th�ng b�o
         /// </summary>
         public async Task<bool> DeleteTypeAsync(int typeId)
         {
             var type = await _typeRepo.GetByIdAsync(typeId);
             if (type == null)
             {
-                throw new KeyNotFoundException($"NotificationType với id {typeId} không tồn tại.");
+                throw new KeyNotFoundException($"NotificationType v?i id {typeId} kh�ng t?n t?i.");
             }
 
             var hasNotifications = await _context.Notifications.AnyAsync(n => n.TypeId == typeId);
             if (hasNotifications)
             {
-                throw new InvalidOperationException("Không thể xóa loại thông báo vì vẫn còn thông báo đang tham chiếu đến.");
+                throw new InvalidOperationException("Kh�ng th? x�a lo?i th�ng b�o v� v?n c�n th�ng b�o dang tham chi?u d?n.");
             }
 
             return await _typeRepo.Delete(typeId);

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace FitPick_EXE201.Models.DTOs
 {
@@ -12,7 +12,7 @@ namespace FitPick_EXE201.Models.DTOs
         public List<int>? Religiondiet { get; set; }
         public List<int>? Dietarypreferences { get; set; }
 
-        // Nếu muốn giữ DietPreferences riêng biệt
+        // N?u mu?n gi? DietPreferences ri�ng bi?t
         public List<int>? DietPreferences
         {
             get => Dietarypreferences;

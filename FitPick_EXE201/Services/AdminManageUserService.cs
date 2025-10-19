@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
 using FitPick_EXE201.Repositories.Interface;
@@ -42,11 +42,11 @@ namespace FitPick_EXE201.Services
 
         public async Task<User> CreateUserAsync(User user)
         {
-            // Check trùng email
+            // Check tr�ng email
             var existingUser = await _userRepo.GetByEmailAsync(user.Email);
             if (existingUser != null)
             {
-                throw new InvalidOperationException("Email đã tồn tại.");
+                throw new InvalidOperationException("Email d� t?n t?i.");
             }
 
              if (user.RoleId <= 0)
@@ -72,7 +72,7 @@ namespace FitPick_EXE201.Services
             var user = await _userRepo.GetUserEntityByIdAsync(id);
             if (user == null) return false;
 
-            // Check email trùng (ngoại trừ chính user đang update)
+            // Check email tr�ng (ngo?i tr? ch�nh user dang update)
             if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
             {
                 var existingUser = await _userRepo.GetByEmailAsync(dto.Email);

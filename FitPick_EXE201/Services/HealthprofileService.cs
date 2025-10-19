@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
@@ -26,10 +26,10 @@ namespace FitPick_EXE201.Services
         public async Task<HealthprofileDTO?> CreateHealthprofileAsync(int userId, HealthprofileRequest request)
         {
             var healthprofile = _mapper.Map<Healthprofile>(request);
-            healthprofile.Userid = userId; // Gán từ JWT
+            healthprofile.Userid = userId; // G�n t? JWT
             healthprofile.Status = true;
 
-            // ====== TÍNH TARGET CALORIES ======
+            // ====== T�NH TARGET CALORIES ======
             double? calories = null;
 
             if (request.Height.HasValue && request.Weight.HasValue && request.Age.HasValue)
@@ -42,10 +42,10 @@ namespace FitPick_EXE201.Services
                 int age = request.Age.Value;
                 double bmr = 0;
 
-                // Lấy gender, nếu null thì mặc định 1 (Male)
+                // L?y gender, n?u null th� m?c d?nh 1 (Male)
                 int gender = user?.GenderId ?? 1;
 
-                // Công thức BMR
+                // C�ng th?c BMR
                 if (gender == 1) // Male
                 {
                     bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
@@ -55,7 +55,7 @@ namespace FitPick_EXE201.Services
                     bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
                 }
 
-                // Hệ số hoạt động
+                // H? s? ho?t d?ng
                 double multiplier = 1.2;
                 if (request.Lifestyleid.HasValue)
                 {
@@ -69,7 +69,7 @@ namespace FitPick_EXE201.Services
 
                 calories = bmr * multiplier;
 
-                // Điều chỉnh theo healthgoal
+                // �i?u ch?nh theo healthgoal
                 if (request.Healthgoalid.HasValue)
                 {
                     var goal = await _context.Healthgoals

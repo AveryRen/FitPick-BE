@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ namespace FitPick_EXE201.Repositories.Repo
             _context = context;
         }
 
-        // GET /api/meals (có filter)
+        // GET /api/meals (c� filter)
         public async Task<IEnumerable<Meal>> GetMealsAsync(
             string? name,
             int? categoryId,

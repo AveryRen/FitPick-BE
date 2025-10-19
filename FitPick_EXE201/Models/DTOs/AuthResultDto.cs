@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.Entities;
 
 namespace FitPick_EXE201.Models.DTOs
 {

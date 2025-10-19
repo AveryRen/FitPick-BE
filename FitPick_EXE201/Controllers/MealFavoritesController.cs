@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -34,12 +34,12 @@ namespace FitPick_EXE201.Controllers
                 var userId = GetUserIdFromToken();
                 var favorites = await _mealReviewService.GetUserFavoritesAsync(userId);
 
-                // Map entity -> DTO (nếu chưa dùng AutoMapper)
+                // Map entity -> DTO (n?u chua d�ng AutoMapper)
                 var dtoList = favorites.Select(f => new FavoriteMealDto
                 {
                     MealId = f.Mealid,
                     MealName = f.Meal?.Name ?? string.Empty,
-                    IsFavorite = true, // vì trong danh sách favorites thì mặc định true
+                    IsFavorite = true, // v� trong danh s�ch favorites th� m?c d?nh true
                     Rating = f.Rating,
                     Comment = f.Comment,
                     UpdatedAt = f.Updatedat

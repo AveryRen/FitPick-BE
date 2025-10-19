@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 
@@ -54,7 +54,7 @@ namespace FitPick_EXE201.Services
                 Userid = userId,
                 Rating = dto.Rating,
                 Comment = dto.Comment,
-                Createdat = DateTime.UtcNow
+                Createdat = DateTime.Now
             };
 
             try
@@ -75,7 +75,7 @@ namespace FitPick_EXE201.Services
                 Mealid = mealId,
                 Rating = dto.Rating,
                 Comment = dto.Comment,
-                Updatedat = DateTime.UtcNow
+                Updatedat = DateTime.Now
             };
 
             return await _repo.UpdateReviewAsync(review);

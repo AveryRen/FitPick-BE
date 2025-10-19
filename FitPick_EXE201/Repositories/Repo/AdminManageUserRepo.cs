@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data; // Namespace chứa FitPickContext
+using FitPick_EXE201.Data; // Namespace ch?a FitPickContext
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
@@ -74,7 +74,7 @@ namespace FitPick_EXE201.Repositories.Repo
         }
 
 
-        // Lấy user theo ID
+        // L?y user theo ID
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
         {
             return await _context.Users
@@ -117,7 +117,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (existingUser == null)
                 return false;
 
-            // Cập nhật field
+            // C?p nh?t field
             existingUser.Fullname = user.Fullname;
             existingUser.Email = user.Email;
             existingUser.GenderId = user.GenderId;

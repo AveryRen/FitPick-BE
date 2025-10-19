@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 
@@ -23,7 +23,7 @@ namespace FitPick_EXE201.Services
                 name, categoryId, dietType,
                 minCalories, maxCalories,
                 minCookingTime, maxCookingTime,
-                minPrice, maxPrice, statusId: 1 // chỉ lấy Published
+                minPrice, maxPrice, statusId: 1 // ch? l?y Published
             );
 
             return meals.Select(m => new MealDto

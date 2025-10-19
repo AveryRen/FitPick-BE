@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Requests;
 using FitPick_EXE201.Services;
@@ -26,7 +26,7 @@ namespace FitPick_EXE201.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<HealthprofileDTO>>> Create([FromBody] HealthprofileRequest request)
         {
-            // Lấy UserId từ JWT
+            // L?y UserId t? JWT
             var userIdClaim = User.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -80,7 +80,7 @@ namespace FitPick_EXE201.Controllers
         [HttpGet("user/progress")]
         public async Task<ActionResult<ApiResponse<ProgressDto>>> GetUserProgress()
         {
-            // Lấy userId từ JWT
+            // L?y userId t? JWT
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -104,7 +104,7 @@ namespace FitPick_EXE201.Controllers
         [HttpGet("user/goal")]
         public async Task<ActionResult<ApiResponse<UserGoalDto>>> GetUserGoal()
         {
-            // Lấy userId từ JWT
+            // L?y userId t? JWT
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -114,7 +114,7 @@ namespace FitPick_EXE201.Controllers
                 ));
             }
 
-            // Gọi service
+            // G?i service
             var goal = await _service.GetUserGoalAsync(userId);
             if (goal == null)
             {

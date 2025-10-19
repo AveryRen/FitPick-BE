@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.Entities
+namespace FitPick_EXE201.Models.Entities
 {
     public class EmailVerifyInfo
     {

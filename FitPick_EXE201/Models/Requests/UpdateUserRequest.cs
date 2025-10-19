@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.Requests
+namespace FitPick_EXE201.Models.Requests
 {
     public class UpdateUserRequest
     {

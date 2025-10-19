@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.Requests
+namespace FitPick_EXE201.Models.Requests
 {
     public class HealthprofileRequest
     {
@@ -12,6 +12,6 @@
         //public int? Targetcalories { get; set; }
         public double? Height { get; set; } // cm
         public double? Weight { get; set; } // kg
-        public int? Age { get; set; }        // tuổi
+        public int? Age { get; set; }        // tu?i
     }
 }

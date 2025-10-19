@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Settings
+namespace FitPick_EXE201.Settings
 {
     public class CloudinarySettings
     {

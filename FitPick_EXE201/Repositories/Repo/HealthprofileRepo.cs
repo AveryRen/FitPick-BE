@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -30,7 +30,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             if (profile == null) return null;
 
-            var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Unspecified);
+            var today = DateTime.SpecifyKind(DateTime.Now.Date, DateTimeKind.Unspecified);
             double currentCalories = 0;
 
             if (_context.MealHistories != null)

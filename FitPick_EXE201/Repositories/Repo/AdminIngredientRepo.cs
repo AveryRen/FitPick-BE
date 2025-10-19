@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (onlyActive)
                 query = query.Where(i => i.Status == true);
 
-            // filter theo tên (search contains)
+            // filter theo t�n (search contains)
             if (!string.IsNullOrWhiteSpace(name))
                 query = query.Where(i => i.Name.Contains(name));
 
@@ -34,7 +34,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (!string.IsNullOrWhiteSpace(type))
                 query = query.Where(i => i.Type == type);
 
-            // filter theo đơn vị
+            // filter theo don v?
             if (!string.IsNullOrWhiteSpace(unit))
                 query = query.Where(i => i.Unit == unit);
 

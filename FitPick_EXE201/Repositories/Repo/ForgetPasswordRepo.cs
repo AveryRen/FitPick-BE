@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -29,7 +29,7 @@ namespace FitPick_EXE201.Repositories.Repo
             _resetStore[email] = new PasswordResetInfo
             {
                 Code = code,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+                ExpiresAt = DateTime.Now.AddMinutes(10)
             };
 
             await _emailService.SendAsync(email, "Reset Code", $"Your reset code is: {code}");
@@ -42,7 +42,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (!_resetStore.TryGetValue(dto.Email, out var info))
                 return false;
 
-            if (info.Code != dto.VerificationCode || info.ExpiresAt < DateTime.UtcNow)
+            if (info.Code != dto.VerificationCode || info.ExpiresAt < DateTime.Now)
                 return false;
 
             var account = await _context.Users.FirstOrDefaultAsync(a => a.Email == dto.Email);

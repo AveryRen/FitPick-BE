@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Repositories.Interface;
+using FitPick_EXE201.Repositories.Interface;
 using FitPick_EXE201.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;

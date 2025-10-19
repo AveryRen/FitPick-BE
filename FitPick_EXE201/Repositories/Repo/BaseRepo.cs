@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 

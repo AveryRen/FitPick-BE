@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
 using FitPick_EXE201.Repositories.Interface;

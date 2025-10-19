@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -113,7 +113,7 @@ namespace FitPick_EXE201.Services
             await _adminBlogRepo.AddMediaRangeAsync(medias);
         }
 
-        // Thêm media từ danh sách file (mediaUrl + fileName)
+        // Th�m media t? danh s�ch file (mediaUrl + fileName)
         public async Task AddMediaRangeByFilesAsync(int blogId, IEnumerable<(string mediaUrl, string fileName)> files)
         {
             var medias = files.Select((f, index) => new BlogMedium
@@ -128,7 +128,7 @@ namespace FitPick_EXE201.Services
         }
 
 
-        // Xác định loại media từ file extension
+        // X�c d?nh lo?i media t? file extension
         public string GetMediaType(string fileName)
         {
             var ext = Path.GetExtension(fileName).ToLowerInvariant();

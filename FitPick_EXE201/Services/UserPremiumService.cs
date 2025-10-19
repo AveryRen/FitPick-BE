@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FitPick_EXE201.Models.Entities;
@@ -20,7 +20,7 @@ namespace FitPick_EXE201.Services
         // ==================== USER ====================
 
         /// <summary>
-        /// Nâng cấp user lên Premium
+        /// N�ng c?p user l�n Premium
         /// </summary>
         public async Task<bool> UpgradeUserRoleToPremiumAsync(int userId)
         {
@@ -28,7 +28,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Hạ cấp user về role mặc định
+        /// H? c?p user v? role m?c d?nh
         /// </summary>
         public async Task<bool> DowngradeUserAsync(int userId)
         {
@@ -36,7 +36,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Kiểm tra user có phải Premium hay không
+        /// Ki?m tra user c� ph?i Premium hay kh�ng
         /// </summary>
         public Task<bool> IsUserPremiumAsync(int userId)
         {
@@ -44,7 +44,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// Lấy thông tin user theo Id
+        /// L?y th�ng tin user theo Id
         /// </summary>
         public Task<User?> GetUserByIdAsync(int userId)
         {
@@ -54,7 +54,7 @@ namespace FitPick_EXE201.Services
         // ==================== PAYMENT ====================
 
         /// <summary>
-        /// Lưu giao dịch mới (thường khi tạo link thanh toán)
+        /// Luu giao d?ch m?i (thu?ng khi t?o link thanh to�n)
         /// </summary>
         public async Task<bool> CreatePaymentAsync(PayosPayment payment)
         {
@@ -68,7 +68,7 @@ namespace FitPick_EXE201.Services
 
 
         /// <summary>
-        /// Cập nhật trạng thái giao dịch khi PayOS callback
+        /// C?p nh?t tr?ng th�i giao d?ch khi PayOS callback
         /// </summary>
         public Task<bool> UpdatePaymentStatusAsync(
             long orderCode,

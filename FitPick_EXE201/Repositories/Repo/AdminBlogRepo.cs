@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -33,7 +33,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 .Include(b => b.Author)
                 .Include(b => b.BlogMedia)
                 .Include(b => b.Category)
-                .AsQueryable(); // Admin xem tất cả, không lọc Status
+                .AsQueryable(); // Admin xem t?t c?, kh�ng l?c Status
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -97,8 +97,8 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<Blogpost> CreateAsync(Blogpost post)
         {
-            post.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-            post.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            post.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            post.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.Blogposts.Add(post);
             await _context.SaveChangesAsync();
@@ -114,7 +114,7 @@ namespace FitPick_EXE201.Repositories.Repo
             existing.Content = post.Content;
             existing.Status = post.Status;
             existing.Categoryid = post.Categoryid;
-            existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            existing.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.Blogposts.Update(existing);
             await _context.SaveChangesAsync();

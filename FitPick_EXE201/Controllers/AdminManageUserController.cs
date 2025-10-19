@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +24,7 @@ namespace FitPick_EXE201.Controllers
             _userService = userService;
         }
 
-        // Lấy danh sách user
+        // L?y danh s�ch user
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<User>>>> GetAllUsers(
     [FromQuery] string? searchKeyword,
@@ -54,7 +54,7 @@ namespace FitPick_EXE201.Controllers
 
 
 
-        // Lấy thông tin user theo ID
+        // L?y th�ng tin user theo ID
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<AdminUserDetailDto>>> GetUserById(int id)
         {
@@ -76,7 +76,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<object>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
+                return BadRequest(ApiResponse<object>.ErrorResponse(errors, "D? li?u kh�ng h?p l?"));
             }
 
             var newUser = new User
@@ -109,7 +109,7 @@ namespace FitPick_EXE201.Controllers
                 createdUser.Status
             };
 
-            return Ok(ApiResponse<object>.SuccessResponse(responseData, "Tạo người dùng thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(responseData, "T?o ngu?i d�ng th�nh c�ng"));
         }
         [HttpPut("{id}/avatar")]
         public async Task<IActionResult> UpdateAvatar(
@@ -120,28 +120,28 @@ namespace FitPick_EXE201.Controllers
             if (request.Avatar == null || request.Avatar.Length == 0)
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Không có file để upload." },
-                    "Cập nhật ảnh thất bại"
+                    new List<string> { "Kh�ng c� file d? upload." },
+                    "C?p nh?t ?nh th?t b?i"
                 ));
             }
 
-            // Upload ảnh
+            // Upload ?nh
             var avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
             if (string.IsNullOrEmpty(avatarUrl))
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Upload ảnh thất bại." },
-                    "Không thể lưu ảnh"
+                    new List<string> { "Upload ?nh th?t b?i." },
+                    "Kh�ng th? luu ?nh"
                 ));
             }
 
-            // Cập nhật DB
+            // C?p nh?t DB
             var updatedUser = await _userService.UpdateUserAvatarAsync(id, avatarUrl);
             if (updatedUser == null)
             {
                 return NotFound(ApiResponse<object>.ErrorResponse(
-                    new List<string> { $"Không tìm thấy user với id = {id}" },
-                    "Người dùng không tồn tại"
+                    new List<string> { $"Kh�ng t�m th?y user v?i id = {id}" },
+                    "Ngu?i d�ng kh�ng t?n t?i"
                 ));
             }
 
@@ -155,7 +155,7 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<UserAvatarResponseDto>.SuccessResponse(
                 responseDto,
-                "Cập nhật ảnh đại diện thành công"
+                "C?p nh?t ?nh d?i di?n th�nh c�ng"
             ));
         }
 
@@ -202,7 +202,7 @@ namespace FitPick_EXE201.Controllers
         }
 
 
-        // ✅ Xoá mềm (deactivate) user
+        // ? Xo� m?m (deactivate) user
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(int id)
         {

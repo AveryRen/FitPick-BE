@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,7 @@ namespace FitPick_EXE201.Repositories.Repo
         public async Task<List<Meal>> GetDrinksFromMealsAsync()
         {
             return await _context.Meals
-                .Where(m => m.CategoryId == 4) // category_id = 4 là nước uống
+                .Where(m => m.CategoryId == 4) // category_id = 4 l� nu?c u?ng
                 .ToListAsync();
         }
         public async Task<List<Meal>> GetMealsAsync()
@@ -47,16 +47,16 @@ namespace FitPick_EXE201.Repositories.Repo
             List<int> preferredIngredientIds
         )
         {
-            // Lấy mealtime
+            // L?y mealtime
             var mealtime = await _context.MealTimes
                 .FirstOrDefaultAsync(m => m.Name.ToLower() == mealtimeName.ToLower());
 
             if (mealtime == null) return new List<Meal>();
 
-            // Lấy tất cả meals theo mealtime (trong DB chưa có mapping mealtime trực tiếp? Nếu mealplans thì có)
+            // L?y t?t c? meals theo mealtime (trong DB chua c� mapping mealtime tr?c ti?p? N?u mealplans th� c�)
             var mealsQuery = _context.Meals.AsQueryable();
 
-            // Loại bỏ món có nguyên liệu trong avoidIngredientIds
+            // Lo?i b? m�n c� nguy�n li?u trong avoidIngredientIds
             if (avoidIngredientIds != null && avoidIngredientIds.Count > 0)
             {
                 mealsQuery = mealsQuery.Where(m =>
@@ -64,7 +64,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 );
             }
 
-            // Ưu tiên món có nguyên liệu trong preferredIngredientIds
+            // Uu ti�n m�n c� nguy�n li?u trong preferredIngredientIds
             if (preferredIngredientIds != null && preferredIngredientIds.Count > 0)
             {
                 mealsQuery = mealsQuery.OrderByDescending(m =>

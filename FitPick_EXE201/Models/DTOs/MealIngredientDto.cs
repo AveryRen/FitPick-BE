@@ -1,4 +1,4 @@
-ï»¿namespace FitPick_EXE201.Models.DTOs
+namespace FitPick_EXE201.Models.DTOs
 {
     public class MealIngredientDto
     {
@@ -6,6 +6,6 @@
         public string Name { get; set; }
         public decimal Quantity { get; set; }
         public string Unit { get; set; }
-        public bool HasIt { get; set; } // user Ä‘Ã£ cÃ³ nguyÃªn liá»‡u nÃ y
+        public bool HasIt { get; set; } // user dã có nguyên li?u này
     }
 }

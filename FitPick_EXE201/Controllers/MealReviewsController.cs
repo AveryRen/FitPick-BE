@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Mvc;
 using FitPick_EXE201.Helpers;
@@ -22,7 +22,7 @@ namespace FitPick_EXE201.Controllers
                              throw new UnauthorizedAccessException("User ID not found in token"));
         }
 
-        // Hàm map Entity -> DTO
+        // H�m map Entity -> DTO
         private MealReviewDto ToDto(Models.Entities.MealReview entity)
         {
             return new MealReviewDto

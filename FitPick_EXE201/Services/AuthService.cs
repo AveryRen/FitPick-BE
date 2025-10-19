@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
@@ -70,7 +70,7 @@ namespace FitPick_EXE201.Services
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
+                expires: DateTime.Now.AddMinutes(_jwtSettings.ExpirationMinutes),
                 signingCredentials: creds
             );
 
@@ -92,7 +92,7 @@ namespace FitPick_EXE201.Services
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+                expires: DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays),
                 signingCredentials: creds
             );
 
@@ -108,7 +108,7 @@ namespace FitPick_EXE201.Services
 
             if (account.IsEmailVerified == null || account.IsEmailVerified == false) return null;
 
-            // Kiểm tra password
+            // Ki?m tra password
             var isValidPassword = BCrypt.Net.BCrypt.Verify(dto.Password, account.Passwordhash);
             if (!isValidPassword) return null;
 

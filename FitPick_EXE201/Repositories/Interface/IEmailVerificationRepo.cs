@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Repositories.Interface
+namespace FitPick_EXE201.Repositories.Interface
 {
     public interface IEmailVerificationRepo
     {

@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.DTOs
+namespace FitPick_EXE201.Models.DTOs
 {
     public class UserProfileDto
     {
@@ -17,6 +17,7 @@
         public bool IsOnboardingCompleted { get; set; }
         public string? AvatarUrl { get; set; }
         public string AccountType { get; set; } = "FREE"; // FREE, PREMIUM
+        public string? Country { get; set; }
         public int? TargetCalories { get; set; }
     }
 }

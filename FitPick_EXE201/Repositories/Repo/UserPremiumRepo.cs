@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +28,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (user == null) return false;
 
             user.RoleId = newRoleId;
-            user.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            user.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -50,7 +50,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
         // ==================== PAYMENT ====================
 
-        // Thêm giao dịch mới
+        // Th�m giao d?ch m?i
         public async Task<bool> InsertPaymentAsync(PayosPayment payment)
         {
             _context.PayosPayments.Add(payment);
@@ -58,7 +58,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return true;
         }
 
-        // Cập nhật trạng thái giao dịch
+        // C?p nh?t tr?ng th�i giao d?ch
         public async Task<bool> UpdatePaymentStatusAsync(
             long orderCode,
             string status,
@@ -72,24 +72,24 @@ namespace FitPick_EXE201.Repositories.Repo
 
             if (payment == null) return false;
 
-            // Cập nhật trạng thái
+            // C?p nh?t tr?ng th�i
             payment.Status = status;
 
-            // Nếu có thời gian giao dịch (thanh toán thành công)
+            // N?u c� th?i gian giao d?ch (thanh to�n th�nh c�ng)
             if (transactionTime.HasValue)
                 payment.TransactionDatetime = DateTime.SpecifyKind(transactionTime.Value, DateTimeKind.Unspecified);
             else if (status.Equals("PAID", StringComparison.OrdinalIgnoreCase) && payment.TransactionDatetime == null)
-                payment.TransactionDatetime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                payment.TransactionDatetime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
-            // Cập nhật số tiền/description nếu callback gửi lại
+            // C?p nh?t s? ti?n/description n?u callback g?i l?i
             if (amount.HasValue)
                 payment.Amount = amount.Value;
 
             if (!string.IsNullOrWhiteSpace(description))
                 payment.Description = description;
 
-            // Luôn cập nhật Updatedat
-            payment.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            // Lu�n c?p nh?t Updatedat
+            payment.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             _context.PayosPayments.Update(payment);
             await _context.SaveChangesAsync();

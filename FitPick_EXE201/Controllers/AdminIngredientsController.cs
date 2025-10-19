@@ -1,4 +1,4 @@
-Ôªøusing FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
@@ -28,7 +28,7 @@ namespace FitPick_EXE201.Controllers
             [FromQuery] bool onlyActive = true)
         {
             var ingredients = await _service.GetAllAsync(name, type, unit, onlyActive);
-            return Ok(ApiResponse<IEnumerable<Ingredient>>.SuccessResponse(ingredients, "L·∫•y danh s√°ch nguy√™n li·ªáu th√†nh c√¥ng"));
+            return Ok(ApiResponse<IEnumerable<Ingredient>>.SuccessResponse(ingredients, "L?y danh s·ch nguyÍn li?u th‡nh cÙng"));
         }
 
         // GET: api/admin/ingredients/{id}
@@ -38,9 +38,9 @@ namespace FitPick_EXE201.Controllers
             var ingredient = await _service.GetByIdAsync(id);
             if (ingredient == null)
                 return NotFound(ApiResponse<Ingredient>.ErrorResponse(
-                    new List<string> { "Nguy√™n li·ªáu kh√¥ng t·ªìn t·∫°i" }, "Kh√¥ng t√¨m th·∫•y"));
+                    new List<string> { "NguyÍn li?u khÙng t?n t?i" }, "KhÙng tÏm th?y"));
 
-            return Ok(ApiResponse<Ingredient>.SuccessResponse(ingredient, "L·∫•y nguy√™n li·ªáu th√†nh c√¥ng"));
+            return Ok(ApiResponse<Ingredient>.SuccessResponse(ingredient, "L?y nguyÍn li?u th‡nh cÙng"));
         }
         // POST: api/admin/ingredients
         [HttpPost]
@@ -53,7 +53,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D·ªØ li·ªáu kh√¥ng h·ª£p l·ªá"));
+                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D? li?u khÙng h?p l?"));
             }
 
             var created = await _service.CreateAsync(dto);
@@ -61,7 +61,7 @@ namespace FitPick_EXE201.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = created.Ingredientid },
-                ApiResponse<Ingredient>.SuccessResponse(created, "T·∫°o nguy√™n li·ªáu th√†nh c√¥ng")
+                ApiResponse<Ingredient>.SuccessResponse(created, "T?o nguyÍn li?u th‡nh cÙng")
             );
         }
 
@@ -76,7 +76,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D·ªØ li·ªáu kh√¥ng h·ª£p l·ªá"));
+                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D? li?u khÙng h?p l?"));
             }
 
             var updated = await _service.UpdateAsync(id, dto);
@@ -84,10 +84,10 @@ namespace FitPick_EXE201.Controllers
             if (updated == null)
             {
                 return NotFound(ApiResponse<Ingredient>.ErrorResponse(
-                    new List<string> { "Nguy√™n li·ªáu kh√¥ng t·ªìn t·∫°i" }, "Kh√¥ng t√¨m th·∫•y"));
+                    new List<string> { "NguyÍn li?u khÙng t?n t?i" }, "KhÙng tÏm th?y"));
             }
 
-            return Ok(ApiResponse<Ingredient>.SuccessResponse(updated, "C·∫≠p nh·∫≠t nguy√™n li·ªáu th√†nh c√¥ng"));
+            return Ok(ApiResponse<Ingredient>.SuccessResponse(updated, "C?p nh?t nguyÍn li?u th‡nh cÙng"));
         }
 
 
@@ -98,9 +98,9 @@ namespace FitPick_EXE201.Controllers
             var deleted = await _service.DeleteAsync(id);
             if (!deleted)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Nguy√™n li·ªáu kh√¥ng t·ªìn t·∫°i" }, "Kh√¥ng t√¨m th·∫•y"));
+                    new List<string> { "NguyÍn li?u khÙng t?n t?i" }, "KhÙng tÏm th?y"));
 
-            return Ok(ApiResponse<string>.SuccessResponse("ƒê√£ x√≥a th√†nh c√¥ng", "X√≥a nguy√™n li·ªáu th√†nh c√¥ng"));
+            return Ok(ApiResponse<string>.SuccessResponse("–„ xÛa th‡nh cÙng", "XÛa nguyÍn li?u th‡nh cÙng"));
         }
     }
 }

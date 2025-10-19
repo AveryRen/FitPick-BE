@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -31,20 +31,20 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task AddFavoriteAsync(MealReview favorite)
         {
-            // Nếu record đã tồn tại → update IsFavorite = true
+            // N?u record d� t?n t?i ? update IsFavorite = true
             var existing = await _context.MealReviews
                 .FirstOrDefaultAsync(r => r.Userid == favorite.Userid && r.Mealid == favorite.Mealid);
 
             if (existing != null)
             {
                 existing.IsFavorite = true;
-                existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                existing.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
                 _context.MealReviews.Update(existing);
             }
             else
             {
                 favorite.IsFavorite = true;
-                favorite.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                favorite.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
                 _context.MealReviews.Add(favorite);
             }
         }
@@ -57,7 +57,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (existing != null)
             {
                 existing.IsFavorite = false;
-                existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                existing.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
                 _context.MealReviews.Update(existing);
             }
         }
@@ -67,7 +67,7 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             return await _context.MealReviews
                 .Include(r => r.User) // load user info
-                .Where(r => r.Mealid == mealId && r.Rating != null) // chỉ lấy review có rating
+                .Where(r => r.Mealid == mealId && r.Rating != null) // ch? l?y review c� rating
                 .ToListAsync();
         }
 
@@ -85,7 +85,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (existing != null)
                 throw new InvalidOperationException("Review already exists. Use Update instead.");
 
-            review.Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified); ;
+            review.Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified); ;
             _context.MealReviews.Add(review);
             await _context.SaveChangesAsync();
             return review;
@@ -101,7 +101,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             existing.Rating = review.Rating;
             existing.Comment = review.Comment;
-            existing.Updatedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified); ;
+            existing.Updatedat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified); ;
 
             _context.MealReviews.Update(existing);
             await _context.SaveChangesAsync();

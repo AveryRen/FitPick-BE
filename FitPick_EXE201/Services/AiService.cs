@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -41,43 +41,43 @@ namespace FitPick_EXE201.Services
         private static string JoinPrefs(List<string>? prefs)
             => (prefs != null && prefs.Count > 0)
                 ? string.Join(", ", prefs)
-                : "không có";
+                : "kh�ng c�";
 
         private static string ExtractJson(string input)
         {
-            // Trích ra phần JSON đầu tiên (mảng hoặc object)
+            // Tr�ch ra ph?n JSON d?u ti�n (m?ng ho?c object)
             var match = Regex.Match(input, @"(\{.*\}|\[.*\])", RegexOptions.Singleline);
             return match.Success ? match.Value : "";
         }
 
         /// <summary>
-        /// Gọi AI, retry và parse JSON an toàn
+        /// G?i AI, retry v� parse JSON an to�n
         /// </summary>
         public async Task<T> GenerateJsonAsync<T>(string prompt, T defaultValue)
         {
             try
             {
                 var policy = Policy
-                    .Handle<Exception>() // bắt mọi lỗi từ GenerativeAI
+                    .Handle<Exception>() // b?t m?i l?i t? GenerativeAI
                     .WaitAndRetryAsync(
                         3,
                         attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)), // 2,4,8s
                         (ex, delay, count, _) =>
                         {
                             _logger.LogWarning(ex,
-                                "⚠️ AI thất bại (lần {Retry}). Thử lại sau {Delay}s",
+                                "?? AI th?t b?i (l?n {Retry}). Th? l?i sau {Delay}s",
                                 count, delay.TotalSeconds);
                         });
 
                 var response = await policy.ExecuteAsync(() => _model.GenerateContentAsync(prompt));
 
                 var raw = response?.Text?.Trim() ?? "";
-                _logger.LogInformation("🔎 Raw AI output:\n{Raw}", raw);
+                _logger.LogInformation("?? Raw AI output:\n{Raw}", raw);
 
                 var json = ExtractJson(raw);
                 if (string.IsNullOrWhiteSpace(json))
                 {
-                    _logger.LogWarning("❌ Không tìm thấy JSON trong output AI");
+                    _logger.LogWarning("? Kh�ng t�m th?y JSON trong output AI");
                     return defaultValue;
                 }
 
@@ -88,13 +88,13 @@ namespace FitPick_EXE201.Services
                 }
                 catch (JsonException jex)
                 {
-                    _logger.LogError(jex, "❌ Parse JSON thất bại");
+                    _logger.LogError(jex, "? Parse JSON th?t b?i");
                     return defaultValue;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ AI Service quá tải hoặc lỗi");
+                _logger.LogError(ex, "? AI Service qu� t?i ho?c l?i");
                 return defaultValue;
             }
         }
@@ -124,13 +124,13 @@ namespace FitPick_EXE201.Services
             var prefer = JoinPrefs(MapIdsToNames(profile.Dietarypreferences, allIngredients));
 
             var prompt = $@"
-Bạn là chuyên gia dinh dưỡng.
-Đưa ra 3 loại nước uống phù hợp:
-- Mục tiêu: {goal ?? profile.HealthGoal}
-- Thời điểm: {timeOfDay ?? "bất kỳ"}
-- Tránh nguyên liệu: {avoid}
-- Ưu tiên nguyên liệu: {prefer}
-Chỉ trả về JSON: [""drink1"", ""drink2"", ""drink3""]";
+B?n l� chuy�n gia dinh du?ng.
+�ua ra 3 lo?i nu?c u?ng ph� h?p:
+- M?c ti�u: {goal ?? profile.HealthGoal}
+- Th?i di?m: {timeOfDay ?? "b?t k?"}
+- Tr�nh nguy�n li?u: {avoid}
+- Uu ti�n nguy�n li?u: {prefer}
+Ch? tr? v? JSON: [""drink1"", ""drink2"", ""drink3""]";
 
             var aiResult = await GenerateJsonAsync(prompt, new List<string>());
 
@@ -155,13 +155,13 @@ Chỉ trả về JSON: [""drink1"", ""drink2"", ""drink3""]";
             var prefer = JoinPrefs(MapIdsToNames(profile.Dietarypreferences, allIngredients));
 
             var prompt = $@"
-Tạo thực đơn 3 bữa + gợi ý nước uống:
-Ngày: {date:yyyy-MM-dd}
-Mục tiêu: {healthGoal ?? profile.HealthGoal}
-Lối sống: {lifestyle ?? profile.Lifestyle}
-Tránh nguyên liệu: {avoid}
-Ưu tiên nguyên liệu: {prefer}
-Định dạng JSON:
+T?o th?c don 3 b?a + g?i � nu?c u?ng:
+Ng�y: {date:yyyy-MM-dd}
+M?c ti�u: {healthGoal ?? profile.HealthGoal}
+L?i s?ng: {lifestyle ?? profile.Lifestyle}
+Tr�nh nguy�n li?u: {avoid}
+Uu ti�n nguy�n li?u: {prefer}
+�?nh d?ng JSON:
 {{
   ""breakfast"": {{""meal"":""..."",""drink"":""...""}},
   ""lunch"":     {{""meal"":""..."",""drink"":""...""}},
@@ -180,13 +180,13 @@ Tránh nguyên liệu: {avoid}
             var type = await _context.NotificationTypes
                                      .FirstOrDefaultAsync(t => t.Name == "Drink");
             if (type == null)
-                return new { error = "Notification type 'Drink' chưa tồn tại" };
+                return new { error = "Notification type 'Drink' chua t?n t?i" };
 
             var notification = new Notification
             {
                 Userid = userId,
-                Title = "Nhắc uống nước",
-                Message = $"Chào {profile.FullName}, hãy uống 1 cốc nước nhé!",
+                Title = "Nh?c u?ng nu?c",
+                Message = $"Ch�o {profile.FullName}, h�y u?ng 1 c?c nu?c nh�!",
                 TypeId = type.Id,
                 Isread = false,
                 Createdat = DateTime.Now,
@@ -218,7 +218,7 @@ Tránh nguyên liệu: {avoid}
             var weekPlan = new List<DailyMealPlanDto>();
             var rnd = new Random();
 
-            // Dùng để nhớ các món đã chọn trong tuần → tránh trùng
+            // D�ng d? nh? c�c m�n d� ch?n trong tu?n ? tr�nh tr�ng
             var usedMealIds = new HashSet<int>();
 
             for (int day = 0; day < 7; day++)
@@ -227,20 +227,20 @@ Tránh nguyên liệu: {avoid}
                 var prefer = JoinPrefs(MapIdsToNames(preferIds, allIngredients));
 
                 var prompt = $@"
-Bạn là chuyên gia dinh dưỡng.
-Tạo thực đơn cho 1 ngày (3 bữa: sáng, trưa, tối):
-- Mục tiêu: {healthGoal ?? profile.Healthgoal?.Name ?? "any"}
-- Lối sống: {lifestyle ?? profile.Lifestyle?.Name ?? "any"}
-- Tránh nguyên liệu: {avoid}
-- Ưu tiên nguyên liệu: {prefer}
-Chỉ trả về JSON dạng:
+B?n l� chuy�n gia dinh du?ng.
+T?o th?c don cho 1 ng�y (3 b?a: s�ng, trua, t?i):
+- M?c ti�u: {healthGoal ?? profile.Healthgoal?.Name ?? "any"}
+- L?i s?ng: {lifestyle ?? profile.Lifestyle?.Name ?? "any"}
+- Tr�nh nguy�n li?u: {avoid}
+- Uu ti�n nguy�n li?u: {prefer}
+Ch? tr? v? JSON d?ng:
 {{
   ""breakfast"": ""meal1"",
   ""lunch"": ""meal2"",
   ""dinner"": ""meal3""
 }}";
 
-                // gọi AI 1 lần cho cả ngày
+                // g?i AI 1 l?n cho c? ng�y
                 var aiJson = await GenerateJsonAsync(prompt, new List<string>());
 
                 Dictionary<string, string>? aiDayMeals = null;
@@ -262,7 +262,7 @@ Chỉ trả về JSON dạng:
                     Meals = new Dictionary<string, Meal>()
                 };
 
-                // nếu AI trả về hợp lệ thì dùng
+                // n?u AI tr? v? h?p l? th� d�ng
                 if (aiDayMeals != null)
                 {
                     foreach (var kv in aiDayMeals)
@@ -276,17 +276,17 @@ Chỉ trả về JSON dạng:
                     }
                 }
 
-                // fallback nếu AI fail hoặc không đủ 3 bữa
+                // fallback n?u AI fail ho?c kh�ng d? 3 b?a
                 if (daily.Meals.Count < 3)
                 {
-                    // chọn random nhưng loại bỏ món đã dùng
+                    // ch?n random nhung lo?i b? m�n d� d�ng
                     var fallbackMeals = allMeals
                         .Where(m => m.CategoryId != 4 && !usedMealIds.Contains(m.Mealid))
                         .OrderBy(x => rnd.Next())
                         .Take(3 - daily.Meals.Count)
                         .ToList();
 
-                    // nếu không đủ thì reset used → cho phép chọn lại
+                    // n?u kh�ng d? th� reset used ? cho ph�p ch?n l?i
                     if (fallbackMeals.Count < (3 - daily.Meals.Count))
                     {
                         usedMealIds.Clear();
@@ -297,7 +297,7 @@ Chỉ trả về JSON dạng:
                             .ToList();
                     }
 
-                    // gán vào các bữa chưa có
+                    // g�n v�o c�c b?a chua c�
                     var remainingSlots = new List<string> { "breakfast", "lunch", "dinner" }
                         .Where(slot => !daily.Meals.ContainsKey(slot))
                         .ToList();
@@ -327,13 +327,13 @@ Chỉ trả về JSON dạng:
             var prefer = JoinPrefs(MapIdsToNames(profile.Dietarypreferences, allIngredients));
 
             var prompt = $@"
-Bạn là chuyên gia dinh dưỡng.
-Gợi ý 3 món ăn:
-- Mục tiêu: {goal ?? profile.HealthGoal}
-- Loại bữa: {mealType ?? "any"}
-- Tránh nguyên liệu: {avoid}
-- Ưu tiên nguyên liệu: {prefer}
-Chỉ trả về JSON: [""meal1"",""meal2"",""meal3""]";
+B?n l� chuy�n gia dinh du?ng.
+G?i � 3 m�n an:
+- M?c ti�u: {goal ?? profile.HealthGoal}
+- Lo?i b?a: {mealType ?? "any"}
+- Tr�nh nguy�n li?u: {avoid}
+- Uu ti�n nguy�n li?u: {prefer}
+Ch? tr? v? JSON: [""meal1"",""meal2"",""meal3""]";
 
             var aiResult = await GenerateJsonAsync(prompt, new List<string>());
 

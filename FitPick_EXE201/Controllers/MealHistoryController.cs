@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
 using FitPick_EXE201.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +35,7 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromToken();
             var histories = await _service.GetUserHistoryAsync(userId);
 
-            // Map sang DTO, bao gồm các object liên quan
+            // Map sang DTO, bao g?m c�c object li�n quan
             var dtoList = histories.Select(h => new MealHistoryDto
             {
                 Historyid = h.Historyid,
@@ -73,7 +73,7 @@ namespace FitPick_EXE201.Controllers
         {
             var userId = GetUserIdFromToken();
 
-            // Tạo entity từ DTO request
+            // T?o entity t? DTO request
             var history = new MealHistory
             {
                 Userid = userId,
@@ -113,7 +113,7 @@ namespace FitPick_EXE201.Controllers
         {
             var userId = GetUserIdFromToken();
 
-            // (tùy bạn có muốn check ownership không)
+            // (t�y b?n c� mu?n check ownership kh�ng)
             await _service.DeleteMealHistoryAsync(id);
 
             return Ok(ApiResponse<string>.SuccessResponse(

@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.Entities;
 using System.Security.Principal;
 using FitPick_EXE201.Models;
 using Microsoft.EntityFrameworkCore;

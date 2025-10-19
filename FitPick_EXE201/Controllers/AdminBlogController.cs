@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FitPick_EXE201.Services;
@@ -23,7 +23,7 @@ namespace FitPick_EXE201.Controllers
             _cloudinaryService = cloudinaryService ?? throw new ArgumentNullException(nameof(cloudinaryService));
         }
 
-        /// <summary>📜 Lấy danh sách blog (phân trang + lọc + sắp xếp)</summary>
+        /// <summary>?? L?y danh s�ch blog (ph�n trang + l?c + s?p x?p)</summary>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<PagedResult<BlogResponse>>), 200)]
         public async Task<ActionResult<ApiResponse<PagedResult<BlogResponse>>>> GetAll(
@@ -69,10 +69,10 @@ namespace FitPick_EXE201.Controllers
                 Items = blogs.Select(ToDto).ToList()
             };
 
-            return Ok(ApiResponse<PagedResult<BlogResponse>>.SuccessResponse(result, "Lấy danh sách blog thành công"));
+            return Ok(ApiResponse<PagedResult<BlogResponse>>.SuccessResponse(result, "L?y danh s�ch blog th�nh c�ng"));
         }
 
-        /// <summary>🔎 Lấy chi tiết blog theo Id</summary>
+        /// <summary>?? L?y chi ti?t blog theo Id</summary>
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<BlogResponse>), 200)]
         [ProducesResponseType(typeof(ApiResponse<string>), 404)]
@@ -81,12 +81,12 @@ namespace FitPick_EXE201.Controllers
             var blog = await _blogService.GetByIdAsync(id);
             if (blog == null)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
+                    new List<string> { "Kh�ng t�m th?y blog" }, "Th?t b?i"));
 
-            return Ok(ApiResponse<BlogResponse>.SuccessResponse(ToDto(blog), "Lấy blog thành công"));
+            return Ok(ApiResponse<BlogResponse>.SuccessResponse(ToDto(blog), "L?y blog th�nh c�ng"));
         }
 
-        /// <summary>➕ Tạo blog mới</summary>
+        /// <summary>? T?o blog m?i</summary>
         [HttpPost]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponse<string>), 200)]
@@ -105,8 +105,8 @@ namespace FitPick_EXE201.Controllers
                 Categoryid = categoryId,
                 Authorid = authorId,
                 Status = true,
-                Createdat = DateTime.UtcNow,
-                Updatedat = DateTime.UtcNow
+                Createdat = DateTime.Now,
+                Updatedat = DateTime.Now
             };
 
             var created = await _blogService.CreateAsync(blog);
@@ -123,10 +123,10 @@ namespace FitPick_EXE201.Controllers
                 await _blogService.AddMediaRangeByFilesAsync(created.Postid, mediaList);
             }
 
-            return Ok(ApiResponse<string>.SuccessResponse("OK", "Tạo blog thành công"));
+            return Ok(ApiResponse<string>.SuccessResponse("OK", "T?o blog th�nh c�ng"));
         }
 
-        /// <summary>✏️ Cập nhật blog</summary>
+        /// <summary>?? C?p nh?t blog</summary>
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponse<string>), 200)]
@@ -142,13 +142,13 @@ namespace FitPick_EXE201.Controllers
             var existing = await _blogService.GetByIdAsync(id);
             if (existing == null)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
+                    new List<string> { "Kh�ng t�m th?y blog" }, "Th?t b?i"));
 
             existing.Title = title;
             existing.Content = content;
             existing.Categoryid = categoryId;
             existing.Status = status;
-            existing.Updatedat = DateTime.UtcNow;
+            existing.Updatedat = DateTime.Now;
 
             await _blogService.UpdateAsync(existing);
 
@@ -165,10 +165,10 @@ namespace FitPick_EXE201.Controllers
                 await _blogService.AddMediaRangeByFilesAsync(id, mediaList);
             }
 
-            return Ok(ApiResponse<string>.SuccessResponse("OK", "Cập nhật blog thành công"));
+            return Ok(ApiResponse<string>.SuccessResponse("OK", "C?p nh?t blog th�nh c�ng"));
         }
 
-        /// <summary>🗑️ Xóa blog</summary>
+        /// <summary>??? X�a blog</summary>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         [ProducesResponseType(typeof(ApiResponse<string>), 404)]
@@ -177,9 +177,9 @@ namespace FitPick_EXE201.Controllers
             var success = await _blogService.DeleteAsync(id);
             if (!success)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Không tìm thấy blog" }, "Thất bại"));
+                    new List<string> { "Kh�ng t�m th?y blog" }, "Th?t b?i"));
 
-            return Ok(ApiResponse<string>.SuccessResponse("OK", "Xóa blog thành công"));
+            return Ok(ApiResponse<string>.SuccessResponse("OK", "X�a blog th�nh c�ng"));
         }
 
         #region Private Mapper

@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Services;
@@ -30,7 +30,7 @@ namespace FitPick_EXE201.Controllers
 
             var today = DateTime.Now;
             var plans = await _mealPlanService.GetTodayMealPlanAsync(userId.Value, today);
-            return Ok(ApiResponse<List<TodayMealPlanDto>>.SuccessResponse(plans, "Lấy thực đơn hôm nay thành công"));
+            return Ok(ApiResponse<List<TodayMealPlanDto>>.SuccessResponse(plans, "L?y th?c don h�m nay th�nh c�ng"));
         }
 
         [HttpGet("user")]
@@ -42,7 +42,7 @@ namespace FitPick_EXE201.Controllers
                     new List<string> { "UserId not found in token" }, "Unauthorized"));
 
             var plans = await _mealPlanService.GetUserMealPlansAsync(userId.Value);
-            return Ok(ApiResponse<List<Mealplan>>.SuccessResponse(plans, "Lấy toàn bộ meal plan thành công"));
+            return Ok(ApiResponse<List<Mealplan>>.SuccessResponse(plans, "L?y to�n b? meal plan th�nh c�ng"));
         }
 
         [HttpPost("generate")]
@@ -56,9 +56,9 @@ namespace FitPick_EXE201.Controllers
             var plan = await _mealPlanService.GenerateMealPlanAsync(userId.Value, DateOnly.FromDateTime(date));
             if (plan == null)
                 return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
-                    new List<string> { "Không thể tạo meal plan" }, "Thất bại"));
+                    new List<string> { "Kh�ng th? t?o meal plan" }, "Th?t b?i"));
 
-            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Tạo meal plan thành công"));
+            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "T?o meal plan th�nh c�ng"));
         }
 
         [HttpPut("{id}/swap")]
@@ -67,9 +67,9 @@ namespace FitPick_EXE201.Controllers
             var plan = await _mealPlanService.SwapMealAsync(id, newMealId);
             if (plan == null)
                 return NotFound(ApiResponse<Mealplan>.ErrorResponse(
-                    new List<string> { "Meal plan không tồn tại" }, "Thất bại"));
+                    new List<string> { "Meal plan kh�ng t?n t?i" }, "Th?t b?i"));
 
-            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Hoán đổi món thành công"));
+            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Ho�n d?i m�n th�nh c�ng"));
         }
 
         [HttpDelete("{id}")]
@@ -78,9 +78,9 @@ namespace FitPick_EXE201.Controllers
             var success = await _mealPlanService.DeleteMealPlanAsync(id);
             if (!success)
                 return NotFound(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Meal plan không tồn tại" }, "Thất bại"));
+                    new List<string> { "Meal plan kh�ng t?n t?i" }, "Th?t b?i"));
 
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Xóa meal plan thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "X�a meal plan th�nh c�ng"));
         }
 
         private int? GetUserIdFromToken()

@@ -45,8 +45,8 @@ namespace FitPick_EXE201.Services
                 PreferenceType = dto.PreferenceType,
                 PreferenceScore = dto.PreferenceScore,
                 Reason = dto.Reason,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserMealPreferences.Add(preference);
@@ -74,7 +74,7 @@ namespace FitPick_EXE201.Services
             preference.PreferenceType = dto.PreferenceType;
             preference.PreferenceScore = dto.PreferenceScore;
             preference.Reason = dto.Reason;
-            preference.UpdatedAt = DateTime.UtcNow;
+            preference.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -137,8 +137,8 @@ namespace FitPick_EXE201.Services
                 HealthRating = dto.HealthRating,
                 DifficultyRating = dto.DifficultyRating,
                 WouldCookAgain = dto.WouldCookAgain,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserMealRatings.Add(rating);
@@ -172,7 +172,7 @@ namespace FitPick_EXE201.Services
             rating.HealthRating = dto.HealthRating;
             rating.DifficultyRating = dto.DifficultyRating;
             rating.WouldCookAgain = dto.WouldCookAgain;
-            rating.UpdatedAt = DateTime.UtcNow;
+            rating.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -291,8 +291,8 @@ namespace FitPick_EXE201.Services
                 TargetIron = dto.TargetIron,
                 TargetVitaminC = dto.TargetVitaminC,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserNutritionGoals.Add(goal);
@@ -339,7 +339,7 @@ namespace FitPick_EXE201.Services
             goal.TargetVitaminD = dto.TargetVitaminD;
             goal.TargetIron = dto.TargetIron;
             goal.TargetVitaminC = dto.TargetVitaminC;
-            goal.UpdatedAt = DateTime.UtcNow;
+            goal.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -459,8 +459,8 @@ namespace FitPick_EXE201.Services
                 MealCount = dto.MealCount,
                 WaterIntake = dto.WaterIntake,
                 ExerciseCalories = dto.ExerciseCalories,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserNutritionHistories.Add(history);
@@ -531,8 +531,8 @@ namespace FitPick_EXE201.Services
                 AlgorithmVersion = "v1.0",
                 IsViewed = false,
                 IsAccepted = null,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(7) // Recommendations expire after 7 days
+                CreatedAt = DateTime.Now,
+                ExpiresAt = DateTime.Now.AddDays(7) // Recommendations expire after 7 days
             };
 
             _context.UserMealRecommendations.Add(recommendation);
@@ -615,8 +615,8 @@ namespace FitPick_EXE201.Services
                 ExclusionReason = reason,
                 IsPermanent = isPermanent,
                 ExcludedUntil = excludedUntil,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserMealExclusions.Add(exclusion);
@@ -658,7 +658,7 @@ namespace FitPick_EXE201.Services
             if (exclusion.IsPermanent) return true;
 
             // Check if temporary exclusion is still valid
-            if (exclusion.ExcludedUntil.HasValue && exclusion.ExcludedUntil.Value > DateTime.UtcNow)
+            if (exclusion.ExcludedUntil.HasValue && exclusion.ExcludedUntil.Value > DateTime.Now)
                 return true;
 
             return false;
@@ -695,9 +695,9 @@ namespace FitPick_EXE201.Services
                 PatternValue = patternValue,
                 FrequencyCount = frequencyCount,
                 ConfidenceLevel = confidenceLevel,
-                LastOccurrence = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                LastOccurrence = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.UserMealPatterns.Add(pattern);

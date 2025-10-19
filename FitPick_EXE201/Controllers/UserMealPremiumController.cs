@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,12 +8,12 @@ namespace FitPick_EXE201.Controllers
 {
     [Route("api/users/meals")]
     [ApiController]
-    [Authorize(Roles = "Premium,Admin")] // Chỉ Premium hoặc Admin mới được truy cập
+    [Authorize(Roles = "Premium,Admin")] // Ch? Premium ho?c Admin m?i du?c truy c?p
     public class UserMealPremiumController : ControllerBase
     {
         private readonly MealPremiumService _service;
 
-        public UserMealPremiumController(MealPremiumService service) // Tên constructor phải trùng class
+        public UserMealPremiumController(MealPremiumService service) // T�n constructor ph?i tr�ng class
         {
             _service = service;
         }

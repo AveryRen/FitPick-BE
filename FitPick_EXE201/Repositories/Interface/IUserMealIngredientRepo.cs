@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 
 namespace FitPick_EXE201.Repositories.Interface
 {

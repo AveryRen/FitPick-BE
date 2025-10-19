@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +25,7 @@ namespace FitPick_EXE201.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] AccountRegisterDto dto)
         {
-            // Thử đăng ký
+            // Th? dang k�
             var registerResult = await _authService.RegisterAsync(dto);
 
             if (!registerResult)

@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using FitPick_EXE201.Settings;
 using Microsoft.Extensions.Options;
@@ -27,14 +27,14 @@ namespace FitPick_EXE201.Services
             var uploadParams = new ImageUploadParams()
             {
                 File = new FileDescription(file.FileName, stream),
-                // Bạn có thể thêm folder, transformation ở đây nếu muốn
+                // B?n c� th? th�m folder, transformation ? d�y n?u mu?n
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
             if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                return uploadResult.SecureUrl.ToString(); // URL của file đã upload
+                return uploadResult.SecureUrl.ToString(); // URL c?a file d� upload
             }
 
             return null;

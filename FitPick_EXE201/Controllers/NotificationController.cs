@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -61,7 +61,7 @@ namespace FitPick_EXE201.Controllers
             try
             {
                 var result = await _service.MarkAsReadAsync(id);
-                return Ok(ApiResponse<NotificationDTO>.SuccessResponse(result, "Đánh dấu thông báo là đã đọc"));
+                return Ok(ApiResponse<NotificationDTO>.SuccessResponse(result, "��nh d?u th�ng b�o l� d� d?c"));
             }
             catch (KeyNotFoundException ex)
             {
@@ -88,7 +88,7 @@ namespace FitPick_EXE201.Controllers
 
         // POST api/notifications/types/create
         [HttpPost("types/create")]
-        [Authorize(Roles = "Admin")] // chỉ Admin mới tạo loại thông báo
+        [Authorize(Roles = "Admin")] // ch? Admin m?i t?o lo?i th�ng b�o
         public async Task<ActionResult<ApiResponse<NotificationTypeDTO>>> CreateType(string name)
         {
             try

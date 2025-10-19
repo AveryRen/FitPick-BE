@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Services;
+using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +19,7 @@ namespace FitPick_EXE201.Controllers
         public async Task<IActionResult> UploadFiles(List<IFormFile> files)
         {
             if (files == null || files.Count == 0)
-                return BadRequest("Không có file để upload.");
+                return BadRequest("Kh�ng c� file d? upload.");
 
             var uploadResults = new List<string>();
 

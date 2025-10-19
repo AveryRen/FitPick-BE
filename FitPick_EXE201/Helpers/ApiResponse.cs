@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Helpers
+namespace FitPick_EXE201.Helpers
 {
     public class ApiResponse<T>
     {

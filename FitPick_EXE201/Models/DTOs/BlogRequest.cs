@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.DTOs
+namespace FitPick_EXE201.Models.DTOs
 {
     public class BlogRequest
     {

@@ -1,4 +1,4 @@
-﻿namespace FitPick_EXE201.Models.DTOs
+namespace FitPick_EXE201.Models.DTOs
 {
     public class BlogResponse
     {
@@ -11,7 +11,7 @@
         public DateTime? Updatedat { get; set; }
         public List<BlogMediaResponse>? Medias { get; set; }
 
-        // Bạn có thể thêm thông tin tác giả (không chứa Blogposts)
+        // B?n c� th? th�m th�ng tin t�c gi? (kh�ng ch?a Blogposts)
         public AuthorResponse? Author { get; set; }
     }
 

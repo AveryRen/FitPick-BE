@@ -37,7 +37,7 @@ namespace FitPick_EXE201.Models.Entities
         public bool? IsAccepted { get; set; }
 
         [Column("created_at")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [Column("expires_at")]
         public DateTime? ExpiresAt { get; set; }

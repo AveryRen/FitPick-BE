@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +13,7 @@ namespace FitPick_EXE201.Services
             _repo = repo;
         }
 
-        // Lấy tất cả món premium
+        // L?y t?t c? m�n premium
         public async Task<List<MealResponseDto>> GetPremiumMealsAsync()
         {
             var meals = await _repo.GetPremiumMealsAsync();
@@ -32,7 +32,7 @@ namespace FitPick_EXE201.Services
             }).ToList();
         }
 
-        // Filter món premium
+        // Filter m�n premium
         public async Task<List<MealResponseDto>> FilterPremiumMealsAsync(MealFilterDto filter)
         {
             var query = _repo.GetPremiumMealsQuery();

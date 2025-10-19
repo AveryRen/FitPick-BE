@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
@@ -55,7 +55,7 @@ namespace FitPick_EXE201.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            // Gọi service update mà không động tới avatar
+            // G?i service update m� kh�ng d?ng t?i avatar
             var updatedUser = await _userService.UpdateProfileAsync(userId, request);
 
             if (updatedUser == null)
@@ -108,6 +108,21 @@ namespace FitPick_EXE201.Controllers
             }
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "Avatar updated successfully"));
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteAccount()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _userService.DeleteAccountAsync(userId);
+            if (!result)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(
+                    new List<string> { "Delete account failed" }, "Could not delete account"));
+            }
+
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Account deleted successfully"));
         }
 
     }

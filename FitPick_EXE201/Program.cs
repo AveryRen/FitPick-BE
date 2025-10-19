@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Models;
 using FitPick_EXE201.Repositories.Interface;
@@ -21,7 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
-// ✅ Add DbContext (fix lỗi DI)
+// ? Add DbContext (fix l?i DI)
 builder.Services.AddDbContext<FitPickContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -82,7 +82,7 @@ builder.Services.AddControllers()
     });
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ Register your services
+// ? Register your services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<HealthprofileService>();
@@ -153,6 +153,13 @@ builder.Services.AddScoped<AiService>();
 // Personalization Services
 builder.Services.AddScoped<IPersonalizationService, PersonalizationService>();
 
+// Settings Services
+builder.Services.AddScoped<ISettingsRepository, SettingsRepository>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
+
+// Admin Data Services
+builder.Services.AddScoped<IAdminDataRepo, AdminDataRepo>();
+builder.Services.AddScoped<IAdminDataService, AdminDataService>();
 
 builder.Services.AddHttpClient();
 
@@ -172,7 +179,7 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(origin =>
             {
                 if (string.IsNullOrEmpty(origin)) return false;
-                // Cho phép localhost và tất cả domain *.vercel.app
+                // Cho ph�p localhost v� t?t c? domain *.vercel.app
                 var host = new Uri(origin).Host;
                 return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
                        || host.EndsWith("vercel.app", StringComparison.OrdinalIgnoreCase)

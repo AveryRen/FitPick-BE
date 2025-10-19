@@ -1,4 +1,4 @@
-﻿using FitPick_EXE201.Data;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Repositories.Interface;
@@ -17,12 +17,12 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<TodayMealPlanDto>> GetTodayMealPlanAsync(int userId, DateTime date)
         {
-            // 1️⃣ Lấy user marks trước (tránh join trực tiếp trong LINQ to Entities)
+            // 1?? L?y user marks tru?c (tr�nh join tr?c ti?p trong LINQ to Entities)
             var userMarks = await _context.UserMealIngredientMarks
                                           .Where(u => u.Userid == userId)
                                           .ToListAsync();
 
-            // 2️⃣ Lấy mealPlans + meals + mealTimes
+            // 2?? L?y mealPlans + meals + mealTimes
             var mealPlansRaw = await (from mp in _context.Mealplans
                                       join m in _context.Meals on mp.Mealid equals m.Mealid
                                       join mt in _context.MealTimes on mp.MealtimeId equals mt.Id
@@ -34,7 +34,7 @@ namespace FitPick_EXE201.Repositories.Repo
                                           MealTimeName = mt.Name
                                       }).ToListAsync();
 
-            // 3️⃣ Map thành DTO, load Instructions + Ingredients trong memory
+            // 3?? Map th�nh DTO, load Instructions + Ingredients trong memory
             var result = mealPlansRaw.Select(x => new TodayMealPlanDto
             {
                 Date = x.MealPlan.Date.ToDateTime(TimeOnly.MinValue),
@@ -61,7 +61,7 @@ namespace FitPick_EXE201.Repositories.Repo
                                                 mi => mi.Ingredientid,
                                                 i => i.Ingredientid,
                                                 (mi, i) => new { mi, i })
-                                          .AsEnumerable() // join với userMarks trong memory
+                                          .AsEnumerable() // join v?i userMarks trong memory
                                           .Select(joined =>
                                           {
                                               var mark = userMarks.FirstOrDefault(u =>
@@ -92,10 +92,10 @@ namespace FitPick_EXE201.Repositories.Repo
                 .ToListAsync();
         }
 
-        // Sinh meal plan mới cho 1 ngày, tránh duplicate
+        // Sinh meal plan m?i cho 1 ng�y, tr�nh duplicate
         public async Task<List<Mealplan>> GenerateMealPlanAsync(int userId, DateOnly date)
         {
-            // Xóa meal plan cũ của user trong ngày (nếu có)
+            // X�a meal plan cu c?a user trong ng�y (n?u c�)
             var existingPlans = await _context.Mealplans
                 .Where(mp => mp.Userid == userId && mp.Date == date)
                 .ToListAsync();
@@ -103,18 +103,18 @@ namespace FitPick_EXE201.Repositories.Repo
             if (existingPlans.Any())
                 _context.Mealplans.RemoveRange(existingPlans);
 
-            // Lấy user profile
+            // L?y user profile
             var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
             if (profile == null) return null!;
 
-            // Lấy meals phù hợp calories / goal
+            // L?y meals ph� h?p calories / goal
             var meals = await _context.Meals
                 .Where(m => (m.Calories ?? 0) <= (profile.Targetcalories ?? 0))
                 .ToListAsync();
 
             if (!meals.Any()) return null!;
 
-            // Mỗi ngày 3 bữa: sáng, trưa, tối
+            // M?i ng�y 3 b?a: s�ng, trua, t?i
             var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
             var random = new Random();
 
@@ -122,7 +122,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             foreach (var mt in mealTimes)
             {
-                // Giả sử mỗi bữa có 2 món ngẫu nhiên (có thể thay đổi số lượng)
+                // Gi? s? m?i b?a c� 2 m�n ng?u nhi�n (c� th? thay d?i s? lu?ng)
                 var mealsInTime = meals.OrderBy(x => random.Next()).Take(2).ToList();
                 foreach (var meal in mealsInTime)
                 {
@@ -142,7 +142,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return mealPlans;
         }
 
-        // Hoán đổi 1 món
+        // Ho�n d?i 1 m�n
         public async Task<Mealplan?> SwapMealAsync(int planId, int newMealId)
         {
             var plan = await _context.Mealplans.FindAsync(planId);
@@ -153,7 +153,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return plan;
         }
 
-        // Xoá meal plan (1 món)
+        // Xo� meal plan (1 m�n)
         public async Task<bool> DeleteMealPlanAsync(int planId)
         {
             var plan = await _context.Mealplans.FindAsync(planId);
