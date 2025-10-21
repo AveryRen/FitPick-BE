@@ -17,7 +17,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<TodayMealPlanDto>> GetTodayMealPlanAsync(int userId, DateTime date)
         {
-            // 1?? L?y user marks tru?c (tr�nh join tr?c ti?p trong LINQ to Entities)
+            // 1?? L?y user marks tru?c (tr�nh join tr?c ti?p trong LINQ to Entities)
             var userMarks = await _context.UserMealIngredientMarks
                                           .Where(u => u.Userid == userId)
                                           .ToListAsync();
@@ -34,9 +34,10 @@ namespace FitPick_EXE201.Repositories.Repo
                                           MealTimeName = mt.Name
                                       }).ToListAsync();
 
-            // 3?? Map th�nh DTO, load Instructions + Ingredients trong memory
+            // 3?? Map th�nh DTO, load Instructions + Ingredients trong memory
             var result = mealPlansRaw.Select(x => new TodayMealPlanDto
             {
+                PlanId = x.MealPlan.Planid,
                 Date = x.MealPlan.Date.ToDateTime(TimeOnly.MinValue),
                 MealTime = x.MealTimeName,
                 Meal = new MealDto
@@ -92,10 +93,10 @@ namespace FitPick_EXE201.Repositories.Repo
                 .ToListAsync();
         }
 
-        // Sinh meal plan m?i cho 1 ng�y, tr�nh duplicate
+        // Sinh meal plan m?i cho 1 ng�y, tr�nh duplicate
         public async Task<List<Mealplan>> GenerateMealPlanAsync(int userId, DateOnly date)
         {
-            // X�a meal plan cu c?a user trong ng�y (n?u c�)
+            // X�a meal plan cu c?a user trong ng�y (n?u c�)
             var existingPlans = await _context.Mealplans
                 .Where(mp => mp.Userid == userId && mp.Date == date)
                 .ToListAsync();
@@ -107,14 +108,14 @@ namespace FitPick_EXE201.Repositories.Repo
             var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
             if (profile == null) return null!;
 
-            // L?y meals ph� h?p calories / goal
+            // L?y meals ph� h?p calories / goal
             var meals = await _context.Meals
                 .Where(m => (m.Calories ?? 0) <= (profile.Targetcalories ?? 0))
                 .ToListAsync();
 
             if (!meals.Any()) return null!;
 
-            // M?i ng�y 3 b?a: s�ng, trua, t?i
+            // M?i ng�y 3 b?a: s�ng, trua, t?i
             var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
             var random = new Random();
 
@@ -122,7 +123,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
             foreach (var mt in mealTimes)
             {
-                // Gi? s? m?i b?a c� 2 m�n ng?u nhi�n (c� th? thay d?i s? lu?ng)
+                // Gi? s? m?i b?a c� 2 m�n ng?u nhi�n (c� th? thay d?i s? lu?ng)
                 var mealsInTime = meals.OrderBy(x => random.Next()).Take(2).ToList();
                 foreach (var meal in mealsInTime)
                 {
@@ -142,7 +143,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return mealPlans;
         }
 
-        // Ho�n d?i 1 m�n
+        // Ho�n d?i 1 m�n
         public async Task<Mealplan?> SwapMealAsync(int planId, int newMealId)
         {
             var plan = await _context.Mealplans.FindAsync(planId);
@@ -153,7 +154,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return plan;
         }
 
-        // Xo� meal plan (1 m�n)
+        // Xo� meal plan (1 m�n)
         public async Task<bool> DeleteMealPlanAsync(int planId)
         {
             var plan = await _context.Mealplans.FindAsync(planId);
@@ -162,6 +163,206 @@ namespace FitPick_EXE201.Repositories.Repo
             _context.Mealplans.Remove(plan);
             await _context.SaveChangesAsync();
             return true;
-        } 
+        }
+
+        // Thay đổi món theo gợi ý
+        public async Task<Mealplan?> ReplaceMealBySuggestionAsync(int planId, int userId)
+        {
+            var plan = await _context.Mealplans.FindAsync(planId);
+            if (plan == null || plan.Userid != userId) return null;
+
+            Console.WriteLine($"🔄 Debug - ReplaceMealBySuggestion: planId={planId}, userId={userId}");
+            Console.WriteLine($"🔄 Debug - Current mealId: {plan.Mealid}");
+
+            // Lấy thông tin món ăn hiện tại để lấy tag
+            var currentMeal = await _context.Meals
+                .Include(m => m.Category)
+                .FirstOrDefaultAsync(m => m.Mealid == plan.Mealid);
+
+            if (currentMeal == null) return null;
+
+            Console.WriteLine($"🔄 Debug - Current meal: {currentMeal.Name}, CategoryId: {currentMeal.CategoryId}, Diettype: {currentMeal.Diettype}");
+
+            // Strategy 1: Tìm món miễn phí phù hợp với tag
+            var suggestedMeal = await _context.Meals
+                .Where(m => m.IsPremium == false 
+                    && m.Mealid != plan.Mealid 
+                    && m.StatusId == 1
+                    && (m.CategoryId == currentMeal.CategoryId || m.Diettype == currentMeal.Diettype))
+                .OrderBy(m => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔄 Debug - Strategy 1 - Found suggested meal: {(suggestedMeal?.Name ?? "None")}");
+
+            if (suggestedMeal != null)
+            {
+                var oldMealId = plan.Mealid;
+                plan.Mealid = suggestedMeal.Mealid;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ Debug - Strategy 1 SUCCESS: Replaced meal {oldMealId} with {suggestedMeal.Mealid} ({suggestedMeal.Name})");
+                return plan;
+            }
+
+            // Strategy 2: Tìm bất kỳ món miễn phí nào khác
+            Console.WriteLine($"⚠️ Debug - Strategy 1 failed, trying Strategy 2...");
+            var anyFreeMeal = await _context.Meals
+                .Where(m => m.IsPremium == false && m.Mealid != plan.Mealid && m.StatusId == 1)
+                .OrderBy(m => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔄 Debug - Strategy 2 - Found any free meal: {(anyFreeMeal?.Name ?? "None")}");
+
+            if (anyFreeMeal != null)
+            {
+                var oldMealId = plan.Mealid;
+                plan.Mealid = anyFreeMeal.Mealid;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ Debug - Strategy 2 SUCCESS: Replaced meal {oldMealId} with {anyFreeMeal.Mealid} ({anyFreeMeal.Name})");
+                return plan;
+            }
+
+            // Strategy 3: Tìm bất kỳ món premium nào khác
+            Console.WriteLine($"⚠️ Debug - Strategy 2 failed, trying Strategy 3...");
+            var premiumMeal = await _context.Meals
+                .Where(m => m.Mealid != plan.Mealid && m.StatusId == 1)
+                .OrderBy(m => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔄 Debug - Strategy 3 - Found premium meal: {(premiumMeal?.Name ?? "None")}");
+
+            if (premiumMeal != null)
+            {
+                var oldMealId = plan.Mealid;
+                plan.Mealid = premiumMeal.Mealid;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ Debug - Strategy 3 SUCCESS: Replaced meal {oldMealId} with {premiumMeal.Mealid} ({premiumMeal.Name})");
+                return plan;
+            }
+
+            // Strategy 4: Nếu chỉ có 1 món trong database, tạo món mới hoặc trả về lỗi
+            Console.WriteLine($"❌ Debug - All strategies failed! No other meals found in database.");
+            Console.WriteLine($"❌ Debug - Total meals in database: {await _context.Meals.CountAsync()}");
+            Console.WriteLine($"❌ Debug - Active meals: {await _context.Meals.Where(m => m.StatusId == 2).CountAsync()}");
+            
+            // Trả về null để frontend biết là lỗi
+            return null;
+        }
+
+        // Thay đổi món từ danh sách yêu thích
+        public async Task<Mealplan?> ReplaceMealByFavoritesAsync(int planId, int userId)
+        {
+            var plan = await _context.Mealplans.FindAsync(planId);
+            if (plan == null || plan.Userid != userId) return null;
+
+            Console.WriteLine($"🔄 Debug - ReplaceMealByFavorites: planId={planId}, userId={userId}");
+            Console.WriteLine($"🔄 Debug - Current mealId: {plan.Mealid}");
+
+            // Lấy thông tin món ăn hiện tại để lấy tag
+            var currentMeal = await _context.Meals
+                .Include(m => m.Category)
+                .FirstOrDefaultAsync(m => m.Mealid == plan.Mealid);
+
+            if (currentMeal == null) return null;
+
+            Console.WriteLine($"🔄 Debug - Current meal: {currentMeal.Name}, CategoryId: {currentMeal.CategoryId}, Diettype: {currentMeal.Diettype}");
+
+            // Strategy 1: Tìm món yêu thích phù hợp với tag
+            var favoriteMeal = await (from fm in _context.MealFavorites
+                                    join m in _context.Meals on fm.MealId equals m.Mealid
+                                    where fm.UserId == userId 
+                                        && m.Mealid != plan.Mealid
+                                        && m.StatusId == 1
+                                        && (m.CategoryId == currentMeal.CategoryId || m.Diettype == currentMeal.Diettype)
+                                    orderby Guid.NewGuid()
+                                    select m)
+                                    .FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔄 Debug - Strategy 1 - Found favorite meal: {(favoriteMeal?.Name ?? "None")}");
+
+            if (favoriteMeal != null)
+            {
+                var oldMealId = plan.Mealid;
+                plan.Mealid = favoriteMeal.Mealid;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ Debug - Strategy 1 SUCCESS: Replaced meal {oldMealId} with {favoriteMeal.Mealid} ({favoriteMeal.Name})");
+                return plan;
+            }
+
+            // Strategy 2: Tìm bất kỳ món yêu thích nào khác
+            Console.WriteLine($"⚠️ Debug - Strategy 1 failed, trying Strategy 2...");
+            var anyFavoriteMeal = await (from fm in _context.MealFavorites
+                                       join m in _context.Meals on fm.MealId equals m.Mealid
+                                       where fm.UserId == userId 
+                                           && m.Mealid != plan.Mealid
+                                           && m.StatusId == 1
+                                       orderby Guid.NewGuid()
+                                       select m)
+                                       .FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔄 Debug - Strategy 2 - Found any favorite meal: {(anyFavoriteMeal?.Name ?? "None")}");
+
+            if (anyFavoriteMeal != null)
+            {
+                var oldMealId = plan.Mealid;
+                plan.Mealid = anyFavoriteMeal.Mealid;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ Debug - Strategy 2 SUCCESS: Replaced meal {oldMealId} with {anyFavoriteMeal.Mealid} ({anyFavoriteMeal.Name})");
+                return plan;
+            }
+
+            // Strategy 3: Fallback to suggestion if no favorites
+            Console.WriteLine($"⚠️ Debug - No favorites found, falling back to suggestion...");
+            return await ReplaceMealBySuggestionAsync(planId, userId);
+        }
+
+        // Thêm món ăn vào thực đơn
+        public async Task<Mealplan?> AddMealToMenuAsync(int userId, int mealId, DateTime date, string? mealTime)
+        {
+            try
+            {
+                // Lấy meal time ID (default là breakfast nếu không chỉ định)
+                int mealTimeId = 1; // Default breakfast
+                if (!string.IsNullOrEmpty(mealTime))
+                {
+                    var mealTimeEntity = await _context.MealTimes
+                        .FirstOrDefaultAsync(mt => mt.Name.ToLower() == mealTime.ToLower());
+                    if (mealTimeEntity != null)
+                        mealTimeId = mealTimeEntity.Id;
+                }
+
+                // Kiểm tra xem món ăn đã tồn tại trong thực đơn chưa
+                var existingPlan = await _context.Mealplans
+                    .FirstOrDefaultAsync(mp => mp.Userid == userId 
+                        && mp.Date == DateOnly.FromDateTime(date) 
+                        && mp.MealtimeId == mealTimeId 
+                        && mp.Mealid == mealId);
+
+                if (existingPlan != null)
+                {
+                    // Món ăn đã tồn tại, trả về plan hiện tại
+                    return existingPlan;
+                }
+
+                // Tạo meal plan mới
+                var newMealPlan = new Mealplan
+                {
+                    Userid = userId,
+                    Date = DateOnly.FromDateTime(date),
+                    MealtimeId = mealTimeId,
+                    Mealid = mealId,
+                    StatusId = 1 // Active
+                };
+
+                _context.Mealplans.Add(newMealPlan);
+                await _context.SaveChangesAsync();
+
+                return newMealPlan;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding meal to menu: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

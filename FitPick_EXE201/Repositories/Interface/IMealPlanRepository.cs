@@ -13,5 +13,11 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<Mealplan?> SwapMealAsync(int planId, int newMealId);
 
         Task<bool> DeleteMealPlanAsync(int planId);
+
+        Task<Mealplan?> ReplaceMealBySuggestionAsync(int planId, int userId);
+
+        Task<Mealplan?> ReplaceMealByFavoritesAsync(int planId, int userId);
+
+        Task<Mealplan?> AddMealToMenuAsync(int userId, int mealId, DateTime date, string? mealTime);
     }
 }

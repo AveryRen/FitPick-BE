@@ -50,6 +50,8 @@ public partial class FitPickContext : DbContext
 
     public virtual DbSet<Mealplan> Mealplans { get; set; }
 
+    public virtual DbSet<MealFavorite> MealFavorites { get; set; }
+
     public virtual DbSet<Notification> Notifications { get; set; }
 
     public virtual DbSet<NotificationType> NotificationTypes { get; set; }
@@ -275,6 +277,25 @@ public partial class FitPickContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Mealplans)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("mealplans_userid_fkey");
+        });
+
+        modelBuilder.Entity<MealFavorite>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("meal_favorites_pkey");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.User).WithMany()
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("meal_favorites_user_id_fkey");
+
+            entity.HasOne(d => d.Meal).WithMany()
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("meal_favorites_meal_id_fkey");
+
+            // Ensure unique combination of user and meal
+            entity.HasIndex(e => new { e.UserId, e.MealId }).IsUnique().HasDatabaseName("ix_meal_favorites_user_meal_unique");
         });
 
         modelBuilder.Entity<Notification>(entity =>

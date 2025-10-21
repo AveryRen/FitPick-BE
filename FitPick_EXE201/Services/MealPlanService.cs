@@ -32,5 +32,14 @@ namespace FitPick_EXE201.Services
         public Task<Mealplan> SwapMealAsync(int planId, int newMealId) => _mealPlanRepo.SwapMealAsync(planId, newMealId);
 
         public Task<bool> DeleteMealPlanAsync(int planId) => _mealPlanRepo.DeleteMealPlanAsync(planId);
+
+        public Task<Mealplan?> ReplaceMealBySuggestionAsync(int planId, int userId) => 
+            _mealPlanRepo.ReplaceMealBySuggestionAsync(planId, userId);
+
+        public Task<Mealplan?> ReplaceMealByFavoritesAsync(int planId, int userId) => 
+            _mealPlanRepo.ReplaceMealByFavoritesAsync(planId, userId);
+
+        public Task<Mealplan?> AddMealToMenuAsync(int userId, int mealId, DateTime date, string? mealTime) =>
+            _mealPlanRepo.AddMealToMenuAsync(userId, mealId, date, mealTime);
     }
 }
