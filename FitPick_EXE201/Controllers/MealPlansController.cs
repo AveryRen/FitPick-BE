@@ -15,10 +15,12 @@ namespace FitPick_EXE201.Controllers
     public class MealPlansController : ControllerBase
     {
         private readonly MealPlanService _mealPlanService;
+        private readonly NotificationHelper _notificationHelper;
 
-        public MealPlansController(MealPlanService mealPlanService)
+        public MealPlansController(MealPlanService mealPlanService, NotificationHelper notificationHelper)
         {
             _mealPlanService = mealPlanService;
+            _notificationHelper = notificationHelper;
         }
 
         [HttpGet("today")]
@@ -73,9 +75,19 @@ namespace FitPick_EXE201.Controllers
             var plan = await _mealPlanService.GenerateMealPlanAsync(userId.Value, DateOnly.FromDateTime(date));
             if (plan == null)
                 return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
-                    new List<string> { "Kh�ng th? t?o meal plan" }, "Th?t b?i"));
+                    new List<string> { "Không thể tạo meal plan" }, "Thất bại"));
 
-            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "T?o meal plan th�nh c�ng"));
+            // Tạo thông báo khi tạo meal plan thành công
+            try
+            {
+                await _notificationHelper.CreateMealPlanNotificationAsync(userId.Value, date);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating meal plan notification: {ex.Message}");
+            }
+
+            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Tạo meal plan thành công"));
         }
 
         [HttpPost("generate-weekly")]

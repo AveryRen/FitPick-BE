@@ -24,18 +24,18 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// G?i 1 thÙng b·o cho user
+        /// G?i 1 thÔøΩng bÔøΩo cho user
         /// </summary>
         public async Task<NotificationDTO> SendNotificationAsync(
             int userId, string title, string message, int? typeId = null, DateTime? scheduleAt = null)
         {
-            // ki?m tra lo?i thÙng b·o cÛ t?n t?i khÙng
+            // ki?m tra lo?i thÔøΩng bÔøΩo cÔøΩ t?n t?i khÔøΩng
             if (typeId.HasValue)
             {
                 var type = await _typeRepo.GetByIdAsync(typeId.Value);
                 if (type == null)
                 {
-                    throw new KeyNotFoundException($"NotificationType v?i id {typeId} khÙng t?n t?i.");
+                    throw new KeyNotFoundException($"NotificationType v?i id {typeId} khÔøΩng t?n t?i.");
                 }
             }
 
@@ -45,7 +45,7 @@ namespace FitPick_EXE201.Services
                 Title = title,
                 Message = message,
                 TypeId = typeId,
-                Isread = false, // m?c d?nh l‡ chua d?c
+                Isread = false, // m?c d?nh lÔøΩ chua d?c
                 Createdat = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified),
                 Scheduledat = scheduleAt.HasValue
                         ? DateTime.SpecifyKind(scheduleAt.Value, DateTimeKind.Unspecified)
@@ -57,11 +57,12 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// L?y danh s·ch thÙng b·o c?a 1 user
+        /// L?y danh sÔøΩch thÔøΩng bÔøΩo c?a 1 user
         /// </summary>
         public async Task<List<NotificationDTO>> GetNotificationsForUserAsync(int userId, bool? onlyUnread = null)
         {
             var query = _context.Notifications
+                .Include(n => n.Type)
                 .Where(n => n.Userid == userId);
 
             if (onlyUnread.HasValue)
@@ -73,7 +74,7 @@ namespace FitPick_EXE201.Services
                 }
                 else
                 {
-                    // ch? l?y d„ d?c
+                    // ch? l?y dÔøΩ d?c
                     query = query.Where(n => n.Isread == true);
                 }
             }
@@ -90,14 +91,14 @@ namespace FitPick_EXE201.Services
 
 
         /// <summary>
-        /// –·nh d?u thÙng b·o l‡ d„ d?c
+        /// ÔøΩÔøΩnh d?u thÔøΩng bÔøΩo lÔøΩ dÔøΩ d?c
         /// </summary>
         public async Task<NotificationDTO> MarkAsReadAsync(int notificationId)
         {
             var notification = await _repo.GetByIdAsync(notificationId);
             if (notification == null)
             {
-                throw new KeyNotFoundException($"Notification v?i id {notificationId} khÙng t?n t?i.");
+                throw new KeyNotFoundException($"Notification v?i id {notificationId} khÔøΩng t?n t?i.");
             }
 
             notification.Isread = true;
@@ -105,39 +106,39 @@ namespace FitPick_EXE201.Services
             var success = await _repo.UpdateAsync(notificationId, notification);
             if (!success)
             {
-                throw new Exception("C?p nh?t tr?ng th·i thÙng b·o th?t b?i.");
+                throw new Exception("C?p nh?t tr?ng thÔøΩi thÔøΩng bÔøΩo th?t b?i.");
             }
 
-            // l?y l?i notification d„ update d? map sang DTO
+            // l?y l?i notification dÔøΩ update d? map sang DTO
             var updated = await _repo.GetByIdAsync(notificationId);
             return _mapper.Map<NotificationDTO>(updated);
         }
 
 
         /// <summary>
-        /// XÛa thÙng b·o
+        /// XÔøΩa thÔøΩng bÔøΩo
         /// </summary>
         public async Task<bool> DeleteNotificationAsync(int notificationId)
         {
             var notification = await _repo.GetByIdAsync(notificationId);
             if (notification == null)
             {
-                throw new KeyNotFoundException($"Notification v?i id {notificationId} khÙng t?n t?i.");
+                throw new KeyNotFoundException($"Notification v?i id {notificationId} khÔøΩng t?n t?i.");
             }
 
             return await _repo.Delete(notificationId);
         }
 
         /// <summary>
-        /// T?o lo?i thÙng b·o m?i
+        /// T?o lo?i thÔøΩng bÔøΩo m?i
         /// </summary>
         public async Task<NotificationTypeDTO> CreateTypeAsync(string name)
         {
-            // ki?m tra tr˘ng tÍn
+            // ki?m tra trÔøΩng tÔøΩn
             var exists = await _context.NotificationTypes.AnyAsync(t => t.Name == name);
             if (exists)
             {
-                throw new InvalidOperationException($"NotificationType v?i tÍn '{name}' d„ t?n t?i.");
+                throw new InvalidOperationException($"NotificationType v?i tÔøΩn '{name}' dÔøΩ t?n t?i.");
             }
 
             var type = new NotificationType { Name = name };
@@ -147,7 +148,7 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// L?y t?t c? lo?i thÙng b·o
+        /// L?y t?t c? lo?i thÔøΩng bÔøΩo
         /// </summary>
         public async Task<List<NotificationTypeDTO>> GetAllTypesAsync()
         {
@@ -156,23 +157,69 @@ namespace FitPick_EXE201.Services
         }
 
         /// <summary>
-        /// XÛa lo?i thÙng b·o
+        /// XÔøΩa lo?i thÔøΩng bÔøΩo
         /// </summary>
         public async Task<bool> DeleteTypeAsync(int typeId)
         {
             var type = await _typeRepo.GetByIdAsync(typeId);
             if (type == null)
             {
-                throw new KeyNotFoundException($"NotificationType v?i id {typeId} khÙng t?n t?i.");
+                throw new KeyNotFoundException($"NotificationType v?i id {typeId} khÔøΩng t?n t?i.");
             }
 
             var hasNotifications = await _context.Notifications.AnyAsync(n => n.TypeId == typeId);
             if (hasNotifications)
             {
-                throw new InvalidOperationException("KhÙng th? xÛa lo?i thÙng b·o vÏ v?n cÚn thÙng b·o dang tham chi?u d?n.");
+                throw new InvalidOperationException("KhÔøΩng th? xÔøΩa lo?i thÔøΩng bÔøΩo vÔøΩ v?n cÔøΩn thÔøΩng bÔøΩo dang tham chi?u d?n.");
             }
 
             return await _typeRepo.Delete(typeId);
+        }
+
+        /// <summary>
+        /// ƒê√°nh d·∫•u th√¥ng b√°o l√† ƒë√£ ƒë·ªçc (v·ªõi userId check)
+        /// </summary>
+        public async Task<NotificationDTO?> MarkAsReadAsync(int notificationId, int userId)
+        {
+            var notification = await _repo.GetByIdAsync(notificationId);
+            if (notification == null || notification.Userid != userId)
+            {
+                return null; // Kh√¥ng t√¨m th·∫•y ho·∫∑c kh√¥ng thu·ªôc v·ªÅ user n√†y
+            }
+
+            notification.Isread = true;
+
+            var success = await _repo.UpdateAsync(notificationId, notification);
+            if (!success)
+            {
+                throw new Exception("C·∫≠p nh·∫≠t tr·∫°ng th√°i th√¥ng b√°o th·∫•t b·∫°i.");
+            }
+
+            // l·∫•y l·∫°i notification ƒë√£ update ƒë·ªÉ map sang DTO
+            var updated = await _repo.GetByIdAsync(notificationId);
+            return _mapper.Map<NotificationDTO>(updated);
+        }
+
+        /// <summary>
+        /// X√≥a th√¥ng b√°o (v·ªõi userId check)
+        /// </summary>
+        public async Task<bool> DeleteNotificationAsync(int notificationId, int userId)
+        {
+            var notification = await _repo.GetByIdAsync(notificationId);
+            if (notification == null || notification.Userid != userId)
+            {
+                return false; // Kh√¥ng t√¨m th·∫•y ho·∫∑c kh√¥ng thu·ªôc v·ªÅ user n√†y
+            }
+
+            return await _repo.Delete(notificationId);
+        }
+
+        /// <summary>
+        /// L·∫•y t·∫•t c·∫£ lo·∫°i th√¥ng b√°o (alias)
+        /// </summary>
+        public async Task<List<NotificationTypeDTO>> GetAllNotificationTypesAsync()
+        {
+            return await GetAllTypesAsync();
         }
     }
 }

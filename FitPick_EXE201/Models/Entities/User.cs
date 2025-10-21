@@ -79,6 +79,9 @@ public partial class User
     [Column("onboarding_completed_at", TypeName = "timestamp without time zone")]
     public DateTime? OnboardingCompletedAt { get; set; }
 
+    [Column("notifications_enabled")]
+    public bool? NotificationsEnabled { get; set; } = true; // Default to true
+
     [InverseProperty("Author")]
     public virtual ICollection<Blogpost> Blogposts { get; set; } = new List<Blogpost>();
 

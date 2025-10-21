@@ -1,133 +1,189 @@
-using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
+using FitPick_EXE201.Helpers;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/notification")]
     [ApiController]
-    [Authorize(Roles = "User,Premium,Admin")]
+    [Authorize]
     public class NotificationController : ControllerBase
     {
-        private readonly NotificationService _service;
+        private readonly NotificationService _notificationService;
+        private readonly NotificationHelper _notificationHelper;
+        private readonly FitPickContext _context;
 
-        public NotificationController(NotificationService service)
+        public NotificationController(
+            NotificationService notificationService, 
+            NotificationHelper notificationHelper,
+            FitPickContext context)
         {
-            _service = service;
+            _notificationService = notificationService;
+            _notificationHelper = notificationHelper;
+            _context = context;
         }
 
         private int? GetUserIdFromToken()
         {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(userIdClaim, out int userId) ? userId : null;
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
+                return null;
+            return userId;
         }
 
-        // POST api/notifications/send
-        [HttpPost("send")]
-        public async Task<ActionResult<ApiResponse<NotificationDTO>>> SendNotification(string title, string message, int? typeId = null, DateTime? scheduleAt = null)
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-                return Unauthorized(ApiResponse<NotificationDTO>.ErrorResponse(new() { "Invalid or missing user ID in token." }, "Invalid or missing user ID in token."));
-
-            var result = await _service.SendNotificationAsync(userId.Value, title, message, typeId, scheduleAt);
-            return Ok(ApiResponse<NotificationDTO>.SuccessResponse(result, "Notification sent successfully"));
-        }
-
-        // GET api/notifications/user?onlyUnread=true
+        /// <summary>
+        /// Lấy danh sách thông báo của user hiện tại
+        /// </summary>
         [HttpGet("user")]
-        public async Task<ActionResult<ApiResponse<List<NotificationDTO>>>> GetUserNotifications([FromQuery] bool? onlyUnread)
-        {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-                return Unauthorized(ApiResponse<List<NotificationDTO>>.ErrorResponse(
-                    new() { "Invalid or missing user ID in token." },
-                    "Invalid or missing user ID in token."));
-
-            var result = await _service.GetNotificationsForUserAsync(userId.Value, onlyUnread);
-            return Ok(ApiResponse<List<NotificationDTO>>.SuccessResponse(result, "Get user notifications successfully"));
-        }
-
-
-
-        // PUT api/notifications/mark-read/5
-        [HttpPut("mark-read/{id}")]
-        public async Task<ActionResult<ApiResponse<NotificationDTO>>> MarkAsRead(int id)
+        public async Task<ActionResult<ApiResponse<List<NotificationDTO>>>> GetUserNotifications([FromQuery] bool? onlyUnread = null)
         {
             try
             {
-                var result = await _service.MarkAsReadAsync(id);
-                return Ok(ApiResponse<NotificationDTO>.SuccessResponse(result, "��nh d?u th�ng b�o l� d� d?c"));
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(ApiResponse<List<NotificationDTO>>
+                        .ErrorResponse(new List<string> { "Invalid user token." }, "Unauthorized."));
+                }
+
+                var notifications = await _notificationService.GetNotificationsForUserAsync(userId.Value, onlyUnread);
+                return Ok(ApiResponse<List<NotificationDTO>>
+                    .SuccessResponse(notifications, "Notifications retrieved successfully."));
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(ApiResponse<NotificationDTO>.ErrorResponse(new() { ex.Message }, ex.Message));
+                return StatusCode(500, ApiResponse<List<NotificationDTO>>
+                    .ErrorResponse(new List<string> { ex.Message }, "Internal server error."));
             }
         }
 
-        // DELETE api/notifications/delete/5
-        [HttpDelete("delete/{id}")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteNotification(int id)
+        /// <summary>
+        /// Gửi thông báo (chủ yếu cho admin hoặc test)
+        /// </summary>
+        [HttpPost("send")]
+        public async Task<ActionResult<ApiResponse<NotificationDTO>>> SendNotification([FromBody] SendNotificationRequest request)
         {
             try
             {
-                var result = await _service.DeleteNotificationAsync(id);
-                return Ok(ApiResponse<bool>.SuccessResponse(result, "Notification deleted successfully"));
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(ApiResponse<NotificationDTO>
+                        .ErrorResponse(new List<string> { "Invalid user token." }, "Unauthorized."));
+                }
+
+                // Tạo thông báo cho user hiện tại
+                await _notificationHelper.CreateSystemNotificationAsync(userId.Value, request.Title, request.Message);
+
+                // Lấy thông báo vừa tạo để trả về
+                var notifications = await _notificationService.GetNotificationsForUserAsync(userId.Value, false);
+                var latestNotification = notifications.OrderByDescending(n => n.CreatedAt).FirstOrDefault();
+
+                return Ok(ApiResponse<NotificationDTO>
+                    .SuccessResponse(latestNotification, "Notification sent successfully."));
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(ApiResponse<bool>.ErrorResponse(new() { ex.Message }, ex.Message));
+                return StatusCode(500, ApiResponse<NotificationDTO>
+                    .ErrorResponse(new List<string> { ex.Message }, "Internal server error."));
             }
         }
 
-        // ================= Notification Type Management =================
-
-        // POST api/notifications/types/create
-        [HttpPost("types/create")]
-        [Authorize(Roles = "Admin")] // ch? Admin m?i t?o lo?i th�ng b�o
-        public async Task<ActionResult<ApiResponse<NotificationTypeDTO>>> CreateType(string name)
+        /// <summary>
+        /// Đánh dấu thông báo là đã đọc
+        /// </summary>
+        [HttpPut("mark-read/{notificationId}")]
+        public async Task<ActionResult<ApiResponse<NotificationDTO>>> MarkAsRead(int notificationId)
         {
             try
             {
-                var result = await _service.CreateTypeAsync(name);
-                return Ok(ApiResponse<NotificationTypeDTO>.SuccessResponse(result, "Notification type created successfully"));
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(ApiResponse<NotificationDTO>
+                        .ErrorResponse(new List<string> { "Invalid user token." }, "Unauthorized."));
+                }
+
+                var result = await _notificationService.MarkAsReadAsync(notificationId, userId.Value);
+                if (result == null)
+                {
+                    return NotFound(ApiResponse<NotificationDTO>
+                        .ErrorResponse(new List<string> { "Notification not found." }, "Notification not found."));
+                }
+
+                return Ok(ApiResponse<NotificationDTO>
+                    .SuccessResponse(result, "Notification marked as read."));
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return BadRequest(ApiResponse<NotificationTypeDTO>.ErrorResponse(new() { ex.Message }, ex.Message));
+                return StatusCode(500, ApiResponse<NotificationDTO>
+                    .ErrorResponse(new List<string> { ex.Message }, "Internal server error."));
             }
         }
 
-        // GET api/notifications/types
+        /// <summary>
+        /// Xóa thông báo
+        /// </summary>
+        [HttpDelete("delete/{notificationId}")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteNotification(int notificationId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized(ApiResponse<bool>
+                        .ErrorResponse(new List<string> { "Invalid user token." }, "Unauthorized."));
+                }
+
+                var result = await _notificationService.DeleteNotificationAsync(notificationId, userId.Value);
+                if (!result)
+                {
+                    return NotFound(ApiResponse<bool>
+                        .ErrorResponse(new List<string> { "Notification not found." }, "Notification not found."));
+                }
+
+                return Ok(ApiResponse<bool>
+                    .SuccessResponse(true, "Notification deleted successfully."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>
+                    .ErrorResponse(new List<string> { ex.Message }, "Internal server error."));
+            }
+        }
+
+        /// <summary>
+        /// Lấy tất cả loại thông báo
+        /// </summary>
         [HttpGet("types")]
-        public async Task<ActionResult<ApiResponse<List<NotificationTypeDTO>>>> GetAllTypes()
-        {
-            var result = await _service.GetAllTypesAsync();
-            return Ok(ApiResponse<List<NotificationTypeDTO>>.SuccessResponse(result, "Get all notification types successfully"));
-        }
-
-        // DELETE api/notifications/types/delete/5
-        [HttpDelete("types/delete/{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteType(int id)
+        public async Task<ActionResult<ApiResponse<List<NotificationTypeDTO>>>> GetNotificationTypes()
         {
             try
             {
-                var result = await _service.DeleteTypeAsync(id);
-                return Ok(ApiResponse<bool>.SuccessResponse(result, "Notification type deleted successfully"));
+                var types = await _notificationService.GetAllNotificationTypesAsync();
+                return Ok(ApiResponse<List<NotificationTypeDTO>>
+                    .SuccessResponse(types, "Notification types retrieved successfully."));
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(ApiResponse<bool>.ErrorResponse(new() { ex.Message }, ex.Message));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ApiResponse<bool>.ErrorResponse(new() { ex.Message }, ex.Message));
+                return StatusCode(500, ApiResponse<List<NotificationTypeDTO>>
+                    .ErrorResponse(new List<string> { ex.Message }, "Internal server error."));
             }
         }
+    }
+
+    // Request DTOs
+    public class SendNotificationRequest
+    {
+        public string Title { get; set; } = null!;
+        public string Message { get; set; } = null!;
+        public int? TypeId { get; set; }
+        public string? ScheduleAt { get; set; }
     }
 }

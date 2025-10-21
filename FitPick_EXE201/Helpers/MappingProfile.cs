@@ -15,7 +15,9 @@ namespace FitPick_EXE201.Helpers
 
             CreateMap<Ingredient, IngredientDTO>().ReverseMap();
 
-            CreateMap<Notification, NotificationDTO>().ReverseMap();
+            CreateMap<Notification, NotificationDTO>()
+                .ForMember(dest => dest.TypeName, opt => opt.MapFrom(src => src.Type != null ? src.Type.Name : null))
+                .ReverseMap();
             CreateMap<NotificationType, NotificationTypeDTO>().ReverseMap();
 
         }

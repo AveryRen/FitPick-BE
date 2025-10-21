@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FitPick_EXE201.Models.DTOs;
 using System.Security.Claims;
+using FitPick_EXE201.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -14,10 +16,14 @@ namespace FitPick_EXE201.Controllers
     public class MealFavoritesController : ControllerBase
     {
         private readonly MealReviewService _mealReviewService;
+        private readonly NotificationHelper _notificationHelper;
+        private readonly FitPickContext _context;
 
-        public MealFavoritesController(MealReviewService mealReviewService)
+        public MealFavoritesController(MealReviewService mealReviewService, NotificationHelper notificationHelper, FitPickContext context)
         {
             _mealReviewService = mealReviewService;
+            _notificationHelper = notificationHelper;
+            _context = context;
         }
 
         private int? GetUserIdFromToken()
@@ -82,6 +88,21 @@ namespace FitPick_EXE201.Controllers
                 {
                     return BadRequest(ApiResponse<string>
                         .ErrorResponse(new List<string> { "Could not add favorite." }, "Add favorite failed."));
+                }
+
+                // Tạo thông báo khi thêm vào favorites
+                try
+                {
+                    var meal = await _context.Meals.FirstOrDefaultAsync(m => m.Mealid == mealId);
+                    if (meal != null)
+                    {
+                        await _notificationHelper.CreateFavoriteNotificationAsync(userId.Value, meal.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error nhưng không ảnh hưởng đến response
+                    Console.WriteLine($"Error creating favorite notification: {ex.Message}");
                 }
 
                 return Ok(ApiResponse<string>

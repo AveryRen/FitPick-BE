@@ -4,5 +4,6 @@ namespace FitPick_EXE201.Repositories.Interface
 {
     public interface INotificationTypeRepo : IBaseRepo<NotificationType, int>
     {
+        Task<NotificationType?> GetByNameAsync(string name);
     }
 }

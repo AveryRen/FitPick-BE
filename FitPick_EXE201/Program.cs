@@ -90,6 +90,7 @@ builder.Services.AddScoped<IHealthprofileRepo, HealthprofileRepo>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<INotificationRepo, NotificationRepo>();
 builder.Services.AddScoped<INotificationTypeRepo, NotificationTypeRepo>();
+builder.Services.AddScoped<NotificationHelper>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
