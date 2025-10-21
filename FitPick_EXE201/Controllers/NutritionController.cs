@@ -47,14 +47,8 @@ namespace FitPick_EXE201.Controllers
                 // Use target calories from profile or calculate if not available
                 var targetCalories = userProfile.TargetCalories ?? CalculateNutritionGoals(userProfile).TargetCalories;
 
-                // Calculate consumed calories from sample meals
-                var sampleMeals = new List<object>
-                {
-                    new { calories = 450 },
-                    new { calories = 350 },
-                    new { calories = 280 }
-                };
-                var consumedCalories = sampleMeals.Sum(m => (int)m.GetType().GetProperty("calories")!.GetValue(m)!);
+                // Calculate consumed calories from actual meal history
+                var consumedCalories = await _userService.GetConsumedCaloriesAsync(userId, targetDate);
 
                 // For demo purposes, return mock data with calculated goals
                 // In real app, you would query actual consumed meals for the date
@@ -101,14 +95,8 @@ namespace FitPick_EXE201.Controllers
                 // Calculate detailed nutrition targets based on user profile
                 var targetCalories = userProfile.TargetCalories ?? CalculateNutritionGoals(userProfile).TargetCalories;
                 
-                // Calculate consumed calories from sample meals (same as nutrition stats)
-                var sampleMeals = new List<object>
-                {
-                    new { calories = 450 },
-                    new { calories = 350 },
-                    new { calories = 280 }
-                };
-                var consumedCalories = sampleMeals.Sum(m => (int)m.GetType().GetProperty("calories")!.GetValue(m)!);
+                // Calculate consumed calories from actual meal history
+                var consumedCalories = await _userService.GetConsumedCaloriesAsync(userId, targetDate);
 
                 // Calculate detailed nutrition stats with realistic targets
                 var detailedNutritionStats = new

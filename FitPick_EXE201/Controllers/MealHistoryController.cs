@@ -35,7 +35,7 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromToken();
             var histories = await _service.GetUserHistoryAsync(userId);
 
-            // Map sang DTO, bao g?m các object liên quan
+            // Map sang DTO, bao g?m cï¿½c object liï¿½n quan
             var dtoList = histories.Select(h => new MealHistoryDto
             {
                 Historyid = h.Historyid,
@@ -113,12 +113,85 @@ namespace FitPick_EXE201.Controllers
         {
             var userId = GetUserIdFromToken();
 
-            // (tùy b?n có mu?n check ownership không)
-            await _service.DeleteMealHistoryAsync(id);
+            // (tï¿½y b?n cï¿½ mu?n check ownership khï¿½ng)
+            var success = await _service.DeleteMealHistoryAsync(id);
+            if (!success)
+            {
+                return NotFound(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Meal history not found" },
+                    "Not Found"
+                ));
+            }
 
             return Ok(ApiResponse<string>.SuccessResponse(
                 "Deleted",
                 "Meal history deleted successfully"
+            ));
+        }
+
+        // GET: api/meal-histories/by-date?date=2025-01-15
+        [HttpGet("by-date")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<MealHistoryDto>>>> GetByDate([FromQuery] DateOnly date)
+        {
+            var userId = GetUserIdFromToken();
+            var histories = await _service.GetUserHistoryByDateAsync(userId, date);
+
+            var dtoList = histories.Select(h => new MealHistoryDto
+            {
+                Historyid = h.Historyid,
+                Mealid = h.Mealid,
+                MealtimeId = h.MealtimeId,
+                Date = h.Date,
+                Quantity = h.Quantity,
+                Unit = h.Unit,
+                Calories = h.Calories,
+                Createdat = h.Createdat,
+                Meal = h.Meal == null ? null : new
+                {
+                    h.Meal.Mealid,
+                    h.Meal.Name,
+                    h.Meal.Calories,
+                    h.Meal.Protein,
+                    h.Meal.Carbs,
+                    h.Meal.Fat
+                },
+                Mealtime = h.Mealtime == null ? null : new
+                {
+                    h.Mealtime.Id,
+                    h.Mealtime.Name
+                }
+            }).ToList();
+
+            return Ok(ApiResponse<IEnumerable<MealHistoryDto>>.SuccessResponse(
+                dtoList,
+                "Fetched meal history by date successfully"
+            ));
+        }
+
+        // GET: api/meal-histories/detailed-stats?date=2025-01-15
+        [HttpGet("detailed-stats")]
+        public async Task<ActionResult<ApiResponse<object>>> GetDetailedStats([FromQuery] DateOnly date)
+        {
+            var userId = GetUserIdFromToken();
+            var stats = await _service.GetDetailedDailyStatsAsync(userId, date);
+
+            return Ok(ApiResponse<object>.SuccessResponse(
+                stats,
+                "Fetched detailed daily nutrition stats successfully"
+            ));
+        }
+
+        // GET: api/meal-histories/check-eaten?mealId=123&date=2025-01-15
+        [HttpGet("check-eaten")]
+        public async Task<ActionResult<ApiResponse<object>>> CheckMealEaten([FromQuery] int mealId, [FromQuery] DateOnly date)
+        {
+            var userId = GetUserIdFromToken();
+            var isEaten = await _service.IsMealEatenTodayAsync(userId, mealId, date);
+            var mealHistory = await _service.GetMealHistoryByMealAndDateAsync(userId, mealId, date);
+
+            return Ok(ApiResponse<object>.SuccessResponse(
+                new { IsEaten = isEaten, MealHistory = mealHistory },
+                "Checked meal eaten status successfully"
             ));
         }
 

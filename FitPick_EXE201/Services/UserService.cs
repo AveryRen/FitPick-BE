@@ -412,6 +412,28 @@ namespace FitPick_EXE201.Services
             }
         }
 
+        // Deactivate account method
+        public async Task<bool> DeactivateAccountAsync(int userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                // Set status to inactive instead of deleting
+                user.Status = false;
+ 
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deactivating account: {ex.Message}");
+                return false;
+            }
+        }
+
         // Helper method to calculate target calories
         private int? CalculateTargetCalories(User user)
         {
@@ -526,29 +548,20 @@ namespace FitPick_EXE201.Services
             }
         }
 
-        public async Task<bool> DeactivateAccountAsync(int userId)
+        public async Task<int> GetConsumedCaloriesAsync(int userId, DateTime date)
         {
             try
             {
-                // Find the user
-                var user = await _context.Users.FindAsync(userId);
-                if (user == null)
-                {
-                    return false;
-                }
-
-                // Deactivate account: Set status to false to prevent login
-                user.Status = false;
-                user.Updatedat = DateTime.Now;
+                var consumedCalories = await _context.MealHistories
+                    .Where(mh => mh.Userid == userId && mh.Date == DateOnly.FromDateTime(date))
+                    .SumAsync(mh => mh.Calories ?? 0);
                 
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
-                
-                return true;
+                return consumedCalories;
             }
             catch (Exception ex)
             {
-                return false;
+                // Return 0 if there's an error
+                return 0;
             }
         }
     }
