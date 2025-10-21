@@ -163,6 +163,8 @@ builder.Services.AddScoped<IAdminDataService, AdminDataService>();
 
 // Meal Detail Services
 builder.Services.AddScoped<IMealDetailRepository, MealDetailRepository>();
+builder.Services.AddScoped<IFilterRepository, FilterRepository>();
+builder.Services.AddScoped<IFilterService, FilterService>();
 builder.Services.AddScoped<IMealDetailService, MealDetailService>();
 
 builder.Services.AddHttpClient();

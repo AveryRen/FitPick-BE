@@ -4,6 +4,7 @@ using FitPick_EXE201.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FitPick_EXE201.Models.DTOs;
+using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -19,10 +20,14 @@ namespace FitPick_EXE201.Controllers
             _mealReviewService = mealReviewService;
         }
 
-        private int GetUserIdFromToken()
+        private int? GetUserIdFromToken()
         {
-            return int.Parse(User.FindFirst("id")?.Value ??
-                             throw new UnauthorizedAccessException("User ID not found in token"));
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
+            {
+                return null;
+            }
+            return userId;
         }
 
         // GET: api/favorites
@@ -32,14 +37,18 @@ namespace FitPick_EXE201.Controllers
             try
             {
                 var userId = GetUserIdFromToken();
-                var favorites = await _mealReviewService.GetUserFavoritesAsync(userId);
+                if (userId == null)
+                    return Unauthorized(ApiResponse<IEnumerable<FavoriteMealDto>>.ErrorResponse(
+                        new List<string> { "User ID not found in token" }, "Unauthorized"));
 
-                // Map entity -> DTO (n?u chua dùng AutoMapper)
+                var favorites = await _mealReviewService.GetUserFavoritesAsync(userId.Value);
+
+                // Map entity -> DTO (n?u chua dï¿½ng AutoMapper)
                 var dtoList = favorites.Select(f => new FavoriteMealDto
                 {
                     MealId = f.Mealid,
                     MealName = f.Meal?.Name ?? string.Empty,
-                    IsFavorite = true, // vì trong danh sách favorites thì m?c d?nh true
+                    IsFavorite = true, // vï¿½ trong danh sï¿½ch favorites thï¿½ m?c d?nh true
                     Rating = f.Rating,
                     Comment = f.Comment,
                     UpdatedAt = f.Updatedat
@@ -63,7 +72,11 @@ namespace FitPick_EXE201.Controllers
             try
             {
                 var userId = GetUserIdFromToken();
-                var result = await _mealReviewService.AddFavoriteAsync(userId, mealId);
+                if (userId == null)
+                    return Unauthorized(ApiResponse<string>.ErrorResponse(
+                        new List<string> { "User ID not found in token" }, "Unauthorized"));
+
+                var result = await _mealReviewService.AddFavoriteAsync(userId.Value, mealId);
 
                 if (!result)
                 {
@@ -88,7 +101,11 @@ namespace FitPick_EXE201.Controllers
             try
             {
                 var userId = GetUserIdFromToken();
-                var result = await _mealReviewService.RemoveFavoriteAsync(userId, mealId);
+                if (userId == null)
+                    return Unauthorized(ApiResponse<string>.ErrorResponse(
+                        new List<string> { "User ID not found in token" }, "Unauthorized"));
+
+                var result = await _mealReviewService.RemoveFavoriteAsync(userId.Value, mealId);
 
                 if (!result)
                 {

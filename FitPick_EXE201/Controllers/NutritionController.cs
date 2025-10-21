@@ -27,8 +27,9 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (userId == 0)
+                // Try multiple claim types to get user ID
+                var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
                 {
                     return Unauthorized(ApiResponse<object>.ErrorResponse(new List<string> { "User not authenticated" }, "Unauthorized"));
                 }
@@ -80,8 +81,9 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (userId == 0)
+                // Try multiple claim types to get user ID
+                var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
                 {
                     return Unauthorized(ApiResponse<object>.ErrorResponse(new List<string> { "User not authenticated" }, "Unauthorized"));
                 }
@@ -132,8 +134,9 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (userId == 0)
+                // Try multiple claim types to get user ID
+                var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
                 {
                     return Unauthorized(ApiResponse<object>.ErrorResponse(new List<string> { "User not authenticated" }, "Unauthorized"));
                 }
