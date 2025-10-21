@@ -1,4 +1,5 @@
 using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.DTOs;
 
 namespace FitPick_EXE201.Repositories.Interface
 {
@@ -10,7 +11,9 @@ namespace FitPick_EXE201.Repositories.Interface
         Task AddFavoriteAsync(MealReview favorite);
         Task RemoveFavoriteAsync(int userId, int mealId);
 
+        // Reviews
         Task<IEnumerable<MealReview>> GetMealReviewsAsync(int mealId);
+        Task<PagedResult<MealReview>> GetMealReviewsPaginatedAsync(int mealId, int page = 1, int pageSize = 10);
         Task<MealReview?> GetUserReviewAsync(int userId, int mealId);
         Task<MealReview> CreateReviewAsync(MealReview review);
         Task<MealReview> UpdateReviewAsync(MealReview review);

@@ -1,5 +1,6 @@
 using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.Entities;
+using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +32,7 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task AddFavoriteAsync(MealReview favorite)
         {
-            // N?u record dã t?n t?i ? update IsFavorite = true
+            // N?u record dï¿½ t?n t?i ? update IsFavorite = true
             var existing = await _context.MealReviews
                 .FirstOrDefaultAsync(r => r.Userid == favorite.Userid && r.Mealid == favorite.Mealid);
 
@@ -67,8 +68,31 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             return await _context.MealReviews
                 .Include(r => r.User) // load user info
-                .Where(r => r.Mealid == mealId && r.Rating != null) // ch? l?y review có rating
+                .Where(r => r.Mealid == mealId && r.Rating != null) // chá»‰ láº¥y review cÃ³ rating
+                .OrderByDescending(r => r.Createdat)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<MealReview>> GetMealReviewsPaginatedAsync(int mealId, int page = 1, int pageSize = 10)
+        {
+            var query = _context.MealReviews
+                .Include(r => r.User)
+                .Where(r => r.Mealid == mealId && r.Rating != null)
+                .OrderByDescending(r => r.Createdat);
+
+            var totalCount = await query.CountAsync();
+            var reviews = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<MealReview>
+            {
+                Data = reviews,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<MealReview?> GetUserReviewAsync(int userId, int mealId)

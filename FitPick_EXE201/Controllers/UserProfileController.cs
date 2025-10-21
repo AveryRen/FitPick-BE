@@ -84,30 +84,258 @@ namespace FitPick_EXE201.Controllers
         }
 
 
+        [HttpPost("avatar-test")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ApiResponse<object>>> TestAvatarUpload(
+            [FromForm] ChangeAvatarRequest request)
+        {
+            try
+            {
+                Console.WriteLine("🔍 Test Avatar Upload - Starting...");
+                Console.WriteLine($"🔍 Request is null: {request == null}");
+                Console.WriteLine($"🔍 Avatar file is null: {request?.Avatar == null}");
+                
+                if (request?.Avatar != null)
+                {
+                    Console.WriteLine($"🔍 File details:");
+                    Console.WriteLine($"  - FileName: {request.Avatar.FileName}");
+                    Console.WriteLine($"  - Length: {request.Avatar.Length}");
+                    Console.WriteLine($"  - ContentType: {request.Avatar.ContentType}");
+                    Console.WriteLine($"  - Headers: {string.Join(", ", request.Avatar.Headers.Select(h => $"{h.Key}={h.Value}"))}");
+                }
+
+                if (request == null || request.Avatar == null || request.Avatar.Length == 0)
+                {
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Invalid file" }, "Avatar is required"));
+                }
+
+                return Ok(ApiResponse<object>.SuccessResponse(new { 
+                    fileName = request.Avatar.FileName,
+                    length = request.Avatar.Length,
+                    contentType = request.Avatar.ContentType
+                }, "Test upload successful"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception in TestAvatarUpload: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, "Internal server error"));
+            }
+        }
+
+        [HttpPost("avatar-base64")]
+        public async Task<ActionResult<ApiResponse<object>>> ChangeAvatarBase64(
+            [FromBody] ChangeAvatarBase64Request request,
+            [FromServices] CloudinaryService cloudinary)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                
+                Console.WriteLine($"🔍 Base64 Avatar upload - UserId: {userId}");
+                Console.WriteLine($"🔍 Base64 data length: {request.Base64Data?.Length ?? 0}");
+                Console.WriteLine($"🔍 File name: {request.FileName}");
+                Console.WriteLine($"🔍 Mime type: {request.MimeType}");
+
+                if (string.IsNullOrEmpty(request.Base64Data))
+                {
+                    Console.WriteLine("❌ Invalid base64 data");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Invalid base64 data" }, "Base64 data is required"));
+                }
+
+                // Convert base64 to byte array
+                byte[] imageBytes;
+                try
+                {
+                    // Remove data URL prefix if present
+                    string base64Data = request.Base64Data;
+                    if (base64Data.Contains(","))
+                    {
+                        base64Data = base64Data.Split(',')[1];
+                    }
+                    imageBytes = Convert.FromBase64String(base64Data);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error converting base64: {ex.Message}");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Invalid base64 format" }, "Could not decode base64 data"));
+                }
+
+                // Create IFormFile from byte array
+                var stream = new MemoryStream(imageBytes);
+                var formFile = new FormFile(stream, 0, imageBytes.Length, "avatar", request.FileName ?? "avatar.jpg")
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = request.MimeType ?? "image/jpeg"
+                };
+
+                Console.WriteLine("🔍 Starting Cloudinary upload...");
+                string avatarUrl = await cloudinary.UploadFileAsync(formFile);
+                
+                if (string.IsNullOrEmpty(avatarUrl))
+                {
+                    Console.WriteLine("❌ Cloudinary upload failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Upload failed" }, "Could not upload avatar to cloud storage"));
+                }
+
+                Console.WriteLine($"✅ Cloudinary upload successful: {avatarUrl}");
+                var result = await _userService.ChangeAvatarAsync(userId, avatarUrl);
+                if (!result)
+                {
+                    Console.WriteLine("❌ Database update failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Change avatar failed" }, "Could not update avatar in database"));
+                }
+
+                Console.WriteLine("✅ Avatar update completed successfully");
+                return Ok(ApiResponse<object>.SuccessResponse(new { avatarUrl }, "Avatar updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception in ChangeAvatarBase64: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, "Internal server error"));
+            }
+        }
+
+        [HttpPut("avatar-simple")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ApiResponse<object>>> ChangeAvatarSimple(
+            IFormFile avatar,
+            [FromServices] CloudinaryService cloudinary)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                
+                Console.WriteLine($"🔍 Simple Avatar upload - UserId: {userId}");
+                Console.WriteLine($"🔍 Avatar file is null: {avatar == null}");
+                
+                if (avatar != null)
+                {
+                    Console.WriteLine($"🔍 File details - Name: {avatar.FileName}, Size: {avatar.Length}, ContentType: {avatar.ContentType}");
+                }
+
+                if (avatar == null || avatar.Length == 0)
+                {
+                    Console.WriteLine("❌ Invalid file - avatar is null/empty");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Invalid file" }, "Avatar is required"));
+                }
+
+                Console.WriteLine("🔍 Starting Cloudinary upload...");
+                string avatarUrl = await cloudinary.UploadFileAsync(avatar);
+                
+                if (string.IsNullOrEmpty(avatarUrl))
+                {
+                    Console.WriteLine("❌ Cloudinary upload failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Upload failed" }, "Could not upload avatar to cloud storage"));
+                }
+
+                Console.WriteLine($"✅ Cloudinary upload successful: {avatarUrl}");
+                var result = await _userService.ChangeAvatarAsync(userId, avatarUrl);
+                if (!result)
+                {
+                    Console.WriteLine("❌ Database update failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Change avatar failed" }, "Could not update avatar in database"));
+                }
+
+                Console.WriteLine("✅ Avatar update completed successfully");
+                return Ok(ApiResponse<object>.SuccessResponse(new { avatarUrl }, "Avatar updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception in ChangeAvatarSimple: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, "Internal server error"));
+            }
+        }
+
         [HttpPut("avatar")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<ApiResponse<object>>> ChangeAvatar(
             [FromForm] ChangeAvatarRequest request,
             [FromServices] CloudinaryService cloudinary)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (request.Avatar == null || request.Avatar.Length == 0)
+            try
             {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Invalid file" }, "Avatar is required"));
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                
+                // Debug logging
+                Console.WriteLine($"🔍 Avatar upload request - UserId: {userId}");
+                Console.WriteLine($"🔍 Request is null: {request == null}");
+                Console.WriteLine($"🔍 Avatar file is null: {request?.Avatar == null}");
+                
+                if (request?.Avatar != null)
+                {
+                    Console.WriteLine($"🔍 File details - Name: {request.Avatar.FileName}, Size: {request.Avatar.Length}, ContentType: {request.Avatar.ContentType}");
+                }
+
+                if (request == null || request.Avatar == null || request.Avatar.Length == 0)
+                {
+                    Console.WriteLine("❌ Invalid file - request or avatar is null/empty");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Invalid file" }, "Avatar is required"));
+                }
+
+                // Tạm thời disable validation để test
+                Console.WriteLine("🔍 Skipping validation for testing...");
+                
+                // Validate file type
+                // var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
+                // if (!allowedTypes.Contains(request.Avatar.ContentType.ToLower()))
+                // {
+                //     Console.WriteLine($"❌ Invalid file type: {request.Avatar.ContentType}");
+                //     return BadRequest(ApiResponse<object>.ErrorResponse(
+                //         new List<string> { "Invalid file type" }, "Only JPEG, PNG, and GIF files are allowed"));
+                // }
+
+                // Validate file size (max 5MB)
+                // if (request.Avatar.Length > 5 * 1024 * 1024)
+                // {
+                //     Console.WriteLine($"❌ File too large: {request.Avatar.Length} bytes");
+                //     return BadRequest(ApiResponse<object>.ErrorResponse(
+                //         new List<string> { "File too large" }, "File size must be less than 5MB"));
+                // }
+
+                Console.WriteLine("🔍 Starting Cloudinary upload...");
+                string avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
+                
+                if (string.IsNullOrEmpty(avatarUrl))
+                {
+                    Console.WriteLine("❌ Cloudinary upload failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Upload failed" }, "Could not upload avatar to cloud storage"));
+                }
+
+                Console.WriteLine($"✅ Cloudinary upload successful: {avatarUrl}");
+                var result = await _userService.ChangeAvatarAsync(userId, avatarUrl);
+                if (!result)
+                {
+                    Console.WriteLine("❌ Database update failed");
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Change avatar failed" }, "Could not update avatar in database"));
+                }
+
+                Console.WriteLine("✅ Avatar update completed successfully");
+                return Ok(ApiResponse<object>.SuccessResponse(new { avatarUrl }, "Avatar updated successfully"));
             }
-
-            string avatarUrl = await cloudinary.UploadFileAsync(request.Avatar);
-
-            var result = await _userService.ChangeAvatarAsync(userId, avatarUrl);
-            if (!result)
+            catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Change avatar failed" }, "Could not change avatar"));
+                Console.WriteLine($"❌ Exception in ChangeAvatar: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, "Internal server error"));
             }
-
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Avatar updated successfully"));
         }
 
         [HttpDelete]

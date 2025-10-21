@@ -40,10 +40,42 @@ namespace FitPick_EXE201.Services
         }
 
         // REVIEWS
-        // REVIEWS
         public async Task<IEnumerable<MealReview>> GetMealReviewsAsync(int mealId)
         {
             return await _repo.GetMealReviewsAsync(mealId);
+        }
+
+        public async Task<PagedResult<MealReview>> GetMealReviewsPaginatedAsync(int mealId, int page = 1, int pageSize = 10)
+        {
+            return await _repo.GetMealReviewsPaginatedAsync(mealId, page, pageSize);
+        }
+
+        public async Task<MealRatingStatsDto> GetMealRatingStatsAsync(int mealId)
+        {
+            var reviews = await _repo.GetMealReviewsAsync(mealId);
+            var reviewsWithRating = reviews.Where(r => r.Rating.HasValue).ToList();
+
+            if (!reviewsWithRating.Any())
+            {
+                return new MealRatingStatsDto
+                {
+                    AverageRating = 0,
+                    TotalReviews = 0,
+                    RatingDistribution = new Dictionary<int, int>()
+                };
+            }
+
+            var averageRating = reviewsWithRating.Average(r => r.Rating!.Value);
+            var ratingDistribution = reviewsWithRating
+                .GroupBy(r => r.Rating!.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return new MealRatingStatsDto
+            {
+                AverageRating = Math.Round(averageRating, 1),
+                TotalReviews = reviewsWithRating.Count,
+                RatingDistribution = ratingDistribution
+            };
         }
 
         public async Task<MealReview> CreateReviewAsync(MealReviewCreateDto dto, int userId)
