@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace FitPick_EXE201.Services
 {
@@ -143,7 +144,10 @@ namespace FitPick_EXE201.Services
                 var userId = principal.FindFirst("id")?.Value;
                 if (userId == null) return null;
 
-                var account = _context.Users.Find(int.Parse(userId));
+                // Ensure Role is loaded so the new access token carries the correct role claim
+                var account = _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefault(u => u.Userid == int.Parse(userId));
                 if (account == null) return null;
 
                 return new AuthResultDto

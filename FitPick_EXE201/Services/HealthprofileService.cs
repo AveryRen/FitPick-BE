@@ -26,10 +26,10 @@ namespace FitPick_EXE201.Services
         public async Task<HealthprofileDTO?> CreateHealthprofileAsync(int userId, HealthprofileRequest request)
         {
             var healthprofile = _mapper.Map<Healthprofile>(request);
-            healthprofile.Userid = userId; // Gán t? JWT
+            healthprofile.Userid = userId; // Gï¿½n t? JWT
             healthprofile.Status = true;
 
-            // ====== TÍNH TARGET CALORIES ======
+            // ====== Tï¿½NH TARGET CALORIES ======
             double? calories = null;
 
             if (request.Height.HasValue && request.Weight.HasValue && request.Age.HasValue)
@@ -42,10 +42,10 @@ namespace FitPick_EXE201.Services
                 int age = request.Age.Value;
                 double bmr = 0;
 
-                // L?y gender, n?u null thì m?c d?nh 1 (Male)
+                // L?y gender, n?u null thï¿½ m?c d?nh 1 (Male)
                 int gender = user?.GenderId ?? 1;
 
-                // Công th?c BMR
+                // Cï¿½ng th?c BMR
                 if (gender == 1) // Male
                 {
                     bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
@@ -69,7 +69,7 @@ namespace FitPick_EXE201.Services
 
                 calories = bmr * multiplier;
 
-                // Ði?u ch?nh theo healthgoal
+                // ï¿½i?u ch?nh theo healthgoal
                 if (request.Healthgoalid.HasValue)
                 {
                     var goal = await _context.Healthgoals
@@ -198,6 +198,10 @@ namespace FitPick_EXE201.Services
         public async Task<UserGoalDto?> GetUserGoalAsync(int userId)
         {
             return await _repo.GetUserGoalAsync(userId);
+        }
+        public async Task<NutritionStatsDto?> GetNutritionStatsAsync(int userId, DateTime? date = null)
+        {
+            return await _repo.GetNutritionStatsAsync(userId, date);
         }
     }
 }

@@ -8,5 +8,6 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<Healthprofile?> GetByUserIdAsync(int userid);
         Task<ProgressDto?> GetUserProgressAsync(int userId);
         Task<UserGoalDto?> GetUserGoalAsync(int userId);
+        Task<NutritionStatsDto?> GetNutritionStatsAsync(int userId, DateTime? date = null);
     }
 }

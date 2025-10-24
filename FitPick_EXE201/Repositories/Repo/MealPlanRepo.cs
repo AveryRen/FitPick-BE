@@ -73,7 +73,7 @@ namespace FitPick_EXE201.Repositories.Repo
                                               {
                                                   Name = joined.i.Name,
                                                   Quantity = joined.mi.Quantity ?? 0m,
-                                                  Unit = joined.i.Unit,
+                                                  Unit = joined.i.Unit ?? string.Empty,
                                                   HasIt = mark?.HasIt ?? false
                                               };
                                           }).ToList()
@@ -106,19 +106,42 @@ namespace FitPick_EXE201.Repositories.Repo
 
             // L?y user profile
             var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
-            if (profile == null) return null!;
+            if (profile == null)
+            {
+                Console.WriteLine($"❌ GenerateMealPlan Error: No health profile found for userId={userId}");
+                return new List<Mealplan>(); // Return empty list instead of null
+            }
 
             // L?y meals ph� h?p calories / goal
+            var targetCalories = profile.Targetcalories ?? 2000; // Default 2000 if null
             var meals = await _context.Meals
-                .Where(m => (m.Calories ?? 0) <= (profile.Targetcalories ?? 0))
+                .Where(m => m.StatusId == 1 && (m.Calories ?? 0) <= targetCalories)
                 .ToListAsync();
 
-            if (!meals.Any()) return null!;
+            // If no meals within calorie limit, get any active meals
+            if (!meals.Any())
+            {
+                Console.WriteLine($"⚠️ GenerateMealPlan Warning: No meals within calorie limit ({targetCalories}), getting all active meals");
+                meals = await _context.Meals
+                    .Where(m => m.StatusId == 1)
+                    .ToListAsync();
+            }
+
+            if (!meals.Any())
+            {
+                Console.WriteLine($"❌ GenerateMealPlan Error: No active meals found in database");
+                return new List<Mealplan>(); // Return empty list instead of null
+            }
 
             // M?i ng�y 3 b?a: s�ng, trua, t?i
             var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
-            var random = new Random();
+            if (!mealTimes.Any())
+            {
+                Console.WriteLine($"❌ GenerateMealPlan Error: No meal times found in database");
+                return new List<Mealplan>();
+            }
 
+            var random = new Random();
             var mealPlans = new List<Mealplan>();
 
             foreach (var mt in mealTimes)
@@ -140,6 +163,8 @@ namespace FitPick_EXE201.Repositories.Repo
 
             _context.Mealplans.AddRange(mealPlans);
             await _context.SaveChangesAsync();
+
+            Console.WriteLine($"✅ GenerateMealPlan Success: Created {mealPlans.Count} meal plans for userId={userId}, date={date}");
             return mealPlans;
         }
 

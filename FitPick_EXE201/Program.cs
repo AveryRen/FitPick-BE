@@ -17,9 +17,13 @@ using FitPick_EXE201.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add JWT settings
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+// Add JWT settings (fail fast if missing)
+var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
+builder.Services.Configure<JwtSettings>(jwtSettingsSection);
+var jwtSettings = jwtSettingsSection.Get<JwtSettings>()
+    ?? throw new InvalidOperationException("JwtSettings configuration is missing.");
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+    throw new InvalidOperationException("JwtSettings:SecretKey is missing.");
 
 // ? Add DbContext (fix l?i DI)
 builder.Services.AddDbContext<FitPickContext>(options =>
@@ -147,6 +151,11 @@ builder.Services.AddScoped<UserMealIngredientService>();
 
 builder.Services.AddScoped<IUserMealPremiumRepo, UserMealPremiumRepo>();
 builder.Services.AddScoped<MealPremiumService>();
+
+// Premium and Limitation Services
+builder.Services.AddScoped<UserLimitationService>();
+builder.Services.AddScoped<WeeklyMealPlanService>();
+builder.Services.AddScoped<ProPersonalizedService>();
 
 builder.Services.AddScoped<IAIIngredientRepo, AIIngredientRepo>();
 builder.Services.AddScoped<AiService>();

@@ -129,5 +129,43 @@ namespace FitPick_EXE201.Controllers
                 "User goal retrieved successfully"
             ));
         }
+
+        [HttpGet("user/nutrition-stats")]
+        public async Task<ActionResult<ApiResponse<NutritionStatsDto>>> GetNutritionStats([FromQuery] string? date = null)
+        {
+            // L?y userId t? JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(ApiResponse<NutritionStatsDto>.ErrorResponse(
+                    new List<string> { "Invalid or missing user ID in token." },
+                    "Invalid or missing user ID in token."
+                ));
+            }
+
+            DateTime? targetDate = null;
+            if (!string.IsNullOrEmpty(date))
+            {
+                if (DateTime.TryParse(date, out DateTime parsedDate))
+                {
+                    targetDate = parsedDate;
+                }
+            }
+
+            // G?i service
+            var stats = await _service.GetNutritionStatsAsync(userId, targetDate);
+            if (stats == null)
+            {
+                return NotFound(ApiResponse<NutritionStatsDto>.ErrorResponse(
+                    new List<string> { "No nutrition stats found for this user." },
+                    "No nutrition stats found for this user."
+                ));
+            }
+
+            return Ok(ApiResponse<NutritionStatsDto>.SuccessResponse(
+                stats,
+                "Nutrition stats retrieved successfully"
+            ));
+        }
     }
 }

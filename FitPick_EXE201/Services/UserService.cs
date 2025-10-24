@@ -365,6 +365,7 @@ namespace FitPick_EXE201.Services
                 var user = await _context.Users
                     .Include(u => u.DietPlan)
                     .Include(u => u.CookingLevel)
+                    .Include(u => u.PayosPayments)
                     .FirstOrDefaultAsync(u => u.Userid == userId);
 
                 if (user == null)
@@ -383,6 +384,29 @@ namespace FitPick_EXE201.Services
                 {
                 }
 
+                // Determine subscription type based on payment history
+                string? subscriptionType = null;
+                if (user.RoleId == 3) // Premium user
+                {
+                    var successfulPayment = user.PayosPayments?.FirstOrDefault(p => p.Status == "PAID");
+                    if (successfulPayment != null)
+                    {
+                        // Determine subscription type based on amount or description
+                        if (successfulPayment.Amount >= 100000) // Assuming yearly is more expensive
+                        {
+                            subscriptionType = "Yearly";
+                        }
+                        else
+                        {
+                            subscriptionType = "Monthly";
+                        }
+                    }
+                    else
+                    {
+                        subscriptionType = "Premium"; // Default for premium users without payment history
+                    }
+                }
+
             var result = new UserProfileDto
             {
                 FullName = user.Fullname ?? "",
@@ -399,7 +423,8 @@ namespace FitPick_EXE201.Services
                 ActivityLevel = healthProfile?.Lifestyle?.Name ?? "",
                 IsOnboardingCompleted = user.IsOnboardingCompleted ?? false,
                 AvatarUrl = user.AvatarUrl ?? "https://i.pravatar.cc/100?img=1",
-                AccountType = "FREE", // C� th? th�m logic d? check Premium sau
+                AccountType = user.RoleId == 3 ? "PRO" : "FREE",
+                SubscriptionType = subscriptionType,
                 Country = user.Country ?? "",
                 TargetCalories = CalculateTargetCalories(user)
             };

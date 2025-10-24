@@ -16,7 +16,8 @@ namespace FitPick_EXE201.Models.DTOs
         public string CookingLevel { get; set; } = string.Empty;
         public bool IsOnboardingCompleted { get; set; }
         public string? AvatarUrl { get; set; }
-        public string AccountType { get; set; } = "FREE"; // FREE, PREMIUM
+        public string AccountType { get; set; } = "FREE"; // FREE, PRO
+        public string? SubscriptionType { get; set; } // Monthly, Yearly, etc.
         public string? Country { get; set; }
         public int? TargetCalories { get; set; }
     }
