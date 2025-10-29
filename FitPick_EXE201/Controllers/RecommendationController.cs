@@ -1,4 +1,5 @@
 using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Middleware;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,22 +25,23 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User không h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User khï¿½ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
 
             var result = await _aiService.GetDrinkRecommendation(userId, timeOfDay, goal);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i ý nu?c u?ng thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i ï¿½ nu?c u?ng thï¿½nh cï¿½ng"));
         }
 
         [HttpGet("mealplan")]
+        [RequiresProUser("AI Meal Plan Generation")]
         public async Task<IActionResult> GenerateMealPlan([FromQuery] DateTime date, [FromQuery] string? healthGoal, [FromQuery] string? lifestyle)
         {
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User không h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User khï¿½ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
 
             var result = await _aiService.GenerateMealPlan(userId, date, healthGoal, lifestyle);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don thï¿½nh cï¿½ng"));
         }
 
         [HttpGet("drinknotification")]
@@ -48,24 +50,25 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User không h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User khï¿½ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
 
             var result = await _aiService.GenerateDrinkNotification(userId);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o thông báo nh?c u?ng nu?c thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o thï¿½ng bï¿½o nh?c u?ng nu?c thï¿½nh cï¿½ng"));
         }
 
         [HttpGet("weeklymealplan")]
+        [RequiresProUser("Weekly Meal Plan Generation")]
         public async Task<IActionResult> GenerateWeeklyMealPlan([FromQuery] string? healthGoal, [FromQuery] string? lifestyle)
         {
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User không h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User khï¿½ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
 
-            // g?i dúng tên method trong AiService
+            // g?i dï¿½ng tï¿½n method trong AiService
             var result = await _aiService.GenerateWeeklyMealPlanWithAI(userId, healthGoal, lifestyle);
 
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don 7 ngày thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don 7 ngï¿½y thï¿½nh cï¿½ng"));
         }
 
 
@@ -75,10 +78,10 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User không h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User khï¿½ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
 
             var result = await _aiService.GetMealRecommendation(userId, mealType, goal);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i ý món an thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i ï¿½ mï¿½n an thï¿½nh cï¿½ng"));
         }
 
 

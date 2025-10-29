@@ -1,5 +1,6 @@
 using FitPick_EXE201.Data;
 using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Middleware;
 using FitPick_EXE201.Models;
 using FitPick_EXE201.Repositories.Interface;
 using FitPick_EXE201.Repositories.Repo;
@@ -77,6 +78,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers()
     .AddJsonOptions(x =>
     {
+        x.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         x.JsonSerializerOptions.WriteIndented = true;
     });
@@ -135,6 +137,7 @@ builder.Services.AddScoped<PayosPaymentService>();
 
 builder.Services.AddScoped<IUserPremiumRepo, UserPremiumRepo>();
 builder.Services.AddScoped<UserPremiumService>();
+builder.Services.AddScoped<ProUserService>();
 
 builder.Services.AddScoped<IMealPlanRepo, MealPlanRepo>();
 builder.Services.AddScoped<MealPlanService>();
@@ -267,6 +270,9 @@ else
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add Pro user middleware
+app.UseMiddleware<ProUserMiddleware>();
 
 app.MapControllers();
 

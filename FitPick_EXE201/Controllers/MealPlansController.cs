@@ -1,4 +1,5 @@
 using FitPick_EXE201.Helpers;
+using FitPick_EXE201.Middleware;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
 using FitPick_EXE201.Models.Requests;
@@ -65,6 +66,7 @@ namespace FitPick_EXE201.Controllers
         }
 
         [HttpPost("generate")]
+        [RequiresProUser("Generate Meal Plan")]
         public async Task<ActionResult<ApiResponse<Mealplan>>> GenerateMealPlan([FromQuery] DateTime date)
         {
             var userId = GetUserIdFromToken();

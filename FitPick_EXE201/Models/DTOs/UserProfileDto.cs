@@ -2,22 +2,29 @@ namespace FitPick_EXE201.Models.DTOs
 {
     public class UserProfileDto
     {
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Gender { get; set; } = string.Empty;
-        public int Age { get; set; }
-        public int Height { get; set; }
-        public int Weight { get; set; }
-        public int TargetWeight { get; set; }
-        public string Goal { get; set; } = string.Empty;
-        public string? OtherGoal { get; set; }
-        public string ActivityLevel { get; set; } = string.Empty;
-        public string DietPlan { get; set; } = string.Empty;
-        public string CookingLevel { get; set; } = string.Empty;
-        public bool IsOnboardingCompleted { get; set; }
-        public string? AvatarUrl { get; set; }
-        public string AccountType { get; set; } = "FREE"; // FREE, PREMIUM
+        public int? Id { get; set; }
+        public string? Fullname { get; set; }
+        public string Email { get; set; }
+        public int? GenderId { get; set; }
+        public int? Age { get; set; }
+        public decimal? Height { get; set; }
+        public decimal? Weight { get; set; }
         public string? Country { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? RoleName { get; set; }
+        public int? RoleId { get; set; }
+        public string? AccountType { get; set; } // "FREE" or "PRO"
+        public bool? IsEmailVerified { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string? Gender { get; set; } // String representation of gender
+        public int? TargetWeight { get; set; }
+        public string? DietPlan { get; set; }
+        public string? CookingLevel { get; set; }
+        public string? Goal { get; set; }
+        public string? OtherGoal { get; set; }
+        public string? ActivityLevel { get; set; }
+        public bool? IsOnboardingCompleted { get; set; }
         public int? TargetCalories { get; set; }
     }
 }

@@ -357,21 +357,169 @@ namespace FitPick_EXE201.Services
             }
         }
 
+        public async Task<bool> CreateHealthProfileAsync(int userId, CreateHealthProfileRequest request)
+        {
+            try
+            {
+                // Check if health profile already exists
+                var existingProfile = await _context.Healthprofiles
+                    .FirstOrDefaultAsync(hp => hp.Userid == userId);
+                
+                if (existingProfile != null)
+                {
+                    // Update existing profile
+                    existingProfile.Healthgoalid = request.HealthGoalId;
+                    existingProfile.Lifestyleid = request.LifestyleId;
+                    existingProfile.Targetcalories = request.TargetCalories ?? 2000;
+                    existingProfile.Targetweight = request.TargetWeight;
+                    existingProfile.Dailymeals = request.DailyMeals ?? 3;
+                    existingProfile.Status = true;
+                    existingProfile.Updatedat = DateTime.Now;
+                    
+                    _context.Healthprofiles.Update(existingProfile);
+                }
+                else
+                {
+                    // Create new profile
+                    var newProfile = new Healthprofile
+                    {
+                        Userid = userId,
+                        Healthgoalid = request.HealthGoalId,
+                        Lifestyleid = request.LifestyleId,
+                        Targetcalories = request.TargetCalories ?? 2000,
+                        Targetweight = request.TargetWeight,
+                        Dailymeals = request.DailyMeals ?? 3,
+                        Status = true,
+                        Updatedat = DateTime.Now
+                    };
+                    
+                    _context.Healthprofiles.Add(newProfile);
+                }
+                
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating health profile: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<object> DebugUserProfileAsync(int userId)
+        {
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.DietPlan)
+                    .Include(u => u.CookingLevel)
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Userid == userId);
+
+                if (user == null)
+                {
+                    return new { error = "User not found" };
+                }
+
+                var healthProfile = await _context.Healthprofiles
+                    .Include(hp => hp.Healthgoal)
+                    .Include(hp => hp.Lifestyle)
+                    .FirstOrDefaultAsync(hp => hp.Userid == userId);
+
+                // Check DietPlans table
+                var dietPlans = await _context.DietPlans.ToListAsync();
+                var cookingLevels = await _context.CookingLevels.ToListAsync();
+                var healthGoals = await _context.Healthgoals.ToListAsync();
+                var lifestyles = await _context.Lifestyles.ToListAsync();
+
+                return new
+                {
+                    user = new
+                    {
+                        userId = user.Userid,
+                        dietPlanId = user.DietPlanId,
+                        cookingLevelId = user.CookingLevelId,
+                        dietPlan = user.DietPlan?.Name,
+                        cookingLevel = user.CookingLevel?.Name
+                    },
+                    healthProfile = healthProfile != null ? new
+                    {
+                        healthGoalId = healthProfile.Healthgoalid,
+                        lifestyleId = healthProfile.Lifestyleid,
+                        goal = healthProfile.Healthgoal?.Name,
+                        activityLevel = healthProfile.Lifestyle?.Name
+                    } : null,
+                    availableData = new
+                    {
+                        dietPlans = dietPlans.Select(dp => new { id = dp.Id, name = dp.Name }),
+                        cookingLevels = cookingLevels.Select(cl => new { id = cl.Id, name = cl.Name }),
+                        healthGoals = healthGoals.Select(hg => new { id = hg.Id, name = hg.Name }),
+                        lifestyles = lifestyles.Select(l => new { id = l.Id, name = l.Name })
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new { error = ex.Message, stackTrace = ex.StackTrace };
+            }
+        }
+
         public async Task<UserProfileDto?> GetUserProfileAsync(int userId)
         {
             try
             {
-
                 var user = await _context.Users
                     .Include(u => u.DietPlan)
                     .Include(u => u.CookingLevel)
+                    .Include(u => u.Role)
                     .FirstOrDefaultAsync(u => u.Userid == userId);
 
+                Console.WriteLine($"User found: {user != null}");
                 if (user == null)
                 {
                     return null;
                 }
 
+                Console.WriteLine($"DietPlanId: {user.DietPlanId}, CookingLevelId: {user.CookingLevelId}");
+                Console.WriteLine($"DietPlan loaded: {user.DietPlan != null}");
+                Console.WriteLine($"CookingLevel loaded: {user.CookingLevel != null}");
+                
+                // Debug the actual values being set
+                var dietPlanName = user.DietPlan?.Name ?? "Chưa cập nhật";
+                var cookingLevelName = user.CookingLevel?.Name ?? "Chưa cập nhật";
+                Console.WriteLine($"Final DietPlan name: {dietPlanName}");
+                Console.WriteLine($"Final CookingLevel name: {cookingLevelName}");
+                
+                // If navigation properties are null, try to load them manually
+                if (user.DietPlan == null && user.DietPlanId.HasValue)
+                {
+                    Console.WriteLine($"Trying to manually load DietPlan with ID: {user.DietPlanId.Value}");
+                    var dietPlan = await _context.DietPlans.FindAsync(user.DietPlanId.Value);
+                    if (dietPlan != null)
+                    {
+                        dietPlanName = dietPlan.Name;
+                        Console.WriteLine($"Manually loaded DietPlan: {dietPlanName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DietPlan with ID {user.DietPlanId.Value} not found in database");
+                    }
+                }
+                
+                if (user.CookingLevel == null && user.CookingLevelId.HasValue)
+                {
+                    Console.WriteLine($"Trying to manually load CookingLevel with ID: {user.CookingLevelId.Value}");
+                    var cookingLevel = await _context.CookingLevels.FindAsync(user.CookingLevelId.Value);
+                    if (cookingLevel != null)
+                    {
+                        cookingLevelName = cookingLevel.Name;
+                        Console.WriteLine($"Manually loaded CookingLevel: {cookingLevelName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"CookingLevel with ID {user.CookingLevelId.Value} not found in database");
+                    }
+                }
 
                 // Get health profile information (goals and activity level)
                 var healthProfile = await _context.Healthprofiles
@@ -379,30 +527,43 @@ namespace FitPick_EXE201.Services
                     .Include(hp => hp.Lifestyle)
                     .FirstOrDefaultAsync(hp => hp.Userid == userId);
 
+                Console.WriteLine($"Health profile for user {userId}: {(healthProfile != null ? "Found" : "Not found")}");
                 if (healthProfile != null)
                 {
+                    Console.WriteLine($"Goal: {healthProfile.Healthgoal?.Name}");
+                    Console.WriteLine($"Lifestyle: {healthProfile.Lifestyle?.Name}");
                 }
+                
+                Console.WriteLine($"User DietPlan: {user.DietPlan?.Name ?? "NULL"} (ID: {user.DietPlanId})");
+                Console.WriteLine($"User CookingLevel: {user.CookingLevel?.Name ?? "NULL"} (ID: {user.CookingLevelId})");
 
-            var result = new UserProfileDto
-            {
-                FullName = user.Fullname ?? "",
-                Email = user.Email ?? "",
-                Age = user.Age ?? 0,
-                Height = (int)(user.Height ?? 0),
-                Weight = (int)(user.Weight ?? 0),
-                TargetWeight = (int)(user.TargetWeight ?? 0),
-                Gender = user.GenderId == 1 ? "Nam" : "N?",
-                DietPlan = user.DietPlan?.Name ?? "",
-                CookingLevel = user.CookingLevel?.Name ?? "",
-                Goal = healthProfile?.Healthgoal?.Name ?? "",
-                OtherGoal = user.TargetWeight?.ToString(), // Use TargetWeight as OtherGoal
-                ActivityLevel = healthProfile?.Lifestyle?.Name ?? "",
-                IsOnboardingCompleted = user.IsOnboardingCompleted ?? false,
-                AvatarUrl = user.AvatarUrl ?? "https://i.pravatar.cc/100?img=1",
-                AccountType = "FREE", // C� th? th�m logic d? check Premium sau
-                Country = user.Country ?? "",
-                TargetCalories = CalculateTargetCalories(user)
-            };
+                var result = new UserProfileDto
+                {
+                    Id = user.Userid,
+                    Fullname = user.Fullname ?? "",
+                    Email = user.Email ?? "",
+                    GenderId = user.GenderId,
+                    Age = user.Age,
+                    Height = user.Height,
+                    Weight = user.Weight,
+                    Country = user.Country,
+                    AvatarUrl = user.AvatarUrl,
+                    TargetWeight = (int)(user.TargetWeight ?? 0),
+                    Gender = user.GenderId == 1 ? "Nam" : "Nữ",
+                    DietPlan = dietPlanName,
+                    CookingLevel = cookingLevelName,
+                    Goal = healthProfile?.Healthgoal?.Name ?? "Chưa cập nhật",
+                    OtherGoal = user.TargetWeight?.ToString(),
+                    ActivityLevel = healthProfile?.Lifestyle?.Name ?? "Chưa cập nhật",
+                    IsOnboardingCompleted = true,
+                    TargetCalories = 2000,
+                    RoleId = user.RoleId,
+                    RoleName = user.Role?.Name ?? "User",
+                    AccountType = user.RoleId == 3 ? "PRO" : "FREE",
+                    IsEmailVerified = user.IsEmailVerified,
+                    CreatedAt = user.Createdat,
+                    UpdatedAt = user.Updatedat
+                };
 
                 return result;
             }
@@ -563,6 +724,26 @@ namespace FitPick_EXE201.Services
                 // Return 0 if there's an error
                 return 0;
             }
+        }
+
+        public async Task<List<DietPlan>> GetAllDietPlansAsync()
+        {
+            return await _context.DietPlans.ToListAsync();
+        }
+
+        public async Task<List<CookingLevel>> GetAllCookingLevelsAsync()
+        {
+            return await _context.CookingLevels.ToListAsync();
+        }
+
+        public async Task<List<Healthgoal>> GetAllHealthGoalsAsync()
+        {
+            return await _context.Healthgoals.ToListAsync();
+        }
+
+        public async Task<List<Lifestyle>> GetAllLifestylesAsync()
+        {
+            return await _context.Lifestyles.ToListAsync();
         }
     }
 }

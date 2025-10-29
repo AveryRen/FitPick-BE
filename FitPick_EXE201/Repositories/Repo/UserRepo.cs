@@ -18,19 +18,34 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<UserProfileDto?> GetUserByIdAsync(int id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Userid == id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Userid == id);
             if (user == null) return null;
+
+            string accountType = "FREE";
+            if (user.RoleId == 3) // Premium role
+            {
+                accountType = "PRO";
+            }
 
             return new UserProfileDto
             {
-                FullName = user.Fullname ?? "",
-                Email = user.Email ?? "",
-                Gender = user.GenderId == 1 ? "Male" : "Female",
-                Age = user.Age ?? 0,
-                Height = (int)(user.Height ?? 0),
-                Weight = (int)(user.Weight ?? 0),
-                TargetWeight = (int)(user.TargetWeight ?? 0),
-                IsOnboardingCompleted = user.IsOnboardingCompleted ?? false
+                Id = user.Userid,
+                Fullname = user.Fullname,
+                Email = user.Email,
+                GenderId = user.GenderId,
+                Age = user.Age,
+                Height = user.Height,
+                Weight = user.Weight,
+                Country = user.Country,
+                AvatarUrl = user.AvatarUrl,
+                RoleId = user.RoleId,
+                RoleName = user.Role?.Name,
+                AccountType = accountType,
+                IsEmailVerified = user.IsEmailVerified,
+                CreatedAt = user.Createdat,
+                UpdatedAt = user.Updatedat
             };
         }
         public async Task<UpdateUserProfileDto?> UpdateProfileAsync(int userId, UpdateUserProfileRequest request)
@@ -103,9 +118,9 @@ namespace FitPick_EXE201.Repositories.Repo
                 FullName = user.Fullname,
                 HealthGoal = healthProfile?.Healthgoal?.Name,
                 Lifestyle = healthProfile?.Lifestyle?.Name,
-                DietPreferences = healthProfile?.Dietarypreferences,  // ? l?y nguyên List<int>
+                DietPreferences = healthProfile?.Dietarypreferences,  // ? l?y nguyï¿½n List<int>
                 TargetCalories = healthProfile?.Targetcalories,
-                ProgressPercent = 0m // t? tính n?u c?n
+                ProgressPercent = 0m // t? tï¿½nh n?u c?n
             };
         }
     }

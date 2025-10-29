@@ -16,17 +16,19 @@ namespace FitPick_EXE201.Controllers
     public class UserProfileController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly ProUserService _proUserService;
 
-        public UserProfileController(UserService userService)
+        public UserProfileController(UserService userService, ProUserService proUserService)
         {
             _userService = userService;
+            _proUserService = proUserService;
         }
 
         [HttpGet]
         public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetUserById()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var user = await _userService.GetUserByIdAsync(userId);
+            var user = await _userService.GetUserProfileAsync(userId);
 
             if (user == null)
             {
@@ -34,19 +36,7 @@ namespace FitPick_EXE201.Controllers
                     new List<string> { "User not found" }, "User not found"));
             }
 
-            var dto = new UserProfileDto
-            {
-                FullName = user.FullName,
-                Email = user.Email,
-                Gender = user.Gender,
-                Age = user.Age,
-                Height = user.Height,
-                Weight = user.Weight,
-                TargetWeight = user.TargetWeight,
-                IsOnboardingCompleted = user.IsOnboardingCompleted
-            };
-
-            return Ok(ApiResponse<UserProfileDto>.SuccessResponse(dto, "User retrieved successfully"));
+            return Ok(ApiResponse<UserProfileDto>.SuccessResponse(user, "User retrieved successfully"));
         }
 
         [HttpPut("update-profile")]
@@ -351,6 +341,104 @@ namespace FitPick_EXE201.Controllers
             }
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "Account deactivated successfully"));
+        }
+
+        [HttpGet("pro-permissions")]
+        public async Task<ActionResult<ApiResponse<ProUserInfo>>> GetProUserPermissions()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var proUserInfo = await _proUserService.GetProUserInfoAsync(userId);
+
+            if (proUserInfo == null)
+            {
+                return NotFound(ApiResponse<ProUserInfo>.ErrorResponse(
+                    new List<string> { "Pro user info not found" }, "User is not a Pro user"));
+            }
+
+            return Ok(ApiResponse<ProUserInfo>.SuccessResponse(proUserInfo, "Pro user permissions retrieved successfully"));
+        }
+
+        [HttpGet("is-pro")]
+        public async Task<ActionResult<ApiResponse<bool>>> IsProUser()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isPro = await _proUserService.IsProUserAsync(userId);
+
+            return Ok(ApiResponse<bool>.SuccessResponse(isPro, "Pro user status retrieved successfully"));
+        }
+
+        [HttpPost("create-health-profile")]
+        public async Task<ActionResult<ApiResponse<object>>> CreateHealthProfile([FromBody] CreateHealthProfileRequest request)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            
+            try
+            {
+                var result = await _userService.CreateHealthProfileAsync(userId, request);
+                
+                if (result)
+                {
+                    return Ok(ApiResponse<object>.SuccessResponse(null, "Health profile created successfully"));
+                }
+                else
+                {
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        new List<string> { "Failed to create health profile" }, 
+                        "Create health profile failed"));
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, 
+                    "Create health profile failed"));
+            }
+        }
+
+        [HttpGet("debug-profile")]
+        public async Task<ActionResult<ApiResponse<object>>> DebugProfile()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            
+            try
+            {
+                var result = await _userService.DebugUserProfileAsync(userId);
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Debug info retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, 
+                    "Debug failed"));
+            }
+        }
+
+        [HttpGet("debug-database")]
+        public async Task<ActionResult<ApiResponse<object>>> DebugDatabase()
+        {
+            try
+            {
+                var dietPlans = await _userService.GetAllDietPlansAsync();
+                var cookingLevels = await _userService.GetAllCookingLevelsAsync();
+                var healthGoals = await _userService.GetAllHealthGoalsAsync();
+                var lifestyles = await _userService.GetAllLifestylesAsync();
+                
+                var result = new
+                {
+                    dietPlans = dietPlans.Select(dp => new { id = dp.Id, name = dp.Name }),
+                    cookingLevels = cookingLevels.Select(cl => new { id = cl.Id, name = cl.Name }),
+                    healthGoals = healthGoals.Select(hg => new { id = hg.Id, name = hg.Name }),
+                    lifestyles = lifestyles.Select(l => new { id = l.Id, name = l.Name })
+                };
+                
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Database debug data retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    new List<string> { ex.Message }, 
+                    "Internal server error"));
+            }
         }
 
     }
