@@ -22,16 +22,22 @@ namespace FitPick_EXE201.Repositories.Repo
                                           .Where(u => u.Userid == userId)
                                           .ToListAsync();
 
-            // 2?? L?y mealPlans + meals + mealTimes
+            // 2. Lấy mealPlans + meals + mealTimes + Category + Status
             var mealPlansRaw = await (from mp in _context.Mealplans
                                       join m in _context.Meals on mp.Mealid equals m.Mealid
                                       join mt in _context.MealTimes on mp.MealtimeId equals mt.Id
+                                      join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
+                                      from category in categoryGroup.DefaultIfEmpty()
+                                      join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
+                                      from status in statusGroup.DefaultIfEmpty()
                                       where mp.Userid == userId && mp.Date == DateOnly.FromDateTime(date)
                                       select new
                                       {
                                           MealPlan = mp,
                                           Meal = m,
-                                          MealTimeName = mt.Name
+                                          MealTimeName = mt.Name,
+                                          CategoryName = category != null ? category.Name : null,
+                                          StatusName = status != null ? status.Name : null
                                       }).ToListAsync();
 
             // 3?? Map th�nh DTO, load Instructions + Ingredients trong memory
@@ -50,7 +56,12 @@ namespace FitPick_EXE201.Repositories.Repo
                     Carbs = x.Meal.Carbs ?? 0,
                     Fat = x.Meal.Fat ?? 0,
                     Cookingtime = x.Meal.Cookingtime ?? 0,
+                    Diettype = x.Meal.Diettype,
+                    Price = x.Meal.Price,
+                    ImageUrl = x.Meal.ImageUrl,
                     IsPremium = x.Meal.IsPremium ?? false,
+                    CategoryName = x.CategoryName,
+                    StatusName = x.StatusName,
                     Instructions = _context.MealInstructions
                                            .Where(mi => mi.MealId == x.Meal.Mealid)
                                            .OrderBy(mi => mi.StepNumber)

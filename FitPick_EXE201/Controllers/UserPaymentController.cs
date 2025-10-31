@@ -37,9 +37,9 @@ namespace FitPick_EXE201.Controllers
             if (!int.TryParse(userIdClaim, out var userId))
                 return Unauthorized("Invalid user id");
 
-            const string productName = "Gói Premium (1 tháng)";
+            const string productName = "FitPick PRO (1 thÃ¡ng)";
             const int quantity = 1;
-            const int price = 50000;
+            const int price = 29000;
             var total = quantity * price;
 
             var items = new List<ItemData> { new ItemData(productName, quantity, price) };
@@ -84,14 +84,14 @@ namespace FitPick_EXE201.Controllers
                 var payload = JsonSerializer.Deserialize<PayOSCallbackPayload>(body);
 
                 if (payload?.data == null)
-                    return Ok(new { message = "Payload không h?p l?" });
+                    return Ok(new { message = "Payload khï¿½ng h?p l?" });
 
                 // ?? L?y userId t? description (VD: "CSDN5AQ5B25 35")
                 var userId = ExtractUserIdFromDescription(payload.data.description);
                 if (userId <= 0)
-                    return Ok(new { message = "Không l?y du?c userId t? description" });
+                    return Ok(new { message = "Khï¿½ng l?y du?c userId t? description" });
 
-                // ?? Parse transactionDateTime th? công
+                // ?? Parse transactionDateTime th? cï¿½ng
                 DateTime? transTime = null;
                 if (!string.IsNullOrWhiteSpace(payload.data.transactionDateTime))
                 {
@@ -107,10 +107,10 @@ namespace FitPick_EXE201.Controllers
                     }
                 }
 
-                // ?? Nâng c?p User lên Premium
+                // ?? Nï¿½ng c?p User lï¿½n Premium
                 await _premiumService.UpgradeUserRoleToPremiumAsync(userId);
 
-                // ?? C?p nh?t tr?ng thái giao d?ch
+                // ?? C?p nh?t tr?ng thï¿½i giao d?ch
                 await _premiumService.UpdatePaymentStatusAsync(
                     orderCode: payload.data.orderCode,
                     status: "PAID",
@@ -121,13 +121,13 @@ namespace FitPick_EXE201.Controllers
 
                 return Ok(new
                 {
-                    message = $"? User {userId} dã du?c nâng c?p Premium và c?p nh?t giao d?ch thành công"
+                    message = $"? User {userId} dï¿½ du?c nï¿½ng c?p Premium vï¿½ c?p nh?t giao d?ch thï¿½nh cï¿½ng"
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Callback error: " + ex);
-                return Ok(new { message = "? L?i khi x? lý callback", error = ex.Message });
+                return Ok(new { message = "? L?i khi x? lï¿½ callback", error = ex.Message });
             }
         }
 
