@@ -12,6 +12,7 @@ public partial class Meal
 {
     [Key]
     [Column("mealid")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Mealid { get; set; }
 
     [Column("name")]

@@ -65,6 +65,28 @@ namespace FitPick_EXE201.Controllers
             }
         }
 
+        // Get all meal statuses
+        [HttpGet("meal-statuses")]
+        public async Task<ActionResult<ApiResponse<List<object>>>> GetMealStatuses()
+        {
+            try
+            {
+                var statuses = await _filterService.GetMealStatusesAsync();
+
+                return Ok(ApiResponse<List<object>>.SuccessResponse(
+                    statuses,
+                    "Lấy danh sách trạng thái meal thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<List<object>>.ErrorResponse(
+                    new List<string> { ex.Message },
+                    "Lỗi server"
+                ));
+            }
+        }
+
         // Get all diet types from meals
         [HttpGet("diet-types")]
         public async Task<ActionResult<ApiResponse<List<object>>>> GetDietTypes()

@@ -7,6 +7,9 @@ namespace FitPick_EXE201.Repositories.Interface
         // Get all active categories
         Task<List<object>> GetCategoriesAsync();
         
+        // Get all meal statuses
+        Task<List<object>> GetMealStatusesAsync();
+        
         // Get all active ingredients with pagination
         Task<List<object>> GetIngredientsAsync(int page = 0, int pageSize = 20);
         

@@ -168,6 +168,10 @@ public partial class FitPickContext : DbContext
         {
             entity.HasKey(e => e.Ingredientid).HasName("ingredients_pkey");
 
+            entity.Property(e => e.Ingredientid)
+                .ValueGeneratedOnAdd()
+                .UseIdentityColumn();
+
             entity.Property(e => e.Status).HasDefaultValue(true);
         });
 
@@ -179,6 +183,10 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<Meal>(entity =>
         {
             entity.HasKey(e => e.Mealid).HasName("meals_pkey");
+
+            entity.Property(e => e.Mealid)
+                .ValueGeneratedOnAdd()
+                .UseIdentityColumn();
 
             entity.Property(e => e.Carbs).HasDefaultValueSql("0");
             entity.Property(e => e.Createdat).HasDefaultValueSql("now()");
@@ -218,6 +226,10 @@ public partial class FitPickContext : DbContext
         modelBuilder.Entity<MealInstruction>(entity =>
         {
             entity.HasKey(e => e.InstructionId).HasName("meal_instructions_pkey");
+
+            entity.Property(e => e.InstructionId)
+                .ValueGeneratedOnAdd()
+                .UseIdentityColumn();
 
             entity.HasOne(d => d.Meal).WithMany(p => p.MealInstructions)
                 .OnDelete(DeleteBehavior.Cascade)

@@ -67,10 +67,70 @@ namespace FitPick_EXE201.Repositories.Repo
                 "country" => sortDesc ? query.OrderByDescending(u => u.Country) : query.OrderBy(u => u.Country),
                 "createdat" => sortDesc ? query.OrderByDescending(u => u.Createdat) : query.OrderBy(u => u.Createdat),
                 "updatedat" => sortDesc ? query.OrderByDescending(u => u.Updatedat) : query.OrderBy(u => u.Updatedat),
-                _ => query.OrderBy(u => u.Userid)
+                _ => query.OrderByDescending(u => u.Createdat ?? DateTime.MinValue)
             };
 
             return await query.ToListAsync();
+        }
+
+        public async Task<(List<User> items, int totalCount)> GetAllUsersPagedAsync(
+            int currentAdminId,
+            string? searchKeyword,
+            string? sortBy,
+            bool sortDesc,
+            int? genderId,
+            int? roleId,
+            bool? status,
+            int page,
+            int pageSize
+        )
+        {
+            var query = _context.Users
+                .Where(u => u.Userid != currentAdminId)
+                .Include(u => u.Role)
+                .Include(u => u.Gender)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // --- Filter ---
+            if (!string.IsNullOrWhiteSpace(searchKeyword))
+            {
+                string lowerKeyword = searchKeyword.ToLower();
+                query = query.Where(u =>
+                    (u.Fullname != null && u.Fullname.ToLower().Contains(lowerKeyword)) ||
+                    u.Email.ToLower().Contains(lowerKeyword) ||
+                    (u.Country != null && u.Country.ToLower().Contains(lowerKeyword))
+                );
+            }
+
+            if (genderId.HasValue)
+                query = query.Where(u => u.GenderId == genderId.Value);
+
+            if (roleId.HasValue)
+                query = query.Where(u => u.RoleId == roleId.Value);
+
+            if (status.HasValue)
+                query = query.Where(u => u.Status == status.Value);
+
+            // --- Sort ---
+            query = sortBy?.ToLower() switch
+            {
+                "fullname" => sortDesc ? query.OrderByDescending(u => u.Fullname) : query.OrderBy(u => u.Fullname),
+                "email" => sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email),
+                "age" => sortDesc ? query.OrderByDescending(u => u.Age) : query.OrderBy(u => u.Age),
+                "country" => sortDesc ? query.OrderByDescending(u => u.Country) : query.OrderBy(u => u.Country),
+                "createdat" => sortDesc ? query.OrderByDescending(u => u.Createdat) : query.OrderBy(u => u.Createdat),
+                "updatedat" => sortDesc ? query.OrderByDescending(u => u.Updatedat) : query.OrderBy(u => u.Updatedat),
+                _ => query.OrderByDescending(u => u.Createdat ?? DateTime.MinValue)
+            };
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
         }
 
 

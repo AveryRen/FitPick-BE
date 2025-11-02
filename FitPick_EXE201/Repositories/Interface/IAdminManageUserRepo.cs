@@ -15,6 +15,17 @@ namespace FitPick_EXE201.Repositories.Interface
             int? roleId,
             bool? status
         );
+        Task<(List<User> items, int totalCount)> GetAllUsersPagedAsync(
+            int currentAdminId,
+            string? searchKeyword,
+            string? sortBy,
+            bool sortDesc,
+            int? genderId,
+            int? roleId,
+            bool? status,
+            int page,
+            int pageSize
+        );
 
         Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id);
         Task<User?> GetUserEntityByIdAsync(int id);

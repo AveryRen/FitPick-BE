@@ -22,6 +22,20 @@ namespace FitPick_EXE201.Services
             return await _repository.GetAllAsync(name, type, unit, onlyActive);
         }
 
+        public async Task<(List<Ingredient> items, int totalCount)> GetAllPagedAsync(
+            int page,
+            int pageSize,
+            string? name = null,
+            string? type = null,
+            string? unit = null,
+            bool? status = null,
+            string? sortBy = "ingredientid",
+            bool sortDesc = true
+        )
+        {
+            return await _repository.GetAllPagedAsync(page, pageSize, name, type, unit, status, sortBy, sortDesc);
+        }
+
         public async Task<Ingredient?> GetByIdAsync(int id)
         {
             return await _repository.GetByIdAsync(id);

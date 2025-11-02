@@ -7,6 +7,18 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<IEnumerable<Ingredient>> GetAllAsync(string? name = null,string? type = null,
             string? unit = null,
             bool onlyActive = true);
+
+        Task<(List<Ingredient> items, int totalCount)> GetAllPagedAsync(
+            int page,
+            int pageSize,
+            string? name = null,
+            string? type = null,
+            string? unit = null,
+            bool? status = null,
+            string? sortBy = "ingredientid",
+            bool sortDesc = true
+        );
+
         Task<Ingredient?> GetByIdAsync(int id);
         Task<Ingredient> AddAsync(Ingredient ingredient);
         Task<Ingredient> UpdateAsync(Ingredient ingredient);

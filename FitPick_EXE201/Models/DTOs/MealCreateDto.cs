@@ -12,5 +12,16 @@ namespace FitPick_EXE201.Models.DTOs
         public decimal? Price { get; set; }
         public int? StatusId { get; set; } 
         public List<string>? Instructions { get; set; }
+        public string? ImageUrl { get; set; }
+        public decimal? Protein { get; set; }
+        public decimal? Carbs { get; set; }
+        public decimal? Fat { get; set; }
+        public List<MealIngredientCreateDto>? Ingredients { get; set; }
+    }
+
+    public class MealIngredientCreateDto
+    {
+        public int IngredientId { get; set; }
+        public decimal Quantity { get; set; }
     }
 }

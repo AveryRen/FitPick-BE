@@ -26,7 +26,7 @@ namespace FitPick_EXE201.Repositories.Repo
             if (onlyActive)
                 query = query.Where(i => i.Status == true);
 
-            // filter theo tên (search contains)
+            // filter theo tï¿½n (search contains)
             if (!string.IsNullOrWhiteSpace(name))
                 query = query.Where(i => i.Name.Contains(name));
 
@@ -38,9 +38,57 @@ namespace FitPick_EXE201.Repositories.Repo
             if (!string.IsNullOrWhiteSpace(unit))
                 query = query.Where(i => i.Unit == unit);
 
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(i => i.Ingredientid)
+                .ToListAsync();
         }
 
+        public async Task<(List<Ingredient> items, int totalCount)> GetAllPagedAsync(
+            int page,
+            int pageSize,
+            string? name = null,
+            string? type = null,
+            string? unit = null,
+            bool? status = null,
+            string? sortBy = "ingredientid",
+            bool sortDesc = true
+        )
+        {
+            var query = _context.Set<Ingredient>().AsQueryable();
+
+            // Filter status
+            if (status.HasValue)
+                query = query.Where(i => i.Status == status.Value);
+
+            // Filter by name (search contains)
+            if (!string.IsNullOrWhiteSpace(name))
+                query = query.Where(i => i.Name.Contains(name));
+
+            // Filter by type (exact match)
+            if (!string.IsNullOrWhiteSpace(type))
+                query = query.Where(i => i.Type == type);
+
+            // Filter by unit
+            if (!string.IsNullOrWhiteSpace(unit))
+                query = query.Where(i => i.Unit == unit);
+
+            // Sorting
+            query = sortBy?.ToLower() switch
+            {
+                "name" => sortDesc ? query.OrderByDescending(i => i.Name) : query.OrderBy(i => i.Name),
+                "type" => sortDesc ? query.OrderByDescending(i => i.Type ?? "") : query.OrderBy(i => i.Type ?? ""),
+                "ingredientid" => sortDesc ? query.OrderByDescending(i => i.Ingredientid) : query.OrderBy(i => i.Ingredientid),
+                _ => query.OrderByDescending(i => i.Ingredientid)
+            };
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
 
         public async Task<Ingredient?> GetByIdAsync(int id)
         {
@@ -49,6 +97,9 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<Ingredient> AddAsync(Ingredient ingredient)
         {
+            // Ensure Ingredientid is not set (let database generate it)
+            ingredient.Ingredientid = 0;
+            
             _context.Set<Ingredient>().Add(ingredient);
             await _context.SaveChangesAsync();
             return ingredient;

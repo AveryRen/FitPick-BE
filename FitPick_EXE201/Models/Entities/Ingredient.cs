@@ -11,6 +11,7 @@ public partial class Ingredient
 {
     [Key]
     [Column("ingredientid")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Ingredientid { get; set; }
 
     [Column("name")]

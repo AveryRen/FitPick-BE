@@ -21,14 +21,40 @@ namespace FitPick_EXE201.Controllers
 
         // GET: api/admin/ingredients
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Ingredient>>>> GetAll(
+        public async Task<ActionResult<ApiResponse<object>>> GetAll(
             [FromQuery] string? name = null,
             [FromQuery] string? type = null,
             [FromQuery] string? unit = null,
-            [FromQuery] bool onlyActive = true)
+            [FromQuery] bool? status = null,
+            [FromQuery] string? sortBy = "ingredientid",
+            [FromQuery] bool sortDesc = true,
+            [FromQuery] int page = 0,
+            [FromQuery] int pageSize = 0)
         {
-            var ingredients = await _service.GetAllAsync(name, type, unit, onlyActive);
-            return Ok(ApiResponse<IEnumerable<Ingredient>>.SuccessResponse(ingredients, "L?y danh s�ch nguy�n li?u th�nh c�ng"));
+            // Use paginated method if page and pageSize are provided
+            if (page > 0 && pageSize > 0)
+            {
+                var (ingredients, totalCount) = await _service.GetAllPagedAsync(
+                    page, pageSize, name, type, unit, status, sortBy, sortDesc);
+
+                var result = new
+                {
+                    items = ingredients,
+                    totalItems = totalCount,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    pageSize = pageSize,
+                    pageNumber = page
+                };
+
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Lấy danh sách nguyên liệu thành công"));
+            }
+            else
+            {
+                // Fallback to non-paginated method for backward compatibility
+                bool onlyActive = status == null ? true : status.Value;
+                var ingredients = await _service.GetAllAsync(name, type, unit, onlyActive);
+                return Ok(ApiResponse<IEnumerable<Ingredient>>.SuccessResponse(ingredients, "Lấy danh sách nguyên liệu thành công"));
+            }
         }
 
         // GET: api/admin/ingredients/{id}
@@ -38,9 +64,9 @@ namespace FitPick_EXE201.Controllers
             var ingredient = await _service.GetByIdAsync(id);
             if (ingredient == null)
                 return NotFound(ApiResponse<Ingredient>.ErrorResponse(
-                    new List<string> { "Nguy�n li?u kh�ng t?n t?i" }, "Kh�ng t�m th?y"));
+                    new List<string> { "Nguyên liệu không tồn tại" }, "Không tìm thấy"));
 
-            return Ok(ApiResponse<Ingredient>.SuccessResponse(ingredient, "L?y nguy�n li?u th�nh c�ng"));
+            return Ok(ApiResponse<Ingredient>.SuccessResponse(ingredient, "Lấy nguyên liệu thành công"));
         }
         // POST: api/admin/ingredients
         [HttpPost]
@@ -53,7 +79,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D? li?u kh�ng h?p l?"));
+                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
             }
 
             var created = await _service.CreateAsync(dto);
@@ -61,7 +87,7 @@ namespace FitPick_EXE201.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = created.Ingredientid },
-                ApiResponse<Ingredient>.SuccessResponse(created, "T?o nguy�n li?u th�nh c�ng")
+                ApiResponse<Ingredient>.SuccessResponse(created, "Tạo nguyên liệu thành công")
             );
         }
 
@@ -76,7 +102,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "D? li?u kh�ng h?p l?"));
+                return BadRequest(ApiResponse<Ingredient>.ErrorResponse(errors, "Dữ liệu không hợp lệ"));
             }
 
             var updated = await _service.UpdateAsync(id, dto);
@@ -84,10 +110,10 @@ namespace FitPick_EXE201.Controllers
             if (updated == null)
             {
                 return NotFound(ApiResponse<Ingredient>.ErrorResponse(
-                    new List<string> { "Nguy�n li?u kh�ng t?n t?i" }, "Kh�ng t�m th?y"));
+                    new List<string> { "Nguyên liệu không tồn tại" }, "Không tìm thấy"));
             }
 
-            return Ok(ApiResponse<Ingredient>.SuccessResponse(updated, "C?p nh?t nguy�n li?u th�nh c�ng"));
+            return Ok(ApiResponse<Ingredient>.SuccessResponse(updated, "Cập nhật nguyên liệu thành công"));
         }
 
 
@@ -98,9 +124,9 @@ namespace FitPick_EXE201.Controllers
             var deleted = await _service.DeleteAsync(id);
             if (!deleted)
                 return NotFound(ApiResponse<string>.ErrorResponse(
-                    new List<string> { "Nguy�n li?u kh�ng t?n t?i" }, "Kh�ng t�m th?y"));
+                    new List<string> { "Nguyên liệu không tồn tại" }, "Không tìm thấy"));
 
-            return Ok(ApiResponse<string>.SuccessResponse("�� x�a th�nh c�ng", "X�a nguy�n li?u th�nh c�ng"));
+            return Ok(ApiResponse<string>.SuccessResponse("Đã xóa thành công", "Xóa nguyên liệu thành công"));
         }
     }
 }

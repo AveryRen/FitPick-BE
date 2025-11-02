@@ -23,6 +23,18 @@ namespace FitPick_EXE201.Services
             }
         }
 
+        public async Task<List<object>> GetMealStatusesAsync()
+        {
+            try
+            {
+                return await _filterRepository.GetMealStatusesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting meal statuses: {ex.Message}", ex);
+            }
+        }
+
         public async Task<List<object>> GetIngredientsAsync(int page = 0, int pageSize = 20)
         {
             try

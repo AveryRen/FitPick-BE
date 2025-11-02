@@ -42,8 +42,61 @@ namespace FitPick_EXE201.Repositories.Repo
             return await query
                 .Include(m => m.Category)
                 .Include(m => m.MealInstructions)
-                .Include(m => m.Status)       
+                .Include(m => m.Status)
+                .OrderByDescending(m => m.Createdat ?? DateTime.MinValue)
                 .ToListAsync();
+        }
+
+        public async Task<(List<Meal> items, int totalCount)> GetAllPagedAsync(
+            int page,
+            int pageSize,
+            int? categoryId = null,
+            string? dietType = null,
+            int? statusId = null,
+            string? search = null,
+            string? sortBy = "createdat",
+            bool sortDesc = true
+        )
+        {
+            var query = _context.Meals
+                .Include(m => m.Category)
+                .Include(m => m.Status)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(m => m.CategoryId == categoryId.Value);
+
+            if (!string.IsNullOrWhiteSpace(dietType))
+                query = query.Where(m => m.Diettype == dietType);
+
+            if (statusId.HasValue)
+                query = query.Where(m => m.StatusId == statusId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(m => 
+                    m.Name.Contains(search) ||
+                    (m.Description != null && m.Description.Contains(search))
+                );
+            }
+
+            // Sorting
+            query = sortBy?.ToLower() switch
+            {
+                "name" => sortDesc ? query.OrderByDescending(m => m.Name) : query.OrderBy(m => m.Name),
+                "calories" => sortDesc ? query.OrderByDescending(m => m.Calories ?? 0) : query.OrderBy(m => m.Calories ?? 0),
+                "price" => sortDesc ? query.OrderByDescending(m => m.Price ?? 0) : query.OrderBy(m => m.Price ?? 0),
+                "createdat" => sortDesc ? query.OrderByDescending(m => m.Createdat ?? DateTime.MinValue) : query.OrderBy(m => m.Createdat ?? DateTime.MinValue),
+                _ => query.OrderByDescending(m => m.Createdat ?? DateTime.MinValue)
+            };
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
         }
         public async Task<Meal?> GetByIdAsync(int id)
         {
@@ -59,6 +112,9 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<Meal> AddAsync(Meal meal)
         {
+            // Ensure Mealid is not set (let database generate it)
+            meal.Mealid = 0;
+            
             _context.Meals.Add(meal);
             await _context.SaveChangesAsync();
             return meal;
@@ -91,5 +147,27 @@ namespace FitPick_EXE201.Repositories.Repo
             return meal;
         }
 
+        public async Task AddIngredientsAsync(int mealId, List<Models.DTOs.MealIngredientCreateDto> ingredients)
+        {
+            var mealIngredients = ingredients.Select(i => new Mealingredient
+            {
+                Mealid = mealId,
+                Ingredientid = i.IngredientId,
+                Quantity = i.Quantity
+            }).ToList();
+
+            _context.Mealingredients.AddRange(mealIngredients);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveIngredientsAsync(int mealId)
+        {
+            var existingIngredients = await _context.Mealingredients
+                .Where(mi => mi.Mealid == mealId)
+                .ToListAsync();
+
+            _context.Mealingredients.RemoveRange(existingIngredients);
+            await _context.SaveChangesAsync();
+        }
     }
 } 

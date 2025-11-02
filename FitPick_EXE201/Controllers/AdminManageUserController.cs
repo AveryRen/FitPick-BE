@@ -24,37 +24,69 @@ namespace FitPick_EXE201.Controllers
             _userService = userService;
         }
 
-        // L?y danh sách user
+        // L?y danh sï¿½ch user
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<User>>>> GetAllUsers(
+        public async Task<ActionResult<ApiResponse<object>>> GetAllUsers(
     [FromQuery] string? searchKeyword,
     [FromQuery] string? sortBy,
     [FromQuery] bool sortDesc = false,
     [FromQuery] int? genderId = null,
     [FromQuery] int? roleId = null,
-    [FromQuery] bool? status = null
+    [FromQuery] bool? status = null,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10
 )
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentAdminId))
-                return Unauthorized(ApiResponse<List<User>>.ErrorResponse(
+                return Unauthorized(ApiResponse<object>.ErrorResponse(
                     new List<string> { "Unauthorized" }, "You must be logged in as Admin"));
 
-            var users = await _userService.GetAllUsersAsync(
-                currentAdminId,
-                searchKeyword,
-                sortBy,
-                sortDesc,
-                genderId,
-                roleId,
-                status
-            );
+            // Use paginated method if page and pageSize are provided
+            if (page > 0 && pageSize > 0)
+            {
+                var (users, totalCount) = await _userService.GetAllUsersPagedAsync(
+                    currentAdminId,
+                    searchKeyword,
+                    sortBy,
+                    sortDesc,
+                    genderId,
+                    roleId,
+                    status,
+                    page,
+                    pageSize
+                );
 
-            return Ok(ApiResponse<List<User>>.SuccessResponse(users, "Users retrieved successfully"));
+                var result = new
+                {
+                    items = users,
+                    totalItems = totalCount,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    pageSize = pageSize,
+                    pageNumber = page
+                };
+
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Users retrieved successfully"));
+            }
+            else
+            {
+                // Fallback to non-paginated for backward compatibility
+                var users = await _userService.GetAllUsersAsync(
+                    currentAdminId,
+                    searchKeyword,
+                    sortBy,
+                    sortDesc,
+                    genderId,
+                    roleId,
+                    status
+                );
+
+                return Ok(ApiResponse<List<User>>.SuccessResponse(users, "Users retrieved successfully"));
+            }
         }
 
 
 
-        // L?y thông tin user theo ID
+        // L?y thï¿½ng tin user theo ID
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<AdminUserDetailDto>>> GetUserById(int id)
         {
@@ -76,7 +108,7 @@ namespace FitPick_EXE201.Controllers
                     .Select(e => e.ErrorMessage)
                     .ToList();
 
-                return BadRequest(ApiResponse<object>.ErrorResponse(errors, "D? li?u không h?p l?"));
+                return BadRequest(ApiResponse<object>.ErrorResponse(errors, "D? li?u khï¿½ng h?p l?"));
             }
 
             var newUser = new User
@@ -109,7 +141,7 @@ namespace FitPick_EXE201.Controllers
                 createdUser.Status
             };
 
-            return Ok(ApiResponse<object>.SuccessResponse(responseData, "T?o ngu?i dùng thành công"));
+            return Ok(ApiResponse<object>.SuccessResponse(responseData, "T?o ngu?i dï¿½ng thï¿½nh cï¿½ng"));
         }
         [HttpPut("{id}/avatar")]
         public async Task<IActionResult> UpdateAvatar(
@@ -120,7 +152,7 @@ namespace FitPick_EXE201.Controllers
             if (request.Avatar == null || request.Avatar.Length == 0)
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "Không có file d? upload." },
+                    new List<string> { "Khï¿½ng cï¿½ file d? upload." },
                     "C?p nh?t ?nh th?t b?i"
                 ));
             }
@@ -131,7 +163,7 @@ namespace FitPick_EXE201.Controllers
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(
                     new List<string> { "Upload ?nh th?t b?i." },
-                    "Không th? luu ?nh"
+                    "Khï¿½ng th? luu ?nh"
                 ));
             }
 
@@ -140,8 +172,8 @@ namespace FitPick_EXE201.Controllers
             if (updatedUser == null)
             {
                 return NotFound(ApiResponse<object>.ErrorResponse(
-                    new List<string> { $"Không tìm th?y user v?i id = {id}" },
-                    "Ngu?i dùng không t?n t?i"
+                    new List<string> { $"Khï¿½ng tï¿½m th?y user v?i id = {id}" },
+                    "Ngu?i dï¿½ng khï¿½ng t?n t?i"
                 ));
             }
 
@@ -155,7 +187,7 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<UserAvatarResponseDto>.SuccessResponse(
                 responseDto,
-                "C?p nh?t ?nh d?i di?n thành công"
+                "C?p nh?t ?nh d?i di?n thï¿½nh cï¿½ng"
             ));
         }
 
@@ -202,7 +234,7 @@ namespace FitPick_EXE201.Controllers
         }
 
 
-        // ? Xoá m?m (deactivate) user
+        // ? Xoï¿½ m?m (deactivate) user
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(int id)
         {

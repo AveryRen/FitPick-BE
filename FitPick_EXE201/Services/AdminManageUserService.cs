@@ -35,6 +35,31 @@ namespace FitPick_EXE201.Services
             );
         }
 
+        public async Task<(List<User> items, int totalCount)> GetAllUsersPagedAsync(
+            int currentAdminId,
+            string? searchKeyword,
+            string? sortBy,
+            bool sortDesc,
+            int? genderId,
+            int? roleId,
+            bool? status,
+            int page,
+            int pageSize
+        )
+        {
+            return await _userRepo.GetAllUsersPagedAsync(
+                currentAdminId,
+                searchKeyword,
+                sortBy,
+                sortDesc,
+                genderId,
+                roleId,
+                status,
+                page,
+                pageSize
+            );
+        }
+
         public async Task<AdminUserDetailDto?> GetUserByIdForAdminAsync(int id)
         {
             return await _userRepo.GetUserByIdForAdminAsync(id);
@@ -42,11 +67,11 @@ namespace FitPick_EXE201.Services
 
         public async Task<User> CreateUserAsync(User user)
         {
-            // Check trùng email
+            // Check trï¿½ng email
             var existingUser = await _userRepo.GetByEmailAsync(user.Email);
             if (existingUser != null)
             {
-                throw new InvalidOperationException("Email dã t?n t?i.");
+                throw new InvalidOperationException("Email dï¿½ t?n t?i.");
             }
 
              if (user.RoleId <= 0)
@@ -72,7 +97,7 @@ namespace FitPick_EXE201.Services
             var user = await _userRepo.GetUserEntityByIdAsync(id);
             if (user == null) return false;
 
-            // Check email trùng (ngo?i tr? chính user dang update)
+            // Check email trï¿½ng (ngo?i tr? chï¿½nh user dang update)
             if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
             {
                 var existingUser = await _userRepo.GetByEmailAsync(dto.Email);

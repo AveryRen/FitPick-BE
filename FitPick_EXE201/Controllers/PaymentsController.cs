@@ -20,12 +20,33 @@ namespace FitPick_EXE201.Controllers
 
 
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<PayosPayment>>), 200)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<PayosPayment>>>> GetAllPayments()
+        [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+        public async Task<ActionResult<ApiResponse<object>>> GetAllPayments(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? status = null,
+            [FromQuery] int? userId = null)
         {
-            var payments = await _paymentService.GetAllPaymentsAsync();
-            return Ok(ApiResponse<IEnumerable<PayosPayment>>
-                .SuccessResponse(payments, "All payments retrieved successfully"));
+            if (page > 0 && pageSize > 0)
+            {
+                var (payments, totalCount) = await _paymentService.GetAllPaymentsPagedAsync(page, pageSize, search, status, userId);
+                var result = new
+                {
+                    items = payments,
+                    totalItems = totalCount,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    pageSize = pageSize,
+                    pageNumber = page
+                };
+                return Ok(ApiResponse<object>.SuccessResponse(result, "All payments retrieved successfully"));
+            }
+            else
+            {
+                var payments = await _paymentService.GetAllPaymentsAsync();
+                return Ok(ApiResponse<IEnumerable<PayosPayment>>
+                    .SuccessResponse(payments, "All payments retrieved successfully"));
+            }
         }
 
 
@@ -67,5 +88,32 @@ namespace FitPick_EXE201.Controllers
             return Ok(ApiResponse<object>
                 .SuccessResponse(null, "Payment deleted successfully"));
         }
+
+        [HttpPut("{id:int}/status")]
+        [ProducesResponseType(typeof(ApiResponse<PayosPayment>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<PayosPayment>), 404)]
+        public async Task<ActionResult<ApiResponse<PayosPayment>>> UpdatePaymentStatus(int id, [FromBody] UpdatePaymentStatusRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Status))
+            {
+                return BadRequest(ApiResponse<PayosPayment>.ErrorResponse(
+                    new List<string> { "Status is required" }, "Bad Request"));
+            }
+
+            var updated = await _paymentService.UpdatePaymentStatusAsync(id, request.Status);
+            if (!updated)
+            {
+                return NotFound(ApiResponse<PayosPayment>.ErrorResponse(
+                    new List<string> { "Payment not found" }, "Update failed"));
+            }
+
+            var payment = await _paymentService.GetPaymentByIdAsync(id);
+            return Ok(ApiResponse<PayosPayment>.SuccessResponse(payment!, "Payment status updated successfully"));
+        }
+    }
+
+    public class UpdatePaymentStatusRequest
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }

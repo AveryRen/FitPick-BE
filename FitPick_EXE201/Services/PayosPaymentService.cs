@@ -30,5 +30,15 @@ namespace FitPick_EXE201.Services
         {
             return await _repository.GetAllAsync();
         }
+
+        public async Task<(List<PayosPayment> items, int totalCount)> GetAllPaymentsPagedAsync(int page, int pageSize, string? search, string? status, int? userId)
+        {
+            return await _repository.GetAllPagedAsync(page, pageSize, search, status, userId);
+        }
+
+        public async Task<bool> UpdatePaymentStatusAsync(int paymentId, string status)
+        {
+            return await _repository.UpdateStatusAsync(paymentId, status);
+        }
     }
 }

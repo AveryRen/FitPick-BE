@@ -27,6 +27,20 @@ namespace FitPick_EXE201.Repositories.Repo
             return categories.Cast<object>().ToList();
         }
 
+        public async Task<List<object>> GetMealStatusesAsync()
+        {
+            var statuses = await _context.MealStatuses
+                .Select(s => new
+                {
+                    id = s.Id,
+                    name = s.Name,
+                    vietnameseName = s.Name
+                })
+                .ToListAsync();
+
+            return statuses.Cast<object>().ToList();
+        }
+
         public async Task<List<object>> GetIngredientsAsync(int page = 0, int pageSize = 20)
         {
             var ingredients = await _context.Ingredients
@@ -47,19 +61,18 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<object>> GetDietTypesAsync()
         {
-            // Get diet types from DietPlan table (user's diet plans)
-            var dietTypes = await _context.DietPlans
-                .Where(dp => dp.Status == true) // Active diet plans only
-                .Select(dp => new
+            // Get distinct diet types from Meals table (not from user's diet plans)
+            var dietTypes = await _context.Meals
+                .Where(m => !string.IsNullOrEmpty(m.Diettype))
+                .Select(m => m.Diettype)
+                .Distinct()
+                .OrderBy(dt => dt)
+                .Select(dt => new
                 {
-                    id = dp.Id,
-                    name = dp.Name,
-                    vietnameseName = dp.Name,
-                    description = dp.Description
+                    name = dt,
+                    vietnameseName = dt
                 })
-                .OrderBy(dp => dp.name)
-                .ToListAsync();
-
+                .ToListAsync(); 
             return dietTypes.Cast<object>().ToList();
         }
 
