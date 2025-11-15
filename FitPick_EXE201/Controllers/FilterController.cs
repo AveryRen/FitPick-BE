@@ -6,6 +6,7 @@ using FitPick_EXE201.Services;
 using FitPick_EXE201.Repositories.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using FitPick_EXE201.Models.Entities;
 
 namespace FitPick_EXE201.Controllers
 {
@@ -15,10 +16,14 @@ namespace FitPick_EXE201.Controllers
     public class FilterController : ControllerBase
     {
         private readonly IFilterService _filterService;
+        private readonly PersonalizationService _personalizationService;
+        private readonly FitPickContext _context;
 
-        public FilterController(IFilterService filterService)
+        public FilterController(IFilterService filterService, PersonalizationService personalizationService, FitPickContext context)
         {
             _filterService = filterService;
+            _personalizationService = personalizationService;
+            _context = context;
         }
 
         // Get all categories
@@ -213,17 +218,86 @@ namespace FitPick_EXE201.Controllers
             }
         }
 
-        // Get suggested meals (popular meals)
+        // Get suggested meals (personalized recommendations based on user profile)
         [HttpGet("suggested-meals")]
         public async Task<ActionResult<ApiResponse<List<object>>>> GetSuggestedMeals([FromQuery] int limit = 10)
         {
             try
             {
-                var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
+                var userId = GetUserIdFromToken();
+                
+                // If user is authenticated, use personalized recommendations
+                if (userId.HasValue)
+                {
+                    var recommendations = await _personalizationService.GenerateRecommendationsAsync(userId.Value, limit);
+                    
+                    // Get meal details for each recommendation
+                    var suggestedMeals = new List<object>();
+                    foreach (var rec in recommendations)
+                    {
+                        var meal = await _context.Meals
+                            .Include(m => m.Category)
+                            .Include(m => m.Status)
+                            .FirstOrDefaultAsync(m => m.Mealid == rec.MealId);
+                        
+                        if (meal != null)
+                        {
+                            suggestedMeals.Add(new
+                            {
+                                mealid = meal.Mealid,
+                                name = meal.Name,
+                                calories = meal.Calories,
+                                protein = meal.Protein,
+                                carbs = meal.Carbs,
+                                fat = meal.Fat,
+                                cookingTime = meal.Cookingtime,
+                                imageUrl = meal.ImageUrl,
+                                isPremium = meal.IsPremium,
+                                diettype = meal.Diettype,
+                                categoryName = meal.Category?.Name,
+                                statusName = meal.Status?.Name,
+                                price = meal.Price,
+                                description = meal.Description,
+                                confidenceScore = rec.ConfidenceScore
+                            });
+                        }
+                    }
+
+                    return Ok(ApiResponse<List<object>>.SuccessResponse(
+                        suggestedMeals,
+                        "Lấy danh sách món ăn gợi ý cá nhân hóa thành công"
+                    ));
+                }
+                else
+                {
+                    // Fallback to popular meals if user not authenticated
+                    var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
+                    return Ok(ApiResponse<List<object>>.SuccessResponse(
+                        suggestedMeals,
+                        "Lấy danh sách món ăn phổ biến thành công"
+                    ));
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<List<object>>.ErrorResponse(
+                    new List<string> { ex.Message },
+                    "Lỗi server"
+                ));
+            }
+        }
+
+        // Get popular meals (most frequently used in meal plans and meal histories)
+        [HttpGet("popular-meals")]
+        public async Task<ActionResult<ApiResponse<List<object>>>> GetPopularMeals([FromQuery] int limit = 10)
+        {
+            try
+            {
+                var popularMeals = await _filterService.GetPopularMealsAsync(limit);
 
                 return Ok(ApiResponse<List<object>>.SuccessResponse(
-                    suggestedMeals,
-                    "Lấy danh sách món ăn gợi ý thành công"
+                    popularMeals,
+                    "Lấy danh sách món ăn phổ biến thành công"
                 ));
             }
             catch (Exception ex)

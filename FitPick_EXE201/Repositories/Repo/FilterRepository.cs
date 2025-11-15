@@ -156,6 +156,40 @@ namespace FitPick_EXE201.Repositories.Repo
             return suggestedMeals.Cast<object>().ToList();
         }
 
+        public async Task<List<object>> GetPopularMealsAsync(int limit = 10)
+        {
+            // Get popular meals based on:
+            // 1. Number of times used in meal plans
+            // 2. Number of times consumed (meal histories)
+            var popularMeals = await _context.Meals
+                .Where(m => m.StatusId == 1) // Active meals only
+                .Select(m => new
+                {
+                    mealid = m.Mealid,
+                    name = m.Name,
+                    calories = m.Calories,
+                    protein = m.Protein,
+                    carbs = m.Carbs,
+                    fat = m.Fat,
+                    cookingTime = m.Cookingtime,
+                    imageUrl = m.ImageUrl,
+                    isPremium = m.IsPremium,
+                    diettype = m.Diettype,
+                    categoryName = m.Category.Name,
+                    statusName = m.Status.Name,
+                    price = m.Price,
+                    description = m.Description,
+                    // Calculate popularity score: meal plans count + meal histories count
+                    popularityScore = m.Mealplans.Count() + m.MealHistories.Count()
+                })
+                .OrderByDescending(m => m.popularityScore)
+                .ThenByDescending(m => m.mealid)
+                .Take(limit)
+                .ToListAsync();
+
+            return popularMeals.Cast<object>().ToList();
+        }
+
         public async Task<(List<object> meals, int totalCount)> SearchMealsWithFiltersAsync(FilterSearchRequest request)
         {
             // Debug: Check total active meals

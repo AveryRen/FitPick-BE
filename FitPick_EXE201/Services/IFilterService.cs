@@ -28,6 +28,9 @@ namespace FitPick_EXE201.Services
         // Get suggested meals (popular meals)
         Task<List<object>> GetSuggestedMealsAsync(int limit = 10);
         
+        // Get popular meals (most frequently used in meal plans and meal histories)
+        Task<List<object>> GetPopularMealsAsync(int limit = 10);
+        
         // Search meals with filters
         Task<(List<object> meals, int totalCount)> SearchMealsWithFiltersAsync(FilterSearchRequest request);
         

@@ -107,6 +107,18 @@ namespace FitPick_EXE201.Services
             }
         }
 
+        public async Task<List<object>> GetPopularMealsAsync(int limit = 10)
+        {
+            try
+            {
+                return await _filterRepository.GetPopularMealsAsync(limit);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting popular meals: {ex.Message}", ex);
+            }
+        }
+
         public async Task<(List<object> meals, int totalCount)> SearchMealsWithFiltersAsync(FilterSearchRequest request)
         {
             try
