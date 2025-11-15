@@ -2,6 +2,7 @@ using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Services;
 using Microsoft.AspNetCore.Mvc;
 using FitPick_EXE201.Helpers;
+using System.Security.Claims;
 
 namespace FitPick_EXE201.Controllers
 {
