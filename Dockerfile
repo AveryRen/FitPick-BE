@@ -11,8 +11,8 @@ WORKDIR /src/FitPick_EXE201
 # Restore packages
 RUN dotnet restore "FitPick_EXE201.csproj"
 
-# Build and publish
-RUN dotnet publish "FitPick_EXE201.csproj" -c Release -o /app/publish
+# Build and publish (warnings won't fail the build)
+RUN dotnet publish "FitPick_EXE201.csproj" -c Release -o /app/publish /p:TreatWarningsAsErrors=false /p:WarningsAsErrors="" /p:WarningsNotAsErrors=""
 
 # ===== STAGE 2: Run =====
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
