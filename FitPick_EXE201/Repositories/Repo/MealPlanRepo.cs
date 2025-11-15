@@ -190,18 +190,33 @@ namespace FitPick_EXE201.Repositories.Repo
         // Sinh meal plan mới với target calories được truyền vào (không cần health profile)
         public async Task<List<Mealplan>> GenerateMealPlanWithTargetCaloriesAsync(int userId, DateOnly date, int targetCalories)
         {
+            Console.WriteLine($"🔍 GenerateMealPlanWithTargetCaloriesAsync: userId={userId}, date={date}, targetCalories={targetCalories}");
+            
             // Xóa meal plan cũ của user trong ngày (nếu có)
             var existingPlans = await _context.Mealplans
                 .Where(mp => mp.Userid == userId && mp.Date == date)
                 .ToListAsync();
 
             if (existingPlans.Any())
+            {
+                Console.WriteLine($"🗑️ Removing {existingPlans.Count} existing plans");
                 _context.Mealplans.RemoveRange(existingPlans);
+            }
+
+            // Validate target calories
+            if (targetCalories <= 0)
+            {
+                Console.WriteLine($"❌ Invalid targetCalories: {targetCalories}");
+                return null!;
+            }
 
             // Lấy meals phù hợp calories / goal
+            Console.WriteLine($"🔍 Querying meals with StatusId=1, Calories > 0, Calories <= {targetCalories}");
             var meals = await _context.Meals
                 .Where(m => m.StatusId == 1 && (m.Calories ?? 0) > 0 && (m.Calories ?? 0) <= targetCalories)
                 .ToListAsync();
+            
+            Console.WriteLine($"🍽️ Found {meals?.Count ?? 0} suitable meals");
 
             if (meals == null || !meals.Any()) 
             {

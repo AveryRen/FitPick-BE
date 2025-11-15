@@ -63,6 +63,8 @@ namespace FitPick_EXE201.Services
         {
             try
             {
+                Console.WriteLine($"🔍 GenerateMealPlanWithValidationAsync: userId={userId}, date={date}");
+                
                 // 1. Lấy thông tin User từ onboarding
                 var user = await _context.Users
                     .Include(u => u.DietPlan)
@@ -71,6 +73,7 @@ namespace FitPick_EXE201.Services
 
                 if (user == null)
                 {
+                    Console.WriteLine($"❌ User {userId} not found");
                     return new GenerateMealPlanResult
                     {
                         Success = false,
@@ -79,9 +82,12 @@ namespace FitPick_EXE201.Services
                     };
                 }
 
+                Console.WriteLine($"✅ User found: Age={user.Age}, Height={user.Height}, Weight={user.Weight}");
+
                 // 2. Kiểm tra thông tin cơ bản từ onboarding
                 if (!user.Age.HasValue || !user.Height.HasValue || !user.Weight.HasValue)
                 {
+                    Console.WriteLine($"❌ Incomplete onboarding: Age={user.Age}, Height={user.Height}, Weight={user.Weight}");
                     return new GenerateMealPlanResult
                     {
                         Success = false,
@@ -102,15 +108,19 @@ namespace FitPick_EXE201.Services
                 if (healthProfile != null && healthProfile.Targetcalories.HasValue && healthProfile.Targetcalories.Value > 0)
                 {
                     targetCalories = healthProfile.Targetcalories.Value;
+                    Console.WriteLine($"✅ Using target calories from HealthProfile: {targetCalories}");
                 }
                 else
                 {
                     // Tính từ thông tin User (onboarding)
-                    targetCalories = CalculateTargetCaloriesFromUser(user, healthProfile);
+                    Console.WriteLine($"📊 Calculating target calories from User info...");
+                    targetCalories = await CalculateTargetCaloriesFromUserAsync(user, healthProfile);
+                    Console.WriteLine($"✅ Calculated target calories: {targetCalories}");
                 }
 
                 if (!targetCalories.HasValue || targetCalories.Value <= 0)
                 {
+                    Console.WriteLine($"❌ Invalid target calories: {targetCalories}");
                     return new GenerateMealPlanResult
                     {
                         Success = false,
@@ -119,10 +129,14 @@ namespace FitPick_EXE201.Services
                     };
                 }
 
+                Console.WriteLine($"🎯 Target calories: {targetCalories}");
+
                 // 4. Kiểm tra có meals phù hợp không
                 var availableMeals = await _context.Meals
                     .Where(m => m.StatusId == 1 && (m.Calories ?? 0) > 0 && (m.Calories ?? 0) <= targetCalories.Value)
                     .CountAsync();
+
+                Console.WriteLine($"🍽️ Available meals: {availableMeals}");
 
                 if (availableMeals == 0)
                 {
@@ -135,10 +149,12 @@ namespace FitPick_EXE201.Services
                 }
 
                 // 5. Generate meal plan với target calories đã tính
+                Console.WriteLine($"🚀 Calling GenerateMealPlanWithTargetCaloriesAsync with targetCalories={targetCalories.Value}");
                 var plans = await _mealPlanRepo.GenerateMealPlanWithTargetCaloriesAsync(userId, date, targetCalories.Value);
                 
                 if (plans == null || !plans.Any())
                 {
+                    Console.WriteLine($"❌ No plans generated");
                     return new GenerateMealPlanResult
                     {
                         Success = false,
@@ -147,6 +163,7 @@ namespace FitPick_EXE201.Services
                     };
                 }
 
+                Console.WriteLine($"✅ Successfully generated {plans.Count} meal plans");
                 return new GenerateMealPlanResult
                 {
                     Success = true,
@@ -155,7 +172,7 @@ namespace FitPick_EXE201.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GenerateMealPlanWithValidationAsync: {ex.Message}");
+                Console.WriteLine($"❌ Error in GenerateMealPlanWithValidationAsync: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return new GenerateMealPlanResult
                 {
@@ -167,15 +184,22 @@ namespace FitPick_EXE201.Services
         }
 
         // Tính target calories từ thông tin User (onboarding)
-        private int? CalculateTargetCaloriesFromUser(User user, Healthprofile? healthProfile)
+        private async Task<int?> CalculateTargetCaloriesFromUserAsync(User user, Healthprofile? healthProfile)
         {
+            Console.WriteLine($"📊 CalculateTargetCaloriesFromUserAsync: Age={user.Age}, Height={user.Height}, Weight={user.Weight}, GenderId={user.GenderId}");
+            
             if (!user.Age.HasValue || !user.Height.HasValue || !user.Weight.HasValue)
+            {
+                Console.WriteLine($"❌ Missing user info for calculation");
                 return null;
+            }
 
             double weight = (double)user.Weight.Value;
             double height = (double)user.Height.Value;
             int age = user.Age.Value;
             int genderId = user.GenderId ?? 1; // Default to Male
+
+            Console.WriteLine($"📐 Calculating BMR: weight={weight}, height={height}, age={age}, genderId={genderId}");
 
             // Tính BMR (Basal Metabolic Rate) - sử dụng công thức Harris-Benedict
             double bmr = 0;
@@ -188,30 +212,41 @@ namespace FitPick_EXE201.Services
                 bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
             }
 
+            Console.WriteLine($"📊 BMR calculated: {bmr}");
+
             // Hệ số hoạt động - lấy từ health profile hoặc default
             double activityMultiplier = 1.2; // Sedentary default
             if (healthProfile?.Lifestyleid.HasValue == true)
             {
-                var lifestyle = _context.Lifestyles.FirstOrDefault(l => l.Id == healthProfile.Lifestyleid.Value);
-                if (lifestyle?.Multiplier.HasValue == true)
+                var lifestyle = await _context.Lifestyles.FirstOrDefaultAsync(l => l.Id == healthProfile.Lifestyleid.Value);
+                if (lifestyle != null)
                 {
-                    activityMultiplier = (double)lifestyle.Multiplier.Value;
+                    activityMultiplier = (double)lifestyle.Multiplier;
+                    Console.WriteLine($"✅ Using lifestyle multiplier: {activityMultiplier}");
                 }
+            }
+            else
+            {
+                Console.WriteLine($"ℹ️ Using default activity multiplier: {activityMultiplier}");
             }
 
             double targetCalories = bmr * activityMultiplier;
+            Console.WriteLine($"📊 Target calories before goal adjustment: {targetCalories}");
 
             // Điều chỉnh theo health goal nếu có
             if (healthProfile?.Healthgoalid.HasValue == true)
             {
-                var goal = _context.Healthgoals.FirstOrDefault(g => g.Id == healthProfile.Healthgoalid.Value);
-                if (goal?.CalorieAdjustment.HasValue == true)
+                var goal = await _context.Healthgoals.FirstOrDefaultAsync(g => g.Id == healthProfile.Healthgoalid.Value);
+                if (goal != null)
                 {
-                    targetCalories += (double)goal.CalorieAdjustment.Value;
+                    targetCalories += goal.CalorieAdjustment;
+                    Console.WriteLine($"✅ Adjusted by goal: {goal.CalorieAdjustment}, new target: {targetCalories}");
                 }
             }
 
-            return (int)Math.Round(targetCalories);
+            int result = (int)Math.Round(targetCalories);
+            Console.WriteLine($"✅ Final target calories: {result}");
+            return result;
         }
     }
 }
