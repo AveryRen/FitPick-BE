@@ -23,8 +23,12 @@ namespace FitPick_EXE201.Controllers
 
         private int GetUserIdFromToken()
         {
-            return int.Parse(User.FindFirst("id")?.Value ??
-                             throw new UnauthorizedAccessException("User ID not found in token"));
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
+            {
+                throw new UnauthorizedAccessException("User ID not found in token");
+            }
+            return userId;
         }
 
 
@@ -51,7 +55,8 @@ namespace FitPick_EXE201.Controllers
                 {
                     h.Meal.Mealid,
                     h.Meal.Name,
-                    h.Meal.Calories
+                    h.Meal.Calories,
+                    h.Meal.ImageUrl
                 },
                 Mealtime = h.Mealtime == null ? null : new
                 {
@@ -153,7 +158,8 @@ namespace FitPick_EXE201.Controllers
                     h.Meal.Calories,
                     h.Meal.Protein,
                     h.Meal.Carbs,
-                    h.Meal.Fat
+                    h.Meal.Fat,
+                    h.Meal.ImageUrl
                 },
                 Mealtime = h.Mealtime == null ? null : new
                 {

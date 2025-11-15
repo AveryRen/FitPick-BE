@@ -18,8 +18,12 @@ namespace FitPick_EXE201.Controllers
 
         private int GetUserIdFromToken()
         {
-            return int.Parse(User.FindFirst("id")?.Value ??
-                             throw new UnauthorizedAccessException("User ID not found in token"));
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId == 0)
+            {
+                throw new UnauthorizedAccessException("User ID not found in token");
+            }
+            return userId;
         }
 
         // Hàm map Entity -> DTO

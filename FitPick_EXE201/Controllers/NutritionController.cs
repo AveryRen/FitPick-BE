@@ -249,6 +249,35 @@ namespace FitPick_EXE201.Controllers
             }
         }
 
+        // PUT api/user/nutrition-goals
+        [HttpPut("nutrition-goals")]
+        public async Task<ActionResult<ApiResponse<UserNutritionGoalDto>>> UpdateNutritionGoal([FromBody] CreateUserNutritionGoalDto dto)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                // Try to update existing goal, if not exists, create new one
+                var existingGoals = await _personalizationService.GetUserGoalsAsync(userId);
+                if (existingGoals != null && existingGoals.Any())
+                {
+                    // Update the first goal (assuming user has one main nutrition goal)
+                    var firstGoal = existingGoals.First();
+                    var updated = await _personalizationService.UpdateGoalAsync(firstGoal.Id, dto);
+                    if (updated != null)
+                    {
+                        return Ok(ApiResponse<UserNutritionGoalDto>.SuccessResponse(updated, "Nutrition goal updated successfully"));
+                    }
+                }
+                // If no existing goal, create new one
+                var goal = await _personalizationService.CreateGoalAsync(userId, dto);
+                return Ok(ApiResponse<UserNutritionGoalDto>.SuccessResponse(goal, "Nutrition goal created successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<UserNutritionGoalDto>.ErrorResponse(new List<string> { ex.Message }, "Error updating nutrition goal"));
+            }
+        }
+
         // GET api/user/nutrition-history?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
         [HttpGet("nutrition-history")]
         public async Task<ActionResult<ApiResponse<IEnumerable<UserNutritionHistoryDto>>>> GetUserNutritionHistory([FromQuery] string? startDate = null, [FromQuery] string? endDate = null)
