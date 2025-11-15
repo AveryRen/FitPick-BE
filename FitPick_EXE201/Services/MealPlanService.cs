@@ -26,6 +26,8 @@ namespace FitPick_EXE201.Services
         public async Task<Mealplan?> GenerateMealPlanAsync(int userId, DateOnly date)
         {
             var plans = await _mealPlanRepo.GenerateMealPlanAsync(userId, date);
+            if (plans == null || !plans.Any())
+                return null;
             return plans.FirstOrDefault();
         }
         
