@@ -127,65 +127,66 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<object>> GetSuggestedMealsAsync(int limit = 10)
         {
-            // Get popular meals (most frequently used in meal plans)
-            var suggestedMeals = await _context.Meals
-                .Where(m => m.StatusId == 1) // Active meals only
-                .Select(m => new
-                {
-                    mealid = m.Mealid,
-                    name = m.Name,
-                    calories = m.Calories,
-                    protein = m.Protein,
-                    carbs = m.Carbs,
-                    fat = m.Fat,
-                    cookingTime = m.Cookingtime,
-                    imageUrl = m.ImageUrl,
-                    isPremium = m.IsPremium,
-                    diettype = m.Diettype,
-                    categoryName = m.Category.Name,
-                    statusName = m.Status.Name,
-                    price = m.Price,
-                    description = m.Description,
-                    popularityScore = m.Mealplans.Count() // Count how many times this meal is used
-                })
-                .OrderByDescending(m => m.popularityScore)
-                .ThenByDescending(m => m.mealid)
-                .Take(limit)
-                .ToListAsync();
+            // Simple: Get active meals with join for category and status
+            var suggestedMeals = await (from m in _context.Meals
+                                      where m.StatusId == 1 // Active meals only
+                                      join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
+                                      from c in categoryGroup.DefaultIfEmpty()
+                                      join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
+                                      from s in statusGroup.DefaultIfEmpty()
+                                      orderby m.Mealid descending
+                                      select new
+                                      {
+                                          mealid = m.Mealid,
+                                          name = m.Name ?? string.Empty,
+                                          calories = m.Calories ?? 0,
+                                          protein = m.Protein ?? 0,
+                                          carbs = m.Carbs ?? 0,
+                                          fat = m.Fat ?? 0,
+                                          cookingTime = m.Cookingtime ?? 0,
+                                          imageUrl = m.ImageUrl ?? string.Empty,
+                                          isPremium = m.IsPremium ?? false,
+                                          diettype = m.Diettype ?? string.Empty,
+                                          categoryName = c != null ? c.Name : "Món ăn",
+                                          statusName = s != null ? s.Name : "Published",
+                                          price = m.Price ?? 0,
+                                          description = m.Description ?? string.Empty
+                                      })
+                                      .Take(limit)
+                                      .ToListAsync();
 
             return suggestedMeals.Cast<object>().ToList();
         }
 
         public async Task<List<object>> GetPopularMealsAsync(int limit = 10)
         {
-            // Get popular meals based on:
-            // 1. Number of times used in meal plans
-            // 2. Number of times consumed (meal histories)
-            var popularMeals = await _context.Meals
-                .Where(m => m.StatusId == 1) // Active meals only
-                .Select(m => new
-                {
-                    mealid = m.Mealid,
-                    name = m.Name,
-                    calories = m.Calories,
-                    protein = m.Protein,
-                    carbs = m.Carbs,
-                    fat = m.Fat,
-                    cookingTime = m.Cookingtime,
-                    imageUrl = m.ImageUrl,
-                    isPremium = m.IsPremium,
-                    diettype = m.Diettype,
-                    categoryName = m.Category.Name,
-                    statusName = m.Status.Name,
-                    price = m.Price,
-                    description = m.Description,
-                    // Calculate popularity score: meal plans count + meal histories count
-                    popularityScore = m.Mealplans.Count() + m.MealHistories.Count()
-                })
-                .OrderByDescending(m => m.popularityScore)
-                .ThenByDescending(m => m.mealid)
-                .Take(limit)
-                .ToListAsync();
+            // Simple: Get active meals with join for category and status
+            var popularMeals = await (from m in _context.Meals
+                                     where m.StatusId == 1 // Active meals only
+                                     join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
+                                     from c in categoryGroup.DefaultIfEmpty()
+                                     join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
+                                     from s in statusGroup.DefaultIfEmpty()
+                                     orderby m.Mealid descending
+                                     select new
+                                     {
+                                         mealid = m.Mealid,
+                                         name = m.Name ?? string.Empty,
+                                         calories = m.Calories ?? 0,
+                                         protein = m.Protein ?? 0,
+                                         carbs = m.Carbs ?? 0,
+                                         fat = m.Fat ?? 0,
+                                         cookingTime = m.Cookingtime ?? 0,
+                                         imageUrl = m.ImageUrl ?? string.Empty,
+                                         isPremium = m.IsPremium ?? false,
+                                         diettype = m.Diettype ?? string.Empty,
+                                         categoryName = c != null ? c.Name : "Món ăn",
+                                         statusName = s != null ? s.Name : "Published",
+                                         price = m.Price ?? 0,
+                                         description = m.Description ?? string.Empty
+                                     })
+                                     .Take(limit)
+                                     .ToListAsync();
 
             return popularMeals.Cast<object>().ToList();
         }
