@@ -117,16 +117,27 @@ namespace FitPick_EXE201.Repositories.Repo
 
             // L?y user profile
             var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
-            if (profile == null) return null!;
+            if (profile == null)
+            {
+                Console.WriteLine($"No health profile found for user {userId}");
+                return null!;
+            }
+
+            // Kiểm tra target calories
+            if (!profile.Targetcalories.HasValue || profile.Targetcalories.Value <= 0)
+            {
+                Console.WriteLine($"User {userId} has invalid target calories: {profile.Targetcalories}");
+                return null!;
+            }
 
             // L?y meals ph h?p calories / goal
             var meals = await _context.Meals
-                .Where(m => (m.Calories ?? 0) <= (profile.Targetcalories ?? 0))
+                .Where(m => m.StatusId == 1 && (m.Calories ?? 0) > 0 && (m.Calories ?? 0) <= profile.Targetcalories.Value)
                 .ToListAsync();
 
             if (meals == null || !meals.Any()) 
             {
-                Console.WriteLine($"No meals found for user {userId} with target calories <= {profile.Targetcalories}");
+                Console.WriteLine($"No meals found for user {userId} with target calories <= {profile.Targetcalories}. Total meals in DB: {await _context.Meals.CountAsync()}, Active meals: {await _context.Meals.Where(m => m.StatusId == 1).CountAsync()}");
                 return null!;
             }
 
@@ -146,6 +157,74 @@ namespace FitPick_EXE201.Repositories.Repo
                 if (mt == null) continue;
                 
                 // Gi? s? m?i b?a c 2 mn ng?u nhin (c th? thay d?i s? lu?ng)
+                if (meals == null || !meals.Any()) continue;
+                var mealsInTime = meals.OrderBy(x => random.Next()).Take(2).ToList();
+                if (mealsInTime == null || !mealsInTime.Any()) continue;
+                
+                foreach (var meal in mealsInTime)
+                {
+                    if (meal == null) continue;
+                    
+                    mealPlans.Add(new Mealplan
+                    {
+                        Userid = userId,
+                        Date = date,
+                        MealtimeId = mt.Id,
+                        Mealid = meal.Mealid,
+                        StatusId = 1 // default
+                    });
+                }
+            }
+            
+            if (!mealPlans.Any())
+            {
+                Console.WriteLine($"No meal plans created for user {userId} on date {date}");
+                return null!;
+            }
+
+            _context.Mealplans.AddRange(mealPlans);
+            await _context.SaveChangesAsync();
+            return mealPlans;
+        }
+
+        // Sinh meal plan mới với target calories được truyền vào (không cần health profile)
+        public async Task<List<Mealplan>> GenerateMealPlanWithTargetCaloriesAsync(int userId, DateOnly date, int targetCalories)
+        {
+            // Xóa meal plan cũ của user trong ngày (nếu có)
+            var existingPlans = await _context.Mealplans
+                .Where(mp => mp.Userid == userId && mp.Date == date)
+                .ToListAsync();
+
+            if (existingPlans.Any())
+                _context.Mealplans.RemoveRange(existingPlans);
+
+            // Lấy meals phù hợp calories / goal
+            var meals = await _context.Meals
+                .Where(m => m.StatusId == 1 && (m.Calories ?? 0) > 0 && (m.Calories ?? 0) <= targetCalories)
+                .ToListAsync();
+
+            if (meals == null || !meals.Any()) 
+            {
+                Console.WriteLine($"No meals found for user {userId} with target calories <= {targetCalories}. Total meals in DB: {await _context.Meals.CountAsync()}, Active meals: {await _context.Meals.Where(m => m.StatusId == 1).CountAsync()}");
+                return null!;
+            }
+
+            // Mỗi ngày 3 bữa: sáng, trưa, tối
+            var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
+            if (mealTimes == null || !mealTimes.Any())
+            {
+                Console.WriteLine("No meal times found in database");
+                return null!;
+            }
+
+            var random = new Random();
+            var mealPlans = new List<Mealplan>();
+
+            foreach (var mt in mealTimes)
+            {
+                if (mt == null) continue;
+                
+                // Giả sử mỗi bữa có 2 món ngẫu nhiên (có thể thay đổi số lượng)
                 if (meals == null || !meals.Any()) continue;
                 var mealsInTime = meals.OrderBy(x => random.Next()).Take(2).ToList();
                 if (mealsInTime == null || !mealsInTime.Any()) continue;

@@ -9,6 +9,8 @@ namespace FitPick_EXE201.Repositories.Interface
         Task<List<Mealplan>> GetUserMealPlansAsync(int userId);
 
         Task<List<Mealplan>> GenerateMealPlanAsync(int userId, DateOnly date);
+        
+        Task<List<Mealplan>> GenerateMealPlanWithTargetCaloriesAsync(int userId, DateOnly date, int targetCalories);
 
         Task<Mealplan?> SwapMealAsync(int planId, int newMealId);
 

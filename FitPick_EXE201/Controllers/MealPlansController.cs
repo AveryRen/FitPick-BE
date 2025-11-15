@@ -76,10 +76,19 @@ namespace FitPick_EXE201.Controllers
                     return Unauthorized(ApiResponse<Mealplan>.ErrorResponse(
                         new List<string> { "UserId not found in token" }, "Unauthorized"));
 
-                var plan = await _mealPlanService.GenerateMealPlanAsync(userId.Value, DateOnly.FromDateTime(date));
-                if (plan == null)
+                var result = await _mealPlanService.GenerateMealPlanWithValidationAsync(userId.Value, DateOnly.FromDateTime(date));
+                if (!result.Success)
+                {
                     return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
-                        new List<string> { "Không thể tạo meal plan. Vui lòng kiểm tra health profile và target calories của bạn." }, "Thất bại"));
+                        new List<string> { result.ErrorMessage }, result.ErrorCode));
+                }
+
+                var plan = result.Data;
+                if (plan == null)
+                {
+                    return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
+                        new List<string> { "Không thể tạo meal plan. Vui lòng thử lại sau." }, "GENERATION_FAILED"));
+                }
 
                 // Tạo thông báo khi tạo meal plan thành công
                 try
