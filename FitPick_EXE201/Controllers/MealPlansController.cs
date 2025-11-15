@@ -69,27 +69,37 @@ namespace FitPick_EXE201.Controllers
         [RequiresProUser("Generate Meal Plan")]
         public async Task<ActionResult<ApiResponse<Mealplan>>> GenerateMealPlan([FromQuery] DateTime date)
         {
-            var userId = GetUserIdFromToken();
-            if (userId == null)
-                return Unauthorized(ApiResponse<Mealplan>.ErrorResponse(
-                    new List<string> { "UserId not found in token" }, "Unauthorized"));
-
-            var plan = await _mealPlanService.GenerateMealPlanAsync(userId.Value, DateOnly.FromDateTime(date));
-            if (plan == null)
-                return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
-                    new List<string> { "Không thể tạo meal plan" }, "Thất bại"));
-
-            // Tạo thông báo khi tạo meal plan thành công
             try
             {
-                await _notificationHelper.CreateMealPlanNotificationAsync(userId.Value, date);
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(ApiResponse<Mealplan>.ErrorResponse(
+                        new List<string> { "UserId not found in token" }, "Unauthorized"));
+
+                var plan = await _mealPlanService.GenerateMealPlanAsync(userId.Value, DateOnly.FromDateTime(date));
+                if (plan == null)
+                    return BadRequest(ApiResponse<Mealplan>.ErrorResponse(
+                        new List<string> { "Không thể tạo meal plan. Vui lòng kiểm tra health profile và target calories của bạn." }, "Thất bại"));
+
+                // Tạo thông báo khi tạo meal plan thành công
+                try
+                {
+                    await _notificationHelper.CreateMealPlanNotificationAsync(userId.Value, date);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error creating meal plan notification: {ex.Message}");
+                }
+
+                return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Tạo meal plan thành công"));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating meal plan notification: {ex.Message}");
+                Console.WriteLine($"Error in GenerateMealPlan: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, ApiResponse<Mealplan>.ErrorResponse(
+                    new List<string> { $"Lỗi server: {ex.Message}" }, "Lỗi khi tạo meal plan"));
             }
-
-            return Ok(ApiResponse<Mealplan>.SuccessResponse(plan, "Tạo meal plan thành công"));
         }
 
         [HttpPost("generate-weekly")]
