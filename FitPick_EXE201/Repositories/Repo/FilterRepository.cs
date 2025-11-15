@@ -76,7 +76,7 @@ namespace FitPick_EXE201.Repositories.Repo
             return dietTypes.Cast<object>().ToList();
         }
 
-        public async Task<List<object>> GetCookingTimesAsync()
+        public Task<List<object>> GetCookingTimesAsync()
         {
             // Create predefined ranges
             var timeRanges = new List<object>
@@ -86,10 +86,10 @@ namespace FitPick_EXE201.Repositories.Repo
                 new { id = "≤ 60 phút", name = "≤ 60 phút", maxMinutes = 60 }
             };
 
-            return timeRanges;
+            return Task.FromResult(timeRanges);
         }
 
-        public async Task<List<object>> GetMealTypesAsync()
+        public Task<List<object>> GetMealTypesAsync()
         {
             // These are predefined meal types
             var mealTypes = new List<object>
@@ -99,7 +99,7 @@ namespace FitPick_EXE201.Repositories.Repo
                 new { id = "dinner", name = "Bữa tối", englishName = "Dinner" }
             };
 
-            return mealTypes;
+            return Task.FromResult(mealTypes);
         }
 
         public async Task<List<object>> GetUserDietPlansAsync(int userId)

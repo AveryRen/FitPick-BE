@@ -567,7 +567,7 @@ namespace FitPick_EXE201.Services
 
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -704,7 +704,7 @@ namespace FitPick_EXE201.Services
                     await _context.SaveChangesAsync();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -719,7 +719,7 @@ namespace FitPick_EXE201.Services
                 
                 return consumedCalories;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Return 0 if there's an error
                 return 0;

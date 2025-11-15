@@ -82,9 +82,9 @@ namespace FitPick_EXE201.Repositories.Repo
 
                                               return new MealIngredientDto
                                               {
-                                                  Name = joined.i.Name,
+                                                  Name = joined.i.Name ?? string.Empty,
                                                   Quantity = joined.mi.Quantity ?? 0m,
-                                                  Unit = joined.i.Unit,
+                                                  Unit = joined.i.Unit ?? string.Empty,
                                                   HasIt = mark?.HasIt ?? false
                                               };
                                           }).ToList()

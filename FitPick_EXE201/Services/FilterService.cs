@@ -125,9 +125,9 @@ namespace FitPick_EXE201.Services
             {
                 return await _filterRepository.SearchMealsWithPersonalNutritionAsync(request, userId);
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
-                throw ex; // Re-throw validation exceptions
+                throw; // Re-throw validation exceptions
             }
             catch (Exception ex)
             {

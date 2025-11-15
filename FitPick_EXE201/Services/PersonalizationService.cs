@@ -788,10 +788,12 @@ namespace FitPick_EXE201.Services
             switch (action.ToLower())
             {
                 case "like":
-                    await CreatePatternAsync(userId, "favorite_category", meal.CategoryId.ToString(), 1, 0.8m);
+                    if (meal.CategoryId.HasValue)
+                        await CreatePatternAsync(userId, "favorite_category", meal.CategoryId.Value.ToString(), 1, 0.8m);
                     break;
                 case "dislike":
-                    await CreatePatternAsync(userId, "avoid_category", meal.CategoryId.ToString(), 1, 0.8m);
+                    if (meal.CategoryId.HasValue)
+                        await CreatePatternAsync(userId, "avoid_category", meal.CategoryId.Value.ToString(), 1, 0.8m);
                     break;
                 case "cook":
                     await CreatePatternAsync(userId, "cooking_frequency", "cooked", 1, 0.6m);
