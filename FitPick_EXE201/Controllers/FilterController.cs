@@ -220,6 +220,7 @@ namespace FitPick_EXE201.Controllers
 
         // Get suggested meals (personalized recommendations based on user profile)
         [HttpGet("suggested-meals")]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<List<object>>>> GetSuggestedMeals([FromQuery] int limit = 10)
         {
             try
@@ -289,6 +290,7 @@ namespace FitPick_EXE201.Controllers
 
         // Get popular meals (most frequently used in meal plans and meal histories)
         [HttpGet("popular-meals")]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<List<object>>>> GetPopularMeals([FromQuery] int limit = 10)
         {
             try

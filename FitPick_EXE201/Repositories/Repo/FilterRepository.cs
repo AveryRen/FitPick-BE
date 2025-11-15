@@ -127,9 +127,9 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<object>> GetSuggestedMealsAsync(int limit = 10)
         {
-            // Simple: Get active meals with join for category and status
+            // Simple: Get active meals with join, no complex calculations
             var suggestedMeals = await (from m in _context.Meals
-                                      where m.StatusId == 1 // Active meals only
+                                      where m.StatusId == 1
                                       join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
                                       from c in categoryGroup.DefaultIfEmpty()
                                       join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
@@ -160,9 +160,9 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<object>> GetPopularMealsAsync(int limit = 10)
         {
-            // Simple: Get active meals with join for category and status
+            // Simple: Get active meals with join, no complex calculations
             var popularMeals = await (from m in _context.Meals
-                                     where m.StatusId == 1 // Active meals only
+                                     where m.StatusId == 1
                                      join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
                                      from c in categoryGroup.DefaultIfEmpty()
                                      join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
