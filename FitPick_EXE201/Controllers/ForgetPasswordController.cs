@@ -43,5 +43,25 @@ namespace FitPick_EXE201.Controllers
 
             return Ok(ApiResponse<string>.SuccessResponse(null, "Password has been reset successfully"));
         }
+
+        [HttpPost("change-by-email")]
+        public async Task<IActionResult> ChangePasswordByEmail([FromBody] ChangePasswordByEmailDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.OldPassword) || string.IsNullOrEmpty(dto.NewPassword))
+            {
+                return BadRequest(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Email, old password, and new password are required." }, "Invalid request"));
+            }
+
+            var success = await _service.ChangePasswordByEmailAsync(dto);
+
+            if (!success)
+            {
+                return BadRequest(ApiResponse<string>.ErrorResponse(
+                    new List<string> { "Invalid email or old password." }, "Failed to change password"));
+            }
+
+            return Ok(ApiResponse<string>.SuccessResponse(null, "Password has been changed successfully"));
+        }
     }
 }

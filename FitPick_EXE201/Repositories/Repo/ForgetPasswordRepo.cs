@@ -54,5 +54,24 @@ namespace FitPick_EXE201.Repositories.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> ChangePasswordByEmailAsync(ChangePasswordByEmailDto dto)
+        {
+            var account = await _context.Users.FirstOrDefaultAsync(a => a.Email == dto.Email);
+            if (account == null) return false;
+
+            // Verify old password
+            if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, account.Passwordhash))
+            {
+                return false;
+            }
+
+            // Update password
+            account.Passwordhash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            account.Updatedat = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

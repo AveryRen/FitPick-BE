@@ -21,5 +21,10 @@ namespace FitPick_EXE201.Services
         {
             return _repo.ResetPasswordAsync(dto);
         }
+
+        public Task<bool> ChangePasswordByEmailAsync(ChangePasswordByEmailDto dto)
+        {
+            return _repo.ChangePasswordByEmailAsync(dto);
+        }
     }
 }

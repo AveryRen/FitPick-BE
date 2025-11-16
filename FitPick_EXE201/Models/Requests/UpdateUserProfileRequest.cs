@@ -7,6 +7,7 @@ namespace FitPick_EXE201.Models.Requests
         public int? Age { get; set; }
         public decimal? Height { get; set; }
         public decimal? Weight { get; set; }
+        public decimal? TargetWeight { get; set; }
         public string? Country { get; set; }
     }
 }

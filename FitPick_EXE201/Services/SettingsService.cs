@@ -43,6 +43,8 @@ namespace FitPick_EXE201.Services
                     user.Height = request.Height;
                 if (request.Weight.HasValue)
                     user.Weight = request.Weight;
+                if (request.TargetWeight.HasValue)
+                    user.TargetWeight = request.TargetWeight;
                 if (!string.IsNullOrEmpty(request.Country))
                     user.Country = request.Country;
 

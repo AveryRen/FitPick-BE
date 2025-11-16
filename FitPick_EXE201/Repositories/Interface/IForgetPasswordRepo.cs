@@ -6,5 +6,6 @@ namespace FitPick_EXE201.Repositories.Interface
     {
         Task<bool> RequestPasswordResetAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<bool> ChangePasswordByEmailAsync(ChangePasswordByEmailDto dto);
     }
 }
