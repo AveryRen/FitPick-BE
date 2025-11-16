@@ -117,9 +117,8 @@ namespace FitPick_EXE201.Repositories.Repo
             var entity = await GetByIdAsync(id);
             if (entity == null) return false;
 
-            entity.Status = false;
-
-            _context.Set<Ingredient>().Update(entity);
+            // Actually delete from database instead of just setting inactive
+            _context.Set<Ingredient>().Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
