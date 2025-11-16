@@ -127,68 +127,100 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<object>> GetSuggestedMealsAsync(int limit = 10)
         {
-            // Simple: Get active meals with join, no complex calculations
-            var suggestedMeals = await (from m in _context.Meals
-                                      where m.StatusId == 1
-                                      join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
-                                      from c in categoryGroup.DefaultIfEmpty()
-                                      join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
-                                      from s in statusGroup.DefaultIfEmpty()
-                                      orderby m.Mealid descending
-                                      select new
-                                      {
-                                          mealid = m.Mealid,
-                                          name = m.Name ?? string.Empty,
-                                          calories = m.Calories ?? 0,
-                                          protein = m.Protein ?? 0,
-                                          carbs = m.Carbs ?? 0,
-                                          fat = m.Fat ?? 0,
-                                          cookingTime = m.Cookingtime ?? 0,
-                                          imageUrl = m.ImageUrl ?? string.Empty,
-                                          isPremium = m.IsPremium ?? false,
-                                          diettype = m.Diettype ?? string.Empty,
-                                          categoryName = c != null ? c.Name : "Món ăn",
-                                          statusName = s != null ? s.Name : "Published",
-                                          price = m.Price ?? 0,
-                                          description = m.Description ?? string.Empty
-                                      })
-                                      .Take(limit)
-                                      .ToListAsync();
+            try
+            {
+                Console.WriteLine($"🔍 GetSuggestedMealsAsync: Starting with limit={limit}");
+                
+                // Simple: Get active meals with join, no complex calculations
+                var suggestedMeals = await (from m in _context.Meals
+                                          where m.StatusId == 1
+                                          join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
+                                          from c in categoryGroup.DefaultIfEmpty()
+                                          join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
+                                          from s in statusGroup.DefaultIfEmpty()
+                                          orderby m.Mealid descending
+                                          select new
+                                          {
+                                              mealid = m.Mealid,
+                                              name = m.Name ?? string.Empty,
+                                              calories = m.Calories ?? 0,
+                                              protein = m.Protein ?? 0,
+                                              carbs = m.Carbs ?? 0,
+                                              fat = m.Fat ?? 0,
+                                              cookingTime = m.Cookingtime ?? 0,
+                                              imageUrl = m.ImageUrl ?? string.Empty,
+                                              isPremium = m.IsPremium ?? false,
+                                              diettype = m.Diettype ?? string.Empty,
+                                              categoryName = c != null ? c.Name : "Món ăn",
+                                              statusName = s != null ? s.Name : "Published",
+                                              price = m.Price ?? 0,
+                                              description = m.Description ?? string.Empty
+                                          })
+                                          .Take(limit)
+                                          .ToListAsync();
 
-            return suggestedMeals.Cast<object>().ToList();
+                Console.WriteLine($"✅ GetSuggestedMealsAsync: Found {suggestedMeals.Count} meals");
+                return suggestedMeals.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ GetSuggestedMealsAsync ERROR: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<List<object>> GetPopularMealsAsync(int limit = 10)
         {
-            // Simple: Get active meals with join, no complex calculations
-            var popularMeals = await (from m in _context.Meals
-                                     where m.StatusId == 1
-                                     join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
-                                     from c in categoryGroup.DefaultIfEmpty()
-                                     join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
-                                     from s in statusGroup.DefaultIfEmpty()
-                                     orderby m.Mealid descending
-                                     select new
-                                     {
-                                         mealid = m.Mealid,
-                                         name = m.Name ?? string.Empty,
-                                         calories = m.Calories ?? 0,
-                                         protein = m.Protein ?? 0,
-                                         carbs = m.Carbs ?? 0,
-                                         fat = m.Fat ?? 0,
-                                         cookingTime = m.Cookingtime ?? 0,
-                                         imageUrl = m.ImageUrl ?? string.Empty,
-                                         isPremium = m.IsPremium ?? false,
-                                         diettype = m.Diettype ?? string.Empty,
-                                         categoryName = c != null ? c.Name : "Món ăn",
-                                         statusName = s != null ? s.Name : "Published",
-                                         price = m.Price ?? 0,
-                                         description = m.Description ?? string.Empty
-                                     })
-                                     .Take(limit)
-                                     .ToListAsync();
+            try
+            {
+                Console.WriteLine($"🔍 GetPopularMealsAsync: Starting with limit={limit}");
+                
+                // Simple: Get active meals with join, no complex calculations
+                var popularMeals = await (from m in _context.Meals
+                                         where m.StatusId == 1
+                                         join c in _context.MealCategories on m.CategoryId equals c.Id into categoryGroup
+                                         from c in categoryGroup.DefaultIfEmpty()
+                                         join s in _context.MealStatuses on m.StatusId equals s.Id into statusGroup
+                                         from s in statusGroup.DefaultIfEmpty()
+                                         orderby m.Mealid descending
+                                         select new
+                                         {
+                                             mealid = m.Mealid,
+                                             name = m.Name ?? string.Empty,
+                                             calories = m.Calories ?? 0,
+                                             protein = m.Protein ?? 0,
+                                             carbs = m.Carbs ?? 0,
+                                             fat = m.Fat ?? 0,
+                                             cookingTime = m.Cookingtime ?? 0,
+                                             imageUrl = m.ImageUrl ?? string.Empty,
+                                             isPremium = m.IsPremium ?? false,
+                                             diettype = m.Diettype ?? string.Empty,
+                                             categoryName = c != null ? c.Name : "Món ăn",
+                                             statusName = s != null ? s.Name : "Published",
+                                             price = m.Price ?? 0,
+                                             description = m.Description ?? string.Empty
+                                         })
+                                         .Take(limit)
+                                         .ToListAsync();
 
-            return popularMeals.Cast<object>().ToList();
+                Console.WriteLine($"✅ GetPopularMealsAsync: Found {popularMeals.Count} meals");
+                return popularMeals.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ GetPopularMealsAsync ERROR: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<(List<object> meals, int totalCount)> SearchMealsWithFiltersAsync(FilterSearchRequest request)

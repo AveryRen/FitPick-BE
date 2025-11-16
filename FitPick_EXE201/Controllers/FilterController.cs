@@ -16,10 +16,10 @@ namespace FitPick_EXE201.Controllers
     public class FilterController : ControllerBase
     {
         private readonly IFilterService _filterService;
-        private readonly PersonalizationService _personalizationService;
+        private readonly IPersonalizationService _personalizationService;
         private readonly FitPickContext _context;
 
-        public FilterController(IFilterService filterService, PersonalizationService personalizationService, FitPickContext context)
+        public FilterController(IFilterService filterService, IPersonalizationService personalizationService, FitPickContext context)
         {
             _filterService = filterService;
             _personalizationService = personalizationService;
@@ -225,54 +225,76 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
+                Console.WriteLine($"🔍 GetSuggestedMeals Controller: Starting with limit={limit}");
                 var userId = GetUserIdFromToken();
+                Console.WriteLine($"🔍 GetSuggestedMeals Controller: userId={userId?.ToString() ?? "null"}");
                 
                 // If user is authenticated, use personalized recommendations
                 if (userId.HasValue)
                 {
-                    var recommendations = await _personalizationService.GenerateRecommendationsAsync(userId.Value, limit);
-                    
-                    // Get meal details for each recommendation
-                    var suggestedMeals = new List<object>();
-                    foreach (var rec in recommendations)
+                    try
                     {
-                        var meal = await _context.Meals
-                            .Include(m => m.Category)
-                            .Include(m => m.Status)
-                            .FirstOrDefaultAsync(m => m.Mealid == rec.MealId);
+                        Console.WriteLine($"🔍 GetSuggestedMeals Controller: Using personalized recommendations for user {userId.Value}");
+                        var recommendations = await _personalizationService.GenerateRecommendationsAsync(userId.Value, limit);
+                        var recommendationsList = recommendations.ToList();
+                        Console.WriteLine($"✅ GetSuggestedMeals Controller: Got {recommendationsList.Count} recommendations");
                         
-                        if (meal != null)
+                        // Get meal details for each recommendation
+                        var suggestedMeals = new List<object>();
+                        foreach (var rec in recommendationsList)
                         {
-                            suggestedMeals.Add(new
+                            var meal = await _context.Meals
+                                .Include(m => m.Category)
+                                .Include(m => m.Status)
+                                .FirstOrDefaultAsync(m => m.Mealid == rec.MealId);
+                            
+                            if (meal != null)
                             {
-                                mealid = meal.Mealid,
-                                name = meal.Name,
-                                calories = meal.Calories,
-                                protein = meal.Protein,
-                                carbs = meal.Carbs,
-                                fat = meal.Fat,
-                                cookingTime = meal.Cookingtime,
-                                imageUrl = meal.ImageUrl,
-                                isPremium = meal.IsPremium,
-                                diettype = meal.Diettype,
-                                categoryName = meal.Category?.Name,
-                                statusName = meal.Status?.Name,
-                                price = meal.Price,
-                                description = meal.Description,
-                                confidenceScore = rec.ConfidenceScore
-                            });
+                                suggestedMeals.Add(new
+                                {
+                                    mealid = meal.Mealid,
+                                    name = meal.Name ?? string.Empty,
+                                    calories = meal.Calories ?? 0,
+                                    protein = meal.Protein ?? 0,
+                                    carbs = meal.Carbs ?? 0,
+                                    fat = meal.Fat ?? 0,
+                                    cookingTime = meal.Cookingtime ?? 0,
+                                    imageUrl = meal.ImageUrl ?? string.Empty,
+                                    isPremium = meal.IsPremium ?? false,
+                                    diettype = meal.Diettype ?? string.Empty,
+                                    categoryName = meal.Category?.Name ?? "Món ăn",
+                                    statusName = meal.Status?.Name ?? "Published",
+                                    price = meal.Price ?? 0,
+                                    description = meal.Description ?? string.Empty,
+                                    confidenceScore = rec.ConfidenceScore
+                                });
+                            }
                         }
-                    }
 
-                    return Ok(ApiResponse<List<object>>.SuccessResponse(
-                        suggestedMeals,
-                        "Lấy danh sách món ăn gợi ý cá nhân hóa thành công"
-                    ));
+                        Console.WriteLine($"✅ GetSuggestedMeals Controller: Returning {suggestedMeals.Count} personalized meals");
+                        return Ok(ApiResponse<List<object>>.SuccessResponse(
+                            suggestedMeals,
+                            "Lấy danh sách món ăn gợi ý cá nhân hóa thành công"
+                        ));
+                    }
+                    catch (Exception personalizationEx)
+                    {
+                        Console.WriteLine($"❌ GetSuggestedMeals Controller: Personalization failed: {personalizationEx.Message}");
+                        Console.WriteLine($"❌ Stack trace: {personalizationEx.StackTrace}");
+                        // Fallback to simple suggested meals
+                        var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
+                        return Ok(ApiResponse<List<object>>.SuccessResponse(
+                            suggestedMeals,
+                            "Lấy danh sách món ăn phổ biến thành công"
+                        ));
+                    }
                 }
                 else
                 {
                     // Fallback to popular meals if user not authenticated
+                    Console.WriteLine($"🔍 GetSuggestedMeals Controller: User not authenticated, using fallback");
                     var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
+                    Console.WriteLine($"✅ GetSuggestedMeals Controller: Returning {suggestedMeals.Count} fallback meals");
                     return Ok(ApiResponse<List<object>>.SuccessResponse(
                         suggestedMeals,
                         "Lấy danh sách món ăn phổ biến thành công"
@@ -281,6 +303,12 @@ namespace FitPick_EXE201.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ GetSuggestedMeals Controller ERROR: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 return StatusCode(500, ApiResponse<List<object>>.ErrorResponse(
                     new List<string> { ex.Message },
                     "Lỗi server"
@@ -295,7 +323,9 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
+                Console.WriteLine($"🔍 GetPopularMeals Controller: Starting with limit={limit}");
                 var popularMeals = await _filterService.GetPopularMealsAsync(limit);
+                Console.WriteLine($"✅ GetPopularMeals Controller: Returning {popularMeals.Count} meals");
 
                 return Ok(ApiResponse<List<object>>.SuccessResponse(
                     popularMeals,
@@ -304,6 +334,12 @@ namespace FitPick_EXE201.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ GetPopularMeals Controller ERROR: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 return StatusCode(500, ApiResponse<List<object>>.ErrorResponse(
                     new List<string> { ex.Message },
                     "Lỗi server"
