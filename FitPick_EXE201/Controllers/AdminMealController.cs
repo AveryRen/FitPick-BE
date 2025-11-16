@@ -14,11 +14,13 @@ namespace FitPick_EXE201.Controllers
     {
         private readonly AdminMealService _mealService;
         private readonly CloudinaryService _cloudinaryService;
+        private readonly NotificationHelper _notificationHelper;
 
-        public AdminMealController(AdminMealService mealService, CloudinaryService cloudinaryService)
+        public AdminMealController(AdminMealService mealService, CloudinaryService cloudinaryService, NotificationHelper notificationHelper)
         {
             _mealService = mealService;
             _cloudinaryService = cloudinaryService ?? throw new ArgumentNullException(nameof(cloudinaryService));
+            _notificationHelper = notificationHelper ?? throw new ArgumentNullException(nameof(notificationHelper));
         }
         private int GetUserIdFromToken()
         {
@@ -124,6 +126,21 @@ namespace FitPick_EXE201.Controllers
             if (dto.Ingredients != null && dto.Ingredients.Any())
             {
                 await _mealService.AddIngredientsAsync(createdMeal.Mealid, dto.Ingredients);
+            }
+
+            // Gửi thông báo cho tất cả người dùng khi có món ăn mới
+            try
+            {
+                await _notificationHelper.CreateBroadcastNotificationAsync(
+                    "Món ăn mới đã được thêm",
+                    $"Chúng tôi vừa thêm món ăn mới: '{createdMeal.Name}'. Hãy khám phá ngay!",
+                    "system"
+                );
+            }
+            catch (Exception ex)
+            {
+                // Log error nhưng không throw để không ảnh hưởng đến việc tạo meal
+                Console.WriteLine($"Error sending notification for new meal: {ex.Message}");
             }
 
             return Ok(ApiResponse<Meal>.SuccessResponse(createdMeal, "Tạo meal thành công"));

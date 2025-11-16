@@ -119,14 +119,12 @@ namespace FitPick_EXE201.Repositories.Repo
             var profile = await _context.Healthprofiles.FirstOrDefaultAsync(hp => hp.Userid == userId);
             if (profile == null)
             {
-                Console.WriteLine($"No health profile found for user {userId}");
                 return null!;
             }
 
             // Kiểm tra target calories
             if (!profile.Targetcalories.HasValue || profile.Targetcalories.Value <= 0)
             {
-                Console.WriteLine($"User {userId} has invalid target calories: {profile.Targetcalories}");
                 return null!;
             }
 
@@ -137,7 +135,6 @@ namespace FitPick_EXE201.Repositories.Repo
 
             if (meals == null || !meals.Any()) 
             {
-                Console.WriteLine($"No meals found for user {userId} with target calories <= {profile.Targetcalories}. Total meals in DB: {await _context.Meals.CountAsync()}, Active meals: {await _context.Meals.Where(m => m.StatusId == 1).CountAsync()}");
                 return null!;
             }
 
@@ -145,7 +142,6 @@ namespace FitPick_EXE201.Repositories.Repo
             var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
             if (mealTimes == null || !mealTimes.Any())
             {
-                Console.WriteLine("No meal times found in database");
                 return null!;
             }
 
@@ -190,8 +186,6 @@ namespace FitPick_EXE201.Repositories.Repo
         // Sinh meal plan mới với target calories được truyền vào (không cần health profile)
         public async Task<List<Mealplan>> GenerateMealPlanWithTargetCaloriesAsync(int userId, DateOnly date, int targetCalories)
         {
-            Console.WriteLine($"🔍 GenerateMealPlanWithTargetCaloriesAsync: userId={userId}, date={date}, targetCalories={targetCalories}");
-            
             // Xóa meal plan cũ của user trong ngày (nếu có)
             var existingPlans = await _context.Mealplans
                 .Where(mp => mp.Userid == userId && mp.Date == date)
@@ -199,7 +193,6 @@ namespace FitPick_EXE201.Repositories.Repo
 
             if (existingPlans.Any())
             {
-                Console.WriteLine($"🗑️ Removing {existingPlans.Count} existing plans");
                 _context.Mealplans.RemoveRange(existingPlans);
             }
 
@@ -211,16 +204,12 @@ namespace FitPick_EXE201.Repositories.Repo
             }
 
             // Lấy meals phù hợp calories / goal
-            Console.WriteLine($"🔍 Querying meals with StatusId=1, Calories > 0, Calories <= {targetCalories}");
             var meals = await _context.Meals
                 .Where(m => m.StatusId == 1 && (m.Calories ?? 0) > 0 && (m.Calories ?? 0) <= targetCalories)
                 .ToListAsync();
-            
-            Console.WriteLine($"🍽️ Found {meals?.Count ?? 0} suitable meals");
 
             if (meals == null || !meals.Any()) 
             {
-                Console.WriteLine($"No meals found for user {userId} with target calories <= {targetCalories}. Total meals in DB: {await _context.Meals.CountAsync()}, Active meals: {await _context.Meals.Where(m => m.StatusId == 1).CountAsync()}");
                 return null!;
             }
 
@@ -228,7 +217,6 @@ namespace FitPick_EXE201.Repositories.Repo
             var mealTimes = await _context.MealTimes.Take(3).ToListAsync();
             if (mealTimes == null || !mealTimes.Any())
             {
-                Console.WriteLine("No meal times found in database");
                 return null!;
             }
 
@@ -297,21 +285,15 @@ namespace FitPick_EXE201.Repositories.Repo
             var plan = await _context.Mealplans.FindAsync(planId);
             if (plan == null || plan.Userid != userId) return null;
 
-            Console.WriteLine($"🔄 Debug - ReplaceMealBySuggestion: planId={planId}, userId={userId}");
-            Console.WriteLine($"🔄 Debug - Current mealId: {plan.Mealid}");
-
             // Lấy thông tin món ăn hiện tại để lấy tag
             var currentMeal = await _context.Meals.FindAsync(plan.Mealid);
             if (currentMeal == null)
             {
-                Console.WriteLine("❌ Debug - Current meal not found");
+                Console.WriteLine("❌ Current meal not found");
                 return null;
             }
 
-            Console.WriteLine($"🔄 Debug - Current meal: {currentMeal.Name}");
-
             // Strategy 1: Tìm món cùng category và cùng loại (premium/free)
-            Console.WriteLine($"🔍 Debug - Strategy 1: Looking for meal with same category ({currentMeal.CategoryId}) and same premium status ({currentMeal.IsPremium})");
             var sameCategoryMeal = await _context.Meals
                 .Where(m => m.CategoryId == currentMeal.CategoryId && 
                            m.IsPremium == currentMeal.IsPremium && 
@@ -320,57 +302,41 @@ namespace FitPick_EXE201.Repositories.Repo
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 1 - Found same category meal: {(sameCategoryMeal?.Name ?? "None")}");
-
             if (sameCategoryMeal != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = sameCategoryMeal.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 1 SUCCESS: Replaced meal {oldMealId} with {sameCategoryMeal.Mealid} ({sameCategoryMeal.Name})");
                 return plan;
             }
 
             // Strategy 2: Tìm bất kỳ món miễn phí nào khác
-            Console.WriteLine($"⚠️ Debug - Strategy 1 failed, trying Strategy 2...");
             var anyFreeMeal = await _context.Meals
                 .Where(m => m.IsPremium == false && m.Mealid != plan.Mealid && m.StatusId == 1)
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 2 - Found any free meal: {(anyFreeMeal?.Name ?? "None")}");
-
             if (anyFreeMeal != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = anyFreeMeal.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 2 SUCCESS: Replaced meal {oldMealId} with {anyFreeMeal.Mealid} ({anyFreeMeal.Name})");
                 return plan;
             }
 
             // Strategy 3: Tìm bất kỳ món premium nào khác
-            Console.WriteLine($"⚠️ Debug - Strategy 2 failed, trying Strategy 3...");
             var premiumMeal = await _context.Meals
                 .Where(m => m.Mealid != plan.Mealid && m.StatusId == 1)
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 3 - Found premium meal: {(premiumMeal?.Name ?? "None")}");
-
             if (premiumMeal != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = premiumMeal.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 3 SUCCESS: Replaced meal {oldMealId} with {premiumMeal.Mealid} ({premiumMeal.Name})");
                 return plan;
             }
 
             // Strategy 4: Nếu chỉ có 1 món trong database, tạo món mới hoặc trả về lỗi
-            Console.WriteLine($"❌ Debug - All strategies failed! No other meals found in database.");
-            Console.WriteLine($"❌ Debug - Total meals in database: {await _context.Meals.CountAsync()}");
-            Console.WriteLine($"❌ Debug - Active meals: {await _context.Meals.Where(m => m.StatusId == 2).CountAsync()}");
+            Console.WriteLine($"❌ All strategies failed! No other meals found in database.");
             
             // Trả về null để frontend biết là lỗi
             return null;
@@ -382,18 +348,13 @@ namespace FitPick_EXE201.Repositories.Repo
             var plan = await _context.Mealplans.FindAsync(planId);
             if (plan == null || plan.Userid != userId) return null;
 
-            Console.WriteLine($"🔄 Debug - ReplaceMealByFavorites: planId={planId}, userId={userId}");
-            Console.WriteLine($"🔄 Debug - Current mealId: {plan.Mealid}");
-
             // Lấy thông tin món ăn hiện tại
             var currentMeal = await _context.Meals.FindAsync(plan.Mealid);
             if (currentMeal == null)
             {
-                Console.WriteLine("❌ Debug - Current meal not found");
+                Console.WriteLine("❌ Current meal not found");
                 return null;
             }
-
-            Console.WriteLine($"🔄 Debug - Current meal: {currentMeal.Name}");
 
             // Lấy danh sách món yêu thích của user
             var favoriteMealIds = await _context.MealFavorites
@@ -401,16 +362,13 @@ namespace FitPick_EXE201.Repositories.Repo
                 .Select(f => f.MealId)
                 .ToListAsync();
 
-            Console.WriteLine($"🔄 Debug - User has {favoriteMealIds.Count} favorite meals");
-
             if (!favoriteMealIds.Any())
             {
-                Console.WriteLine("❌ Debug - User has no favorite meals");
+                Console.WriteLine("❌ User has no favorite meals");
                 return null;
             }
 
             // Strategy 1: Tìm món yêu thích cùng category và cùng loại (premium/free)
-            Console.WriteLine($"🔍 Debug - Strategy 1: Looking for favorite meal with same category ({currentMeal.CategoryId}) and same premium status ({currentMeal.IsPremium})");
             var sameCategoryFavorite = await _context.Meals
                 .Where(m => favoriteMealIds.Contains(m.Mealid) &&
                            m.CategoryId == currentMeal.CategoryId &&
@@ -420,19 +378,14 @@ namespace FitPick_EXE201.Repositories.Repo
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 1 - Found same category favorite: {(sameCategoryFavorite?.Name ?? "None")}");
-
             if (sameCategoryFavorite != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = sameCategoryFavorite.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 1 SUCCESS: Replaced meal {oldMealId} with {sameCategoryFavorite.Mealid} ({sameCategoryFavorite.Name})");
                 return plan;
             }
 
             // Strategy 2: Tìm bất kỳ món yêu thích miễn phí nào khác
-            Console.WriteLine($"⚠️ Debug - Strategy 1 failed, trying Strategy 2...");
             var anyFreeFavorite = await _context.Meals
                 .Where(m => favoriteMealIds.Contains(m.Mealid) &&
                            m.IsPremium == false &&
@@ -441,19 +394,14 @@ namespace FitPick_EXE201.Repositories.Repo
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 2 - Found any free favorite: {(anyFreeFavorite?.Name ?? "None")}");
-
             if (anyFreeFavorite != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = anyFreeFavorite.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 2 SUCCESS: Replaced meal {oldMealId} with {anyFreeFavorite.Mealid} ({anyFreeFavorite.Name})");
                 return plan;
             }
 
             // Strategy 3: Tìm bất kỳ món yêu thích premium nào khác
-            Console.WriteLine($"⚠️ Debug - Strategy 2 failed, trying Strategy 3...");
             var premiumFavorite = await _context.Meals
                 .Where(m => favoriteMealIds.Contains(m.Mealid) &&
                            m.Mealid != plan.Mealid &&
@@ -461,18 +409,14 @@ namespace FitPick_EXE201.Repositories.Repo
                 .OrderBy(m => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            Console.WriteLine($"🔄 Debug - Strategy 3 - Found premium favorite: {(premiumFavorite?.Name ?? "None")}");
-
             if (premiumFavorite != null)
             {
-                var oldMealId = plan.Mealid;
                 plan.Mealid = premiumFavorite.Mealid;
                 await _context.SaveChangesAsync();
-                Console.WriteLine($"✅ Debug - Strategy 3 SUCCESS: Replaced meal {oldMealId} with {premiumFavorite.Mealid} ({premiumFavorite.Name})");
                 return plan;
             }
 
-            Console.WriteLine($"❌ Debug - All strategies failed! No favorite meals found to replace.");
+            Console.WriteLine($"❌ All strategies failed! No favorite meals found to replace.");
             return null;
         }
 

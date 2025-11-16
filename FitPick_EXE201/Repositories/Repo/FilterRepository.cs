@@ -129,8 +129,6 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             try
             {
-                Console.WriteLine($"🔍 GetSuggestedMealsAsync: Starting with limit={limit}");
-                
                 // Simple: Get active meals with join, no complex calculations
                 var suggestedMeals = await (from m in _context.Meals
                                           where m.StatusId == 1
@@ -159,13 +157,11 @@ namespace FitPick_EXE201.Repositories.Repo
                                           .Take(limit)
                                           .ToListAsync();
 
-                Console.WriteLine($"✅ GetSuggestedMealsAsync: Found {suggestedMeals.Count} meals");
                 return suggestedMeals.Cast<object>().ToList();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ GetSuggestedMealsAsync ERROR: {ex.Message}");
-                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
@@ -178,8 +174,6 @@ namespace FitPick_EXE201.Repositories.Repo
         {
             try
             {
-                Console.WriteLine($"🔍 GetPopularMealsAsync: Starting with limit={limit}");
-                
                 // Simple: Get active meals with join, no complex calculations
                 var popularMeals = await (from m in _context.Meals
                                          where m.StatusId == 1
@@ -208,13 +202,11 @@ namespace FitPick_EXE201.Repositories.Repo
                                          .Take(limit)
                                          .ToListAsync();
 
-                Console.WriteLine($"✅ GetPopularMealsAsync: Found {popularMeals.Count} meals");
                 return popularMeals.Cast<object>().ToList();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ GetPopularMealsAsync ERROR: {ex.Message}");
-                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
@@ -225,10 +217,6 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<(List<object> meals, int totalCount)> SearchMealsWithFiltersAsync(FilterSearchRequest request)
         {
-            // Debug: Check total active meals
-            var totalActiveMeals = await _context.Meals.CountAsync(m => m.StatusId == 1);
-            Console.WriteLine($"Debug: Total active meals in database: {totalActiveMeals}");
-            
             var query = _context.Meals
                 .Include(m => m.Category)
                 .Include(m => m.Status)
@@ -242,69 +230,41 @@ namespace FitPick_EXE201.Repositories.Repo
             // Apply diet type filter (either from request or user's diet plan for personal nutrition)
             if (!string.IsNullOrEmpty(request.DietType))
             {
-                Console.WriteLine($"Debug: Applying diet type filter from request: '{request.DietType}'");
                 query = query.Where(m => m.Diettype == request.DietType);
-                
-                // Debug: Check how many meals match the diet type filter
-                var dietTypeCount = await query.CountAsync();
-                Console.WriteLine($"Debug: Found {dietTypeCount} meals matching diet type '{request.DietType}'");
             }
             else if (request.UserId.HasValue && request.UsePersonalNutrition == true)
             {
-                Console.WriteLine($"Debug: Personal nutrition enabled, applying user's diet plan");
-                Console.WriteLine($"Debug: User ID provided: {request.UserId.Value}");
                 var userDietPlan = await _context.Users
                     .Where(u => u.Userid == request.UserId.Value)
                     .Include(u => u.DietPlan)
                     .Select(u => u.DietPlan.Name)
                     .FirstOrDefaultAsync();
 
-                Console.WriteLine($"Debug: User diet plan: '{userDietPlan}'");
                 if (!string.IsNullOrEmpty(userDietPlan))
                 {
                     query = query.Where(m => m.Diettype == userDietPlan);
-                    
-                    // Debug: Check how many meals match the user's diet plan
-                    var dietPlanCount = await query.CountAsync();
-                    Console.WriteLine($"Debug: Found {dietPlanCount} meals matching user's diet plan '{userDietPlan}'");
                 }
-                else
-                {
-                    Console.WriteLine("Debug: User has no diet plan assigned");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Debug: No diet type filter applied (normal filter mode)");
             }
 
             // Apply cooking time filter
             if (request.MaxCookingTime.HasValue)
             {
-                Console.WriteLine($"Debug: Applying cooking time filter <= {request.MaxCookingTime.Value} minutes");
                 query = query.Where(m => m.Cookingtime.HasValue && m.Cookingtime <= request.MaxCookingTime.Value);
             }
 
             // Apply calorie range filter
             if (request.MinCalories.HasValue)
             {
-                Console.WriteLine($"Debug: Applying min calories filter: >= {request.MinCalories.Value}");
                 query = query.Where(m => m.Calories >= request.MinCalories.Value);
-                var minCalCount = await query.CountAsync();
-                Console.WriteLine($"Debug: Found {minCalCount} meals with calories >= {request.MinCalories.Value}");
             }
             if (request.MaxCalories.HasValue)
             {
-                Console.WriteLine($"Debug: Applying max calories filter: <= {request.MaxCalories.Value}");
                 query = query.Where(m => m.Calories <= request.MaxCalories.Value);
-                var maxCalCount = await query.CountAsync();
-                Console.WriteLine($"Debug: Found {maxCalCount} meals with calories <= {request.MaxCalories.Value}");
             }
 
             // Apply ingredients filter - get meals that contain ANY of the selected ingredients
             if (request.Ingredients?.Any() == true)
             {
-                Console.WriteLine($"Debug: Applying ingredients filter: {string.Join(", ", request.Ingredients)}");
                 // Get all meal IDs that contain any of the selected ingredients
                 var allMealIds = new List<int>();
                 
@@ -316,13 +276,11 @@ namespace FitPick_EXE201.Repositories.Repo
                         .Distinct()
                         .ToListAsync();
                     
-                    Console.WriteLine($"Debug: Found {mealIds.Count} meals with ingredient '{ingredient}'");
                     allMealIds.AddRange(mealIds);
                 }
                 
                 // Remove duplicates
                 allMealIds = allMealIds.Distinct().ToList();
-                Console.WriteLine($"Debug: Total unique meals with any selected ingredients: {allMealIds.Count}");
                 
                 if (allMealIds.Any())
                 {
@@ -344,14 +302,11 @@ namespace FitPick_EXE201.Repositories.Repo
                 if (request.Categories?.Any() == true)
                 {
                     categoryNames.AddRange(request.Categories);
-                    Console.WriteLine($"Debug: Adding regular categories: {string.Join(", ", request.Categories)}");
                 }
                 
                 // Add meal type categories
                 if (request.MealTypes?.Any() == true)
                 {
-                    Console.WriteLine($"Debug: Applying meal types filter: {string.Join(", ", request.MealTypes)}");
-                    
                     foreach (var mealType in request.MealTypes)
                     {
                         var categoryName = mealType switch
@@ -364,34 +319,23 @@ namespace FitPick_EXE201.Repositories.Repo
                         };
                         categoryNames.Add(categoryName);
                     }
-                    
-                    Console.WriteLine($"Debug: Adding meal type categories: {string.Join(", ", request.MealTypes)} -> {string.Join(", ", request.MealTypes.Select(mt => mt switch { "Bữa sáng" => "Breakfast", "Bữa trưa" => "Lunch", "Bữa tối" => "Dinner", "Đồ ăn nhẹ" => "Snack", _ => mt }))}");
                 }
                 
                 // Remove duplicates
                 categoryNames = categoryNames.Distinct().ToList();
-                Console.WriteLine($"Debug: Final category filter: {string.Join(", ", categoryNames)}");
                 
                 // Apply combined category filter
                 query = query.Where(m => m.Category != null && categoryNames.Contains(m.Category.Name));
-                
-                // Debug: Check how many meals match the category filter
-                var matchingMealsCount = await query.CountAsync();
-                Console.WriteLine($"Debug: Found {matchingMealsCount} meals matching categories");
             }
 
             // Apply premium filter
             if (request.IsPremium.HasValue)
             {
-                Console.WriteLine($"Debug: Applying premium filter: {request.IsPremium.Value}");
                 query = query.Where(m => m.IsPremium == request.IsPremium.Value);
-                var premiumCount = await query.CountAsync();
-                Console.WriteLine($"Debug: Found {premiumCount} meals with premium = {request.IsPremium.Value}");
             }
 
             // Get total count
             var totalCount = await query.CountAsync();
-            Console.WriteLine($"Debug: Final query count after all filters: {totalCount}");
 
             // Get results with pagination
             var meals = await query

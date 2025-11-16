@@ -225,19 +225,15 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetSuggestedMeals Controller: Starting with limit={limit}");
                 var userId = GetUserIdFromToken();
-                Console.WriteLine($"🔍 GetSuggestedMeals Controller: userId={userId?.ToString() ?? "null"}");
                 
                 // If user is authenticated, use personalized recommendations
                 if (userId.HasValue)
                 {
                     try
                     {
-                        Console.WriteLine($"🔍 GetSuggestedMeals Controller: Using personalized recommendations for user {userId.Value}");
                         var recommendations = await _personalizationService.GenerateRecommendationsAsync(userId.Value, limit);
                         var recommendationsList = recommendations.ToList();
-                        Console.WriteLine($"✅ GetSuggestedMeals Controller: Got {recommendationsList.Count} recommendations");
                         
                         // Get meal details for each recommendation
                         var suggestedMeals = new List<object>();
@@ -271,7 +267,6 @@ namespace FitPick_EXE201.Controllers
                             }
                         }
 
-                        Console.WriteLine($"✅ GetSuggestedMeals Controller: Returning {suggestedMeals.Count} personalized meals");
                         return Ok(ApiResponse<List<object>>.SuccessResponse(
                             suggestedMeals,
                             "Lấy danh sách món ăn gợi ý cá nhân hóa thành công"
@@ -280,7 +275,6 @@ namespace FitPick_EXE201.Controllers
                     catch (Exception personalizationEx)
                     {
                         Console.WriteLine($"❌ GetSuggestedMeals Controller: Personalization failed: {personalizationEx.Message}");
-                        Console.WriteLine($"❌ Stack trace: {personalizationEx.StackTrace}");
                         // Fallback to simple suggested meals
                         var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
                         return Ok(ApiResponse<List<object>>.SuccessResponse(
@@ -292,9 +286,7 @@ namespace FitPick_EXE201.Controllers
                 else
                 {
                     // Fallback to popular meals if user not authenticated
-                    Console.WriteLine($"🔍 GetSuggestedMeals Controller: User not authenticated, using fallback");
                     var suggestedMeals = await _filterService.GetSuggestedMealsAsync(limit);
-                    Console.WriteLine($"✅ GetSuggestedMeals Controller: Returning {suggestedMeals.Count} fallback meals");
                     return Ok(ApiResponse<List<object>>.SuccessResponse(
                         suggestedMeals,
                         "Lấy danh sách món ăn phổ biến thành công"
@@ -304,7 +296,6 @@ namespace FitPick_EXE201.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ GetSuggestedMeals Controller ERROR: {ex.Message}");
-                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
@@ -323,9 +314,7 @@ namespace FitPick_EXE201.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetPopularMeals Controller: Starting with limit={limit}");
                 var popularMeals = await _filterService.GetPopularMealsAsync(limit);
-                Console.WriteLine($"✅ GetPopularMeals Controller: Returning {popularMeals.Count} meals");
 
                 return Ok(ApiResponse<List<object>>.SuccessResponse(
                     popularMeals,
@@ -335,7 +324,6 @@ namespace FitPick_EXE201.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ GetPopularMeals Controller ERROR: {ex.Message}");
-                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");

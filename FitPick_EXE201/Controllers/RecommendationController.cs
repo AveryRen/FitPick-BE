@@ -25,10 +25,10 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User kh�ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
 
             var result = await _aiService.GetDrinkRecommendation(userId, timeOfDay, goal);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i � nu?c u?ng th�nh c�ng"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Gợi ý nước uống thành công"));
         }
 
         [HttpGet("mealplan")]
@@ -38,22 +38,10 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User kh�ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
 
             var result = await _aiService.GenerateMealPlan(userId, date, healthGoal, lifestyle);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don th�nh c�ng"));
-        }
-
-        [HttpGet("drinknotification")]
-        public async Task<IActionResult> GenerateDrinkNotification()
-        {
-            var userId = GetUserIdFromClaims();
-            if (userId <= 0)
-                return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User kh�ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
-
-            var result = await _aiService.GenerateDrinkNotification(userId);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th�ng b�o nh?c u?ng nu?c th�nh c�ng"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Tạo thực đơn thành công"));
         }
 
         [HttpGet("weeklymealplan")]
@@ -63,27 +51,12 @@ namespace FitPick_EXE201.Controllers
             var userId = GetUserIdFromClaims();
             if (userId <= 0)
                 return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User kh�ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
+                    new List<string> { "User không hợp lệ hoặc chưa đăng nhập." }, "Unauthorized"));
 
-            // g?i d�ng t�n method trong AiService
             var result = await _aiService.GenerateWeeklyMealPlanWithAI(userId, healthGoal, lifestyle);
 
-            return Ok(ApiResponse<object>.SuccessResponse(result, "T?o th?c don 7 ng�y th�nh c�ng"));
+            return Ok(ApiResponse<object>.SuccessResponse(result, "Tạo thực đơn 7 ngày thành công"));
         }
-
-
-        [HttpGet("meals")]
-        public async Task<IActionResult> GetMealRecommendation([FromQuery] string? mealType, [FromQuery] string? goal)
-        {
-            var userId = GetUserIdFromClaims();
-            if (userId <= 0)
-                return Unauthorized(ApiResponse<object>.ErrorResponse(
-                    new List<string> { "User kh�ng h?p l? ho?c chua dang nh?p." }, "Unauthorized"));
-
-            var result = await _aiService.GetMealRecommendation(userId, mealType, goal);
-            return Ok(ApiResponse<object>.SuccessResponse(result, "G?i � m�n an th�nh c�ng"));
-        }
-
 
         // --- Helper private method ---
         private int GetUserIdFromClaims()

@@ -142,9 +142,6 @@ builder.Services.AddScoped<ProUserService>();
 builder.Services.AddScoped<IMealPlanRepo, MealPlanRepo>();
 builder.Services.AddScoped<MealPlanService>();
 
-builder.Services.AddScoped<IReminderRepo, ReminderRepo>();
-builder.Services.AddScoped<ReminderService>();
-
 builder.Services.AddScoped<IUserMealIngredientRepo, UserMealIngredientRepo>();
 builder.Services.AddScoped<UserMealIngredientService>();
 
