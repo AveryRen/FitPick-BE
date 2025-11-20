@@ -29,6 +29,35 @@ namespace FitPick_EXE201.Repositories.Repo
                                           .Where(u => u.Userid == userId && u.Mealid == mealId)
                                           .ToListAsync();
 
+            // Tự động tạo records cho các nguyên liệu chưa có mark
+            var marksToCreate = new List<UserMealIngredientMark>();
+            foreach (var ingredient in ingredients)
+            {
+                var existingMark = userMarks.FirstOrDefault(u => u.Ingredientid == ingredient.mi.Ingredientid);
+                if (existingMark == null)
+                {
+                    // Tạo mark mới với hasIt = false (mặc định)
+                    marksToCreate.Add(new UserMealIngredientMark
+                    {
+                        Userid = userId,
+                        Mealid = mealId,
+                        Ingredientid = ingredient.mi.Ingredientid,
+                        HasIt = false
+                    });
+                }
+            }
+
+            // Thêm tất cả marks mới vào database cùng lúc
+            if (marksToCreate.Any())
+            {
+                _context.UserMealIngredientMarks.AddRange(marksToCreate);
+                await _context.SaveChangesAsync();
+                // Reload userMarks sau khi tạo mới
+                userMarks = await _context.UserMealIngredientMarks
+                                          .Where(u => u.Userid == userId && u.Mealid == mealId)
+                                          .ToListAsync();
+            }
+
             return ingredients.Select(x =>
             {
                 var mark = userMarks.FirstOrDefault(u => u.Ingredientid == x.mi.Ingredientid);
