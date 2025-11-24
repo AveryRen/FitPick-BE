@@ -1,3 +1,4 @@
+using System;
 using FitPick_EXE201.Data;
 using FitPick_EXE201.Models.DTOs;
 using FitPick_EXE201.Models.Entities;
@@ -33,7 +34,13 @@ namespace FitPick_EXE201.Repositories.Repo
             var marksToCreate = new List<UserMealIngredientMark>();
             foreach (var ingredient in ingredients)
             {
-                var existingMark = userMarks.FirstOrDefault(u => u.Ingredientid == ingredient.mi.Ingredientid);
+                if (!ingredient.mi.Ingredientid.HasValue)
+                {
+                    throw new InvalidOperationException("Ingredient must have an id before creating marks.");
+                }
+
+                var ingredientId = ingredient.mi.Ingredientid.Value;
+                var existingMark = userMarks.FirstOrDefault(u => u.Ingredientid == ingredientId);
                 if (existingMark == null)
                 {
                     // Tạo mark mới với hasIt = false (mặc định)
@@ -41,7 +48,7 @@ namespace FitPick_EXE201.Repositories.Repo
                     {
                         Userid = userId,
                         Mealid = mealId,
-                        Ingredientid = ingredient.mi.Ingredientid,
+                        Ingredientid = ingredientId,
                         HasIt = false
                     });
                 }
@@ -60,10 +67,13 @@ namespace FitPick_EXE201.Repositories.Repo
 
             return ingredients.Select(x =>
             {
-                var mark = userMarks.FirstOrDefault(u => u.Ingredientid == x.mi.Ingredientid);
+                var ingredientId = x.mi.Ingredientid
+                    ?? throw new InvalidOperationException("Ingredient must have an id.");
+
+                var mark = userMarks.FirstOrDefault(u => u.Ingredientid == ingredientId);
                 return new MealIngredientDto
                 {
-                    IngredientId = (int)x.mi.Ingredientid,
+                    IngredientId = ingredientId,
                     Name = x.i.Name,
                     Quantity = x.mi.Quantity ?? 0m,
                     Unit = x.i.Unit,
