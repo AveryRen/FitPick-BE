@@ -29,17 +29,10 @@ namespace FitPick_EXE201.Services
                 // Lấy danh sách nguyên liệu
                 var ingredients = await _mealDetailRepository.GetMealIngredientsAsync(mealId);
                 mealDetail.Ingredients = ingredients;
-                _logger.LogInformation($"Loaded {ingredients?.Count ?? 0} ingredients for meal {mealId}");
 
                 // Lấy hướng dẫn nấu
                 var instructions = await _mealDetailRepository.GetMealInstructionsAsync(mealId);
                 mealDetail.Instructions = instructions;
-                _logger.LogInformation($"Loaded {instructions?.Count ?? 0} instructions for meal {mealId}");
-                
-                if (instructions != null && instructions.Count > 0)
-                {
-                    _logger.LogInformation($"Instructions for meal {mealId}: {string.Join(", ", instructions.Select(i => $"Step {i.StepNumber}: {i.Instruction}"))}");
-                }
 
                 return mealDetail;
             }
