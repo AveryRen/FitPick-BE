@@ -63,18 +63,70 @@ namespace FitPick_EXE201.Repositories.Repo
 
         public async Task<List<MealInstructionDto>> GetMealInstructionsAsync(int mealId)
         {
-            var instructions = await _context.MealInstructions
-                .Where(mi => mi.MealId == mealId)
-                .Select(mi => new MealInstructionDto
+            try
+            {
+                Console.WriteLine($"=== GetMealInstructionsAsync called for mealId: {mealId} ===");
+                
+                // First, check if there are any instructions in the table at all
+                var totalInstructions = await _context.MealInstructions.CountAsync();
+                Console.WriteLine($"Total instructions in database: {totalInstructions}");
+                
+                // Check instructions for this specific meal
+                var instructionsForMeal = await _context.MealInstructions
+                    .Where(mi => mi.MealId == mealId)
+                    .CountAsync();
+                Console.WriteLine($"Instructions with MealId = {mealId}: {instructionsForMeal}");
+                
+                // Get all instructions (for debugging)
+                var allInstructions = await _context.MealInstructions
+                    .Take(10)
+                    .Select(mi => new { mi.MealId, mi.StepNumber, mi.Instruction })
+                    .ToListAsync();
+                Console.WriteLine($"Sample instructions (first 10):");
+                foreach (var inst in allInstructions)
                 {
-                    MealId = mi.MealId,
-                    StepNumber = mi.StepNumber,
-                    Instruction = mi.Instruction
-                })
-                .OrderBy(mi => mi.StepNumber)
-                .ToListAsync();
+                    Console.WriteLine($"  - MealId: {inst.MealId}, Step: {inst.StepNumber}, Instruction: {inst.Instruction?.Substring(0, Math.Min(50, inst.Instruction?.Length ?? 0))}...");
+                }
+                
+                // Now get the actual instructions for this meal
+                var instructions = await _context.MealInstructions
+                    .Where(mi => mi.MealId == mealId)
+                    .Select(mi => new MealInstructionDto
+                    {
+                        MealId = mi.MealId,
+                        StepNumber = mi.StepNumber,
+                        Instruction = mi.Instruction
+                    })
+                    .OrderBy(mi => mi.StepNumber)
+                    .ToListAsync();
 
-            return instructions;
+                Console.WriteLine($"GetMealInstructionsAsync: Found {instructions.Count} instructions for meal {mealId}");
+                if (instructions.Count > 0)
+                {
+                    foreach (var inst in instructions)
+                    {
+                        Console.WriteLine($"  - Step {inst.StepNumber}: {inst.Instruction}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"WARNING: No instructions found for meal {mealId}. Checking if meal exists...");
+                    var mealExists = await _context.Meals.AnyAsync(m => m.Mealid == mealId);
+                    Console.WriteLine($"Meal {mealId} exists: {mealExists}");
+                }
+                
+                return instructions;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in GetMealInstructionsAsync for meal {mealId}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
     }
 }
